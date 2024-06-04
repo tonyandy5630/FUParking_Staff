@@ -18,6 +18,9 @@
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": true,
+     "paths": {
+      "@/*": ["./src/*"]
+    },
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src", "electron"],
