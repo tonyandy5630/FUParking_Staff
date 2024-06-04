@@ -1,4 +1,4 @@
-import { ResponseAPI, SuccessResponse } from "@/types";
+import { ResponseAPI, SuccessResponse } from "../types/index.types";
 import axios, { AxiosError, HttpStatusCode, type AxiosInstance } from "axios";
 import { toast } from "react-toastify";
 
@@ -8,9 +8,9 @@ class Http {
   constructor() {
     this.accessToken = "";
     this.instance = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_AZURE_API,
+      baseURL: "https://api.quotable.io/random",
       timeout: 10000,
-      withCredentials: true,
+      //   withCredentials: true,
       headers: {
         "Content-Type": "application/json",
       },
