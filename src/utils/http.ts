@@ -1,4 +1,4 @@
-import { ResponseAPI, SuccessResponse } from "../types/index.types";
+import { ResponseAPI, SuccessResponse } from "../types/index.type";
 import axios, { AxiosError, HttpStatusCode, type AxiosInstance } from "axios";
 import { toast } from "react-toastify";
 
@@ -8,9 +8,8 @@ class Http {
   constructor() {
     this.accessToken = "";
     this.instance = axios.create({
-      baseURL: "https://api.quotable.io/random",
+      baseURL: (window as any).api.Server_URL ?? "",
       timeout: 10000,
-      //   withCredentials: true,
       headers: {
         "Content-Type": "application/json",
       },

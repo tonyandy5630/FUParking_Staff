@@ -9,6 +9,7 @@ type Props = {
   placeholder: string;
   autofocus?: boolean;
   className?: string;
+  error?: string;
 };
 
 export default function FormInput({
@@ -17,15 +18,18 @@ export default function FormInput({
   autofocus = false,
   placeholder,
   className,
+  error,
 }: Props) {
   const [value, setValue] = React.useState<string>();
   return (
     <ConnectForm>
       {({ register }: UseFormReturn) => (
-        <>
+        <div>
           <Input
             {...register(name)}
-            className={`${className} p-1.5 pl-3 pr-3 w-full border rounded-sm h-7`}
+            className={`${className} p-1.5 pl-3 pr-3 w-full border rounded-sm h-7 ${
+              error !== undefined && "border-destructive"
+            }`}
             type={type}
             id={name}
             name={name}
@@ -33,7 +37,10 @@ export default function FormInput({
             placeholder={placeholder}
             onChange={(e) => setValue(e.target.value)}
           />
-        </>
+          {error !== undefined && (
+            <p className='p-0 mt-1 ml-1 text-xs text-destructive'>{error}</p>
+          )}
+        </div>
       )}
     </ConnectForm>
   );
