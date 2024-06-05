@@ -1,4 +1,4 @@
-import { ResponseAPI } from "../types/index.type";
+import { ResponseAPI } from "../types";
 import http from "@utils/http";
 import { LOGIN_API_URL } from "./url/auth";
 import { UserLogin } from "@my_types/auth";

@@ -8,12 +8,13 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const FormInput = React.forwardRef<HTMLInputElement, Props>(
+  //! pass ref to Input will break
   ({ className, type, name, ...props }, ref) => {
     const [value, setValue] = React.useState<string>();
     return (
       <ConnectForm>
         {({ register, formState: { errors } }: UseFormReturn) => (
-          <>
+          <div className='w-full'>
             <Input
               {...register(name)}
               className={`${className} p-1.5 pl-3 pr-3 w-full border rounded-sm min-h-full ${
@@ -31,7 +32,7 @@ const FormInput = React.forwardRef<HTMLInputElement, Props>(
                 {errors[name].message.toString()}
               </p>
             )}
-          </>
+          </div>
         )}
       </ConnectForm>
     );

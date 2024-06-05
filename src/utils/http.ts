@@ -1,4 +1,4 @@
-import { ResponseAPI, SuccessResponse } from "../types/index.type";
+import { ResponseAPI, SuccessResponse } from "../types";
 import axios, { AxiosError, HttpStatusCode, type AxiosInstance } from "axios";
 import { toast } from "react-toastify";
 

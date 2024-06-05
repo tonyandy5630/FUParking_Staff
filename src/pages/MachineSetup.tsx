@@ -1,7 +1,7 @@
 import { Button } from "@components/ui/button";
-import { GO_BACK_CHANNEL } from "@channels/index";
+import { GO_BACK_CHANNEL, OPEN_ERROR_DIALOG_CHANNEL } from "@channels/index";
 import { ArrowLeft } from "lucide-react";
-import React from "react";
+import React, { BaseSyntheticEvent, SyntheticEvent } from "react";
 import Container from "@components/Layout/container";
 import { useMutation } from "@tanstack/react-query";
 import { changeMachineCodeAPI } from "@apis/machine.api";
@@ -12,6 +12,7 @@ import { MachineCode } from "@my_types/machine";
 import { toast } from "react-toastify";
 import FormInput from "@components/Form/Input";
 import MyButton from "@components/Button";
+import MachineUpdateStatus from "@components/MachineUpdateStatus";
 
 export default function MachineSetupPage() {
   const handleGoBack = () => {
@@ -37,11 +38,16 @@ export default function MachineSetupPage() {
       await changeMachineCodeMutation.mutateAsync(data, {
         onSuccess: () => {
           toast.success("Successfully");
+          toast.onChange((payload) => {
+            if (payload.status === "removed") {
+              window.ipcRenderer.send(GO_BACK_CHANNEL);
+            }
+          });
           reset();
         },
       });
     } catch (error) {
-      console.log(error);
+      window.ipcRenderer.send(OPEN_ERROR_DIALOG_CHANNEL);
     }
   };
 
@@ -56,7 +62,10 @@ export default function MachineSetupPage() {
       </Button>
       <h1 className='text-3xl font-bold text-primary'>Nhập mã cổng</h1>
       <FormProvider {...methods}>
-        <form className='flex items-center justify-center w-3/4 h-10 space-x-2'>
+        <form
+          onSubmit={handleSubmit(onSubmitChange)}
+          className='flex items-baseline justify-center w-3/4 h-10 space-x-2'
+        >
           <FormInput
             className='border-primary'
             name='code'
@@ -66,6 +75,7 @@ export default function MachineSetupPage() {
           <MyButton isLoading={isPending}>Đổi</MyButton>
         </form>
       </FormProvider>
+      <MachineUpdateStatus isSuccess={false} />
     </Container>
   );
 }

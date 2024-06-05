@@ -1,4 +1,4 @@
-import { TO_LOGIN_CHANNEL } from "../channel";
+import { GO_BACK_CHANNEL, OPEN_ERROR_DIALOG_CHANNEL } from "../channel";
 import { app, BrowserWindow, Menu, dialog, ipcMain } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -47,6 +47,8 @@ function createWindow() {
     win?.show();
   });
 
+  win.webContents.openDevTools();
+
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
@@ -55,8 +57,12 @@ function createWindow() {
   }
 }
 
-ipcMain.on(TO_LOGIN_CHANNEL, () => {
-  win?.loadURL(BASE_URL);
+ipcMain.on(GO_BACK_CHANNEL, () => {
+  win?.webContents.goBack();
+});
+
+ipcMain.on(OPEN_ERROR_DIALOG_CHANNEL, (e) => {
+  dialog.showErrorBox("Error", "Something went wrong");
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
