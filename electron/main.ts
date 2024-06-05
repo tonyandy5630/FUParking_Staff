@@ -1,8 +1,9 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu, dialog, ipcMain } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import dotenv from "dotenv";
+import loginMenuItems from "./Menu/loginMenuItems";
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -22,6 +23,7 @@ process.env.APP_ROOT = path.join(__dirname, "..");
 export const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
+export const BASE_URL = "http://localhost:" + process.env.PORT;
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, "public")
@@ -40,6 +42,8 @@ function createWindow() {
     show: false,
   });
 
+  win.webContents.openDevTools();
+
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
@@ -56,6 +60,10 @@ function createWindow() {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
 }
+
+ipcMain.on("send-message", () => {
+  win?.loadURL(BASE_URL);
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -75,4 +83,17 @@ app.on("activate", () => {
   }
 });
 
-app.whenReady().then(createWindow);
+app
+  .whenReady()
+  .then(() => {
+    createWindow();
+    const loginMenu = loginMenuItems(win);
+    if (loginMenu.length === 0) {
+      Promise.reject();
+    }
+    const menu = Menu.buildFromTemplate(loginMenu);
+    Menu.setApplicationMenu(menu);
+  })
+  .catch(() => {
+    dialog.showErrorBox("System error", "Something went wrong");
+  });

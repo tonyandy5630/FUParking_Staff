@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import QueryProviders from "./utils/queryClientProvider";
+import MachineSetupPage from "./pages/MachineSetup";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -12,6 +13,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <Routes>
           <Route path='/' element={<Login />} />
+          <Route path='/setup' element={<MachineSetupPage />} />
         </Routes>
       </BrowserRouter>
     </QueryProviders>
@@ -20,6 +22,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 
 // Use contextBridge
-window.ipcRenderer.on("main-process-message", (_event, message) => {
-  console.log(message);
-});
+(window as any).ipcRenderer.on(
+  "main-process-message",
+  (_event: any, message: string) => {
+    console.log(message);
+  }
+);
