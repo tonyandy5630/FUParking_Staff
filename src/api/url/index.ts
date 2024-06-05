@@ -1,3 +1,3 @@
-const baseURL = (window as any).api.Server_URL;
+const baseURL = window.ipcRenderer.Server_URL;
 
 export default baseURL;

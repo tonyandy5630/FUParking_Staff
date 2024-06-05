@@ -1,11 +1,6 @@
 import { ipcRenderer, contextBridge } from "electron";
 
-export const API = {
-  Server_URL: process.env.DEV_SERVER_API_URL,
-};
-
-// --------- Expose some API to the Renderer process ---------
-contextBridge.exposeInMainWorld("ipcRenderer", {
+export const ipcAPI = {
   on(...args: Parameters<typeof ipcRenderer.on>) {
     const [channel, listener] = args;
     return ipcRenderer.on(channel, (event, ...args) =>
@@ -27,6 +22,7 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   Server_URL: process.env.DEV_SERVER_API_URL,
   // You can expose other APTs you need here.
   // ...
-});
+};
 
-contextBridge.exposeInMainWorld("api", API);
+// --------- Expose some API to the Renderer process ---------
+contextBridge.exposeInMainWorld("ipcRenderer", ipcAPI);

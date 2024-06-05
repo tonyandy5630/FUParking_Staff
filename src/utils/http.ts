@@ -8,7 +8,7 @@ class Http {
   constructor() {
     this.accessToken = "";
     this.instance = axios.create({
-      baseURL: (window as any).api.Server_URL ?? "",
+      baseURL: window.ipcRenderer?.Server_URL ?? "",
       timeout: 10000,
       headers: {
         "Content-Type": "application/json",
