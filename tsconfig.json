@@ -12,6 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "declaration": true,
     "jsx": "react-jsx",
 
     /* Linting */
@@ -20,7 +21,7 @@
     "noUnusedParameters": true,
     "paths": {
       "@utils/*": ["./src/utils/*"],
-      "@types/*": ["./src/types/*"],
+      "@my_types/*": ["./src/types/*"],
       "@components/*": ["./src/components/*"],
       "@constants/*": ["./src/constants/*"],
       "@apis/*": ["./src/api/*"]

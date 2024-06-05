@@ -2,10 +2,11 @@ import { app, BrowserWindow } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-
+import dotenv from "dotenv";
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+dotenv.config();
 // The built directory structure
 //
 // ├─┬─┬ dist
@@ -30,17 +31,22 @@ let win: BrowserWindow | null;
 
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, "Bai_Logo.png"),
+    icon: path.join(process.env.VITE_PUBLIC as string, "Bai_Logo.png"),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },
     center: true,
     title: "Bai Parking System",
+    show: false,
   });
 
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
+  });
+
+  win.once("ready-to-show", () => {
+    win?.show();
   });
 
   if (VITE_DEV_SERVER_URL) {
