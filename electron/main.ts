@@ -1,3 +1,4 @@
+import { TO_LOGIN_CHANNEL } from "../channel";
 import { app, BrowserWindow, Menu, dialog, ipcMain } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -42,13 +43,6 @@ function createWindow() {
     show: false,
   });
 
-  win.webContents.openDevTools();
-
-  // Test active push message to Renderer-process.
-  win.webContents.on("did-finish-load", () => {
-    win?.webContents.send("main-process-message", new Date().toLocaleString());
-  });
-
   win.once("ready-to-show", () => {
     win?.show();
   });
@@ -61,7 +55,7 @@ function createWindow() {
   }
 }
 
-ipcMain.on("send-message", () => {
+ipcMain.on(TO_LOGIN_CHANNEL, () => {
   win?.loadURL(BASE_URL);
 });
 

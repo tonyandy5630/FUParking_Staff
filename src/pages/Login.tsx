@@ -29,7 +29,7 @@ export default function Login(): JSX.Element {
   const onSubmitLogin = async (data: UserLogin) => {
     try {
       await loginMutation.mutateAsync(data, {
-        onSuccess: (res) => {
+        onSuccess: () => {
           toast.success("Login Successfully");
         },
       });

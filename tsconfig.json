@@ -24,7 +24,8 @@
       "@my_types/*": ["./src/types/*"],
       "@components/*": ["./src/components/*"],
       "@constants/*": ["./src/constants/*"],
-      "@apis/*": ["./src/api/*"]
+      "@apis/*": ["./src/api/*"],
+      "@channels/*": ["./channel/*"]
     },
     "noFallthroughCasesInSwitch": true
   },
