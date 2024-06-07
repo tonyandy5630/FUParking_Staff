@@ -28,7 +28,6 @@ export default function Login(): JSX.Element {
   const { isPending } = loginMutation;
 
   const onSubmitLogin = async (data: UserLogin) => {
-    console.log(data);
     try {
       await loginMutation.mutateAsync(data, {
         onSuccess: () => {

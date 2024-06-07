@@ -47,8 +47,6 @@ function createWindow() {
     win?.show();
   });
 
-  win.webContents.openDevTools();
-
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
