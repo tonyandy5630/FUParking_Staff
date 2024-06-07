@@ -3,22 +3,18 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
 import { UserLogin } from "@my_types/auth";
 import UserSchema from "@utils/schema/loginSchema";
-import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { loginAPI } from "@apis/auth.api";
 import { toast } from "react-toastify";
 import MyButton from "@components/Button";
 import Container from "@components/Layout/container";
+import { TO_CHECK_IN_CHANNEL } from "@channels/index";
 
 const IMG_SIZE = 170;
 
 export default function Login(): JSX.Element {
   const methods = useForm({ resolver: yupResolver(UserSchema) });
-  const {
-    formState: { errors },
-    handleSubmit,
-    reset,
-  } = methods;
+  const { handleSubmit, reset } = methods;
 
   const loginMutation = useMutation({
     mutationKey: ["loginMutation"],
@@ -32,6 +28,10 @@ export default function Login(): JSX.Element {
       await loginMutation.mutateAsync(data, {
         onSuccess: () => {
           toast.success("Login Successfully");
+          toast.onChange((payload) => {
+            if (payload.status === "removed")
+              window.ipcRenderer.send(TO_CHECK_IN_CHANNEL);
+          });
         },
       });
     } catch (error) {

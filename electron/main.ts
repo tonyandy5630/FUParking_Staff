@@ -1,4 +1,9 @@
-import { GO_BACK_CHANNEL, OPEN_ERROR_DIALOG_CHANNEL } from "../channel";
+import {
+  GO_BACK_CHANNEL,
+  OPEN_ERROR_DIALOG_CHANNEL,
+  TO_CHECK_IN_CHANNEL,
+  TO_CHECK_OUT_CHANNEL,
+} from "../channel";
 import { app, BrowserWindow, Menu, dialog, ipcMain } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -54,14 +59,23 @@ function createWindow() {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
 }
-
+//#region IPC MAIN
 ipcMain.on(GO_BACK_CHANNEL, () => {
   win?.webContents.goBack();
+});
+
+ipcMain.on(TO_CHECK_IN_CHANNEL, () => {
+  win?.webContents.loadURL(BASE_URL + "/check/in");
+});
+
+ipcMain.on(TO_CHECK_OUT_CHANNEL, () => {
+  win?.webContents.loadURL(BASE_URL + "/check/out");
 });
 
 ipcMain.on(OPEN_ERROR_DIALOG_CHANNEL, (e) => {
   dialog.showErrorBox("Error", "Something went wrong");
 });
+//#endregion
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

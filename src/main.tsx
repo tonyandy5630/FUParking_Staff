@@ -6,6 +6,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import QueryProviders from "./utils/queryClientProvider";
 import MachineSetupPage from "./pages/MachineSetup";
+import CheckInPage from "./pages/CheckIn";
+import Layout from "@components/Layout";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -14,10 +16,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Routes>
           <Route path='/' element={<Login />} />
           <Route path='/setup' element={<MachineSetupPage />} />
+          <Route path='/check' element={<Layout />}>
+            <Route path='in' element={<CheckInPage />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </QueryProviders>
-    <ToastContainer />
+    <ToastContainer autoClose={800} />
   </React.StrictMode>
 );
 
