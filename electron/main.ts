@@ -46,7 +46,10 @@ function createWindow() {
     center: true,
     title: "Bai Parking System",
     show: false,
+    resizable: true,
   });
+
+  win.webContents.openDevTools();
 
   win.once("ready-to-show", () => {
     win?.show();
@@ -65,11 +68,17 @@ ipcMain.on(GO_BACK_CHANNEL, () => {
 });
 
 ipcMain.on(TO_CHECK_IN_CHANNEL, () => {
-  win?.webContents.loadURL(BASE_URL + "/check/in");
+  if (win) {
+    win.webContents.loadURL(BASE_URL + "/check/in");
+    win.maximize();
+  }
 });
 
 ipcMain.on(TO_CHECK_OUT_CHANNEL, () => {
-  win?.webContents.loadURL(BASE_URL + "/check/out");
+  if (win) {
+    win.webContents.loadURL(BASE_URL + "/check/out");
+    win.setFullScreen(true);
+  }
 });
 
 ipcMain.on(OPEN_ERROR_DIALOG_CHANNEL, (e) => {

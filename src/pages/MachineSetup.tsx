@@ -33,7 +33,7 @@ export default function MachineSetupPage() {
     mutationFn: changeMachineCodeAPI,
   });
 
-  const { isPending } = changeMachineCodeMutation;
+  const { isPending, isSuccess, data } = changeMachineCodeMutation;
 
   const onSubmitChange = async (data: MachineCode) => {
     try {
@@ -77,7 +77,11 @@ export default function MachineSetupPage() {
           <MyButton isLoading={isPending}>Đổi</MyButton>
         </form>
       </FormProvider>
-      <MachineUpdateStatus isSuccess={false} />
+      {isSuccess ? (
+        <MachineUpdateStatus isSuccess={isSuccess} />
+      ) : (
+        <MachineUpdateStatus isSuccess={!isSuccess} />
+      )}
     </Container>
   );
 }
