@@ -1,7 +1,7 @@
 import { Button } from "@components/ui/button";
 import { GO_BACK_CHANNEL, OPEN_ERROR_DIALOG_CHANNEL } from "@channels/index";
 import { ArrowLeft } from "lucide-react";
-import React, { BaseSyntheticEvent, SyntheticEvent } from "react";
+import React, { BaseSyntheticEvent, lazy, SyntheticEvent } from "react";
 import Container from "@components/Layout/container";
 import { useMutation } from "@tanstack/react-query";
 import { changeMachineCodeAPI } from "@apis/machine.api";
@@ -12,7 +12,9 @@ import { MachineCode } from "@my_types/machine";
 import { toast } from "react-toastify";
 import FormInput from "@components/Form/Input";
 import MyButton from "@components/Button";
-import MachineUpdateStatus from "@components/MachineUpdateStatus";
+const MachineUpdateStatus = lazy(
+  () => import("@components/MachineUpdateStatus")
+);
 
 export default function MachineSetupPage() {
   const handleGoBack = () => {
