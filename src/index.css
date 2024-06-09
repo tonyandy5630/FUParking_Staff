@@ -78,12 +78,13 @@
 
 @layer base {
   #root {
-    @apply h-full;
+    @apply h-screen;
+    @apply overflow-hidden;
+    @apply min-h-screen;
   }
 
   html,
   body {
-    @apply h-full;
     @apply select-none;
   }
 }
