@@ -38,30 +38,35 @@ export default function Login(): JSX.Element {
       reset();
     }
   };
+
   return (
-    <Container>
-      <img src='/Bai_Logo.png' width={IMG_SIZE} height={IMG_SIZE} />
-      <h1 className='text-4xl font-bold'>BAI Parking System</h1>
-      <FormProvider {...methods}>
-        <form
-          className='flex flex-col min-w-64 gap-y-3'
-          onSubmit={handleSubmit(onSubmitLogin)}
-        >
-          <FormInput
-            name='email'
-            placeholder='Nhập email'
-            autoFocus={true}
-            className='min-w-full'
-          />
-          <FormInput
-            name='password'
-            type='password'
-            placeholder='Nhập mật khẩu'
-            className='min-w-full'
-          />
-          <MyButton isLoading={isPending}>Đăng nhập</MyButton>
-        </form>
-      </FormProvider>
-    </Container>
+    <div className='flex flex-col items-center justify-center w-full h-full min-h-full'>
+      <main className='flex flex-col items-center justify-between min-w-full gap-10 h-fit '>
+        <div className='flex flex-col items-center justify-center'>
+          <img src='/Bai_Logo.png' width={IMG_SIZE} height={IMG_SIZE} />
+          <h1 className='text-4xl font-bold'>BAI Parking System</h1>
+        </div>
+        <FormProvider {...methods}>
+          <form
+            className='flex flex-col min-w-64 gap-y-3'
+            onSubmit={handleSubmit(onSubmitLogin)}
+          >
+            <FormInput
+              name='email'
+              placeholder='Nhập email'
+              autoFocus={true}
+              className='min-w-full'
+            />
+            <FormInput
+              name='password'
+              type='password'
+              placeholder='Nhập mật khẩu'
+              className='min-w-full'
+            />
+            <MyButton isLoading={isPending}>Đăng nhập</MyButton>
+          </form>
+        </FormProvider>
+      </main>
+    </div>
   );
 }
