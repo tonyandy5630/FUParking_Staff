@@ -55,13 +55,13 @@ export default function Login(): JSX.Element {
               name='email'
               placeholder='Nhập email'
               autoFocus={true}
-              className='min-w-full'
+              className='h-10 min-w-full'
             />
             <FormInput
               name='password'
               type='password'
               placeholder='Nhập mật khẩu'
-              className='min-w-full'
+              className='h-10 min-w-full'
             />
             <MyButton isLoading={isPending}>Đăng nhập</MyButton>
           </form>

@@ -10,10 +10,18 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import dotenv from "dotenv";
 import loginMenuItems from "./Menu/loginMenuItems";
+import dotenvExpand from "dotenv-expand";
+
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config();
+
+if (process.resourcesPath) {
+  dotenvExpand.expand(
+    dotenv.config({ path: path.join(process.resourcesPath, ".env") })
+  );
+}
 // The built directory structure
 //
 // ├─┬─┬ dist
