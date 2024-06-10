@@ -1,26 +1,41 @@
-import React from "react";
+import React, { Suspense } from "react";
 import ReactDOM from "react-dom/client";
-import Login from "./pages/Login";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { lazy } from "react";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import QueryProviders from "./utils/queryClientProvider";
-import MachineSetupPage from "./pages/MachineSetup";
-import CheckInPage from "./pages/CheckIn";
-import Layout from "@components/Layout";
+const Layout = lazy(() => import("@components/Layout"));
+const CheckInPage = lazy(() => import("./pages/CheckIn"));
+const MachineSetupPage = lazy(() => import("./pages/MachineSetup"));
+import Login from "./pages/Login";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryProviders>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path='/' element={<Login />} />
-          <Route path='/setup' element={<MachineSetupPage />} />
-          <Route path='/check' element={<Layout />}>
+          <Route
+            path='/setup'
+            element={
+              <Suspense fallback={<p>Loading...</p>}>
+                <MachineSetupPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path='/check'
+            element={
+              <Suspense>
+                <Layout />
+              </Suspense>
+            }
+          >
             <Route path='in' element={<CheckInPage />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </QueryProviders>
     <ToastContainer autoClose={800} />
   </React.StrictMode>
