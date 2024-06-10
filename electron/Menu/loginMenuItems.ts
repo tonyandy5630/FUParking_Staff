@@ -11,7 +11,9 @@ function loginMenuItems(win: BrowserWindow | null) {
       submenu: [
         {
           label: "Machine Settings",
-          click: () => win.webContents.loadURL(BASE_URL + "/setup"),
+          click: () => {
+            win.webContents.loadURL(BASE_URL + "#/setup");
+          },
         },
       ],
     },
