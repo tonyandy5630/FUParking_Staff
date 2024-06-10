@@ -7,7 +7,6 @@ import { FormProvider, useForm } from "react-hook-form";
 import { loginAPI } from "@apis/auth.api";
 import { toast } from "react-toastify";
 import MyButton from "@components/Button";
-import Container from "@components/Layout/container";
 import { TO_CHECK_IN_CHANNEL } from "@channels/index";
 
 const IMG_SIZE = 170;

@@ -4,9 +4,9 @@ import {
   CAMERA_SM,
   SCREENSHOT_MD,
 } from "@constants/camera.const";
-import { sizeTypes, Size, Device } from "@my_types/my-camera";
+import { SizeTypes, Size, Device } from "@my_types/my-camera";
 
-export function getSize(size: sizeTypes, type: Device = "camera"): Size {
+export function getSize(size: SizeTypes, type: Device = "camera"): Size {
   switch (size) {
     case "md":
       return type === "camera" ? CAMERA_MD : SCREENSHOT_MD;

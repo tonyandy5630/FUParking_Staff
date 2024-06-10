@@ -1,5 +1,6 @@
-import { BrowserWindow, MenuItem, MenuItemConstructorOptions } from "electron";
+import { BrowserWindow } from "electron";
 import { BASE_URL } from "../main";
+import PAGE from "../../url";
 
 function loginMenuItems(win: BrowserWindow | null) {
   if (win === null) {
@@ -10,9 +11,15 @@ function loginMenuItems(win: BrowserWindow | null) {
       label: "Settings",
       submenu: [
         {
-          label: "Machine Settings",
+          label: "Update Machine Code",
           click: () => {
-            win.webContents.loadURL(BASE_URL + "#/setup");
+            win.webContents.loadURL(BASE_URL + "#" + PAGE.CODE_SET_UP);
+          },
+        },
+        {
+          label: "Device Setup",
+          click: () => {
+            win.webContents.loadURL(BASE_URL + "#" + PAGE.DEVICE_SET_UP);
           },
         },
       ],

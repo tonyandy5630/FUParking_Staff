@@ -1,4 +1,4 @@
-export type sizeTypes = "sm" | "md";
+export type SizeTypes = "sm" | "md";
 export type Size = {
   width: number;
   height: number;

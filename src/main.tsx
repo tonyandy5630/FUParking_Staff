@@ -9,6 +9,8 @@ const Layout = lazy(() => import("@components/Layout"));
 const CheckInPage = lazy(() => import("./pages/CheckIn"));
 const MachineSetupPage = lazy(() => import("./pages/MachineSetup"));
 import Login from "./pages/Login";
+import PAGE from "../url";
+const DeviceSetupPage = lazy(() => import("./pages/DeviceSetup"));
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -17,10 +19,18 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Routes>
           <Route path='/' element={<Login />} />
           <Route
-            path='/setup'
+            path={PAGE.CODE_SET_UP}
             element={
               <Suspense fallback={<p>Loading...</p>}>
                 <MachineSetupPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path={PAGE.DEVICE_SET_UP}
+            element={
+              <Suspense>
+                <DeviceSetupPage />
               </Suspense>
             }
           />

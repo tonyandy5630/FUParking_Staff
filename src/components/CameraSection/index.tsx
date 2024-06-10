@@ -1,4 +1,4 @@
-import { sizeTypes } from "@my_types/my-camera";
+import { SizeTypes } from "@my_types/my-camera";
 import { getSize } from "@utils/camera";
 import Webcam from "react-webcam";
 import Lane from "./Lane";
@@ -10,7 +10,7 @@ import { Input } from "@components/ui/input";
 
 type Props = {
   deviceId: ConstrainDOMString | undefined;
-  cameraSize?: sizeTypes;
+  cameraSize?: SizeTypes;
   children: any;
 };
 
@@ -24,7 +24,6 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
       setPlateImg(imageSrc);
     }
   }, [webcamRef]);
-  console.log();
   return (
     <Lane>
       <div className='flex flex-col items-start justify-between'>
@@ -34,12 +33,11 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
             audio={false}
             ref={webcamRef}
             onClick={capture}
+            className='w-full h-full'
             videoConstraints={{
               deviceId: props.deviceId,
-              height: size.height,
-              width: size.width,
-              aspectRatio: 3,
             }}
+            style={{ objectFit: "fill" }}
           />
         </Frame>
       </div>

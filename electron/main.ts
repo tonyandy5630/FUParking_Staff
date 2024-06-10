@@ -3,14 +3,17 @@ import {
   OPEN_ERROR_DIALOG_CHANNEL,
   TO_CHECK_IN_CHANNEL,
   TO_CHECK_OUT_CHANNEL,
+  TO_DEVICE_SETUP_CHANNEL,
 } from "../channel";
 import { app, BrowserWindow, Menu, dialog, ipcMain } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import dotenv from "dotenv";
-import loginMenuItems from "./Menu/loginMenuItems";
+import loginMenuItems from "./menu/loginMenuItems";
 import dotenvExpand from "dotenv-expand";
+import PAGE from "../url";
+import { loadURL } from "./utils/electron_utils";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -76,17 +79,15 @@ ipcMain.on(GO_BACK_CHANNEL, () => {
 });
 
 ipcMain.on(TO_CHECK_IN_CHANNEL, () => {
-  if (win) {
-    win.webContents.loadURL(BASE_URL + "#/check/in");
-    win.maximize();
-  }
+  loadURL(PAGE.CHECK_IN);
 });
 
 ipcMain.on(TO_CHECK_OUT_CHANNEL, () => {
-  if (win) {
-    win.webContents.loadURL(BASE_URL + "#/check/out");
-    win.setFullScreen(true);
-  }
+  loadURL(PAGE.CHECK_OUT);
+});
+
+ipcMain.on(TO_DEVICE_SETUP_CHANNEL, () => {
+  loadURL(PAGE.DEVICE_SET_UP);
 });
 
 ipcMain.on(OPEN_ERROR_DIALOG_CHANNEL, (e) => {
