@@ -77,14 +77,14 @@ ipcMain.on(GO_BACK_CHANNEL, () => {
 
 ipcMain.on(TO_CHECK_IN_CHANNEL, () => {
   if (win) {
-    win.webContents.loadURL(BASE_URL + "/check/in");
+    win.webContents.loadURL(BASE_URL + "#/check/in");
     win.maximize();
   }
 });
 
 ipcMain.on(TO_CHECK_OUT_CHANNEL, () => {
   if (win) {
-    win.webContents.loadURL(BASE_URL + "/check/out");
+    win.webContents.loadURL(BASE_URL + "#/check/out");
     win.setFullScreen(true);
   }
 });
