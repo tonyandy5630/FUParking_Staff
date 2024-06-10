@@ -29,7 +29,7 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
     <Lane>
       <div className='flex flex-col items-start justify-between'>
         <p className='text-md'>{props.children}</p>
-        <div className={`border border-black border-solid`}>
+        <Frame>
           <Webcam
             audio={false}
             ref={webcamRef}
@@ -41,7 +41,7 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
               aspectRatio: 3,
             }}
           />
-        </div>
+        </Frame>
       </div>
       <div className='flex items-center justify-end w-full gap-x-1 h-fit'>
         <Input className='w-2/5 h-7 border-primary' placeholder='Biển số xe' />

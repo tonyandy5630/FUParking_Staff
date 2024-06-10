@@ -29,7 +29,7 @@ const FormInput = React.forwardRef<HTMLInputElement, Props>(
             />
             {errors[name]?.message !== undefined && (
               <p className='p-0 mt-1 ml-1 text-xs text-destructive'>
-                {errors[name].message.toString()}
+                {errors[name]?.message?.toString() ?? "error"}
               </p>
             )}
           </div>
