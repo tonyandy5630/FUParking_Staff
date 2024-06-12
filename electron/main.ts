@@ -66,6 +66,57 @@ function createWindow() {
     win?.show();
   });
 
+  win.webContents.session.on(
+    "select-hid-device",
+    (event, details, callback) => {
+      // Add events to handle devices being added or removed before the callback on
+      // `select-hid-device` is called.
+      if (win === null) {
+        return dialog.showErrorBox("Window not exist", "Window is not existed");
+      }
+      win.webContents.session.on("hid-device-added", (event, device) => {
+        console.log("hid-device-added FIRED WITH", device);
+        // Optionally update details.deviceList
+      });
+
+      win.webContents.session.on("hid-device-removed", (event, device) => {
+        console.log("hid-device-removed FIRED WITH", device);
+        // Optionally update details.deviceList
+      });
+
+      event.preventDefault();
+      if (details.deviceList && details.deviceList.length > 0) {
+        win.webContents.send("send-devices", details.deviceList);
+        callback(details.deviceList[0].deviceId);
+      }
+    }
+  );
+
+  win.webContents.session.setPermissionCheckHandler(
+    (webContents, permission, requestingOrigin, details) => {
+      if (
+        (permission === "hid" || permission === "media") &&
+        (details.securityOrigin === "file://" ||
+          details.securityOrigin === "http://localhost:3000/")
+      ) {
+        return true;
+      }
+      return false;
+    }
+  );
+
+  win.webContents.session.setDevicePermissionHandler((details) => {
+    console.log(details);
+    if (
+      details.deviceType === "hid" &&
+      (details.origin === "file://" ||
+        details.origin === "http://localhost:3000/")
+    ) {
+      return true;
+    }
+    return false;
+  });
+
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {

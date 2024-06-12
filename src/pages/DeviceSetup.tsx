@@ -8,32 +8,62 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
+import { HIDDevice } from "electron";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Webcam from "react-webcam";
 
 export default function DeviceSetupPage() {
-  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
+  const [hidDevices, setHidDevices] = useState<HIDDevice[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
+  const [selectHidDevice, setSelectHidDevice] = useState<number>();
 
   const getDevicesAsync = useCallback(async (e?: Event) => {
     const list = await navigator.mediaDevices.enumerateDevices();
     const videoInputs = list.filter((i) => i.kind === "videoinput");
-    setDevices((prev) => videoInputs);
+    setCameraDevices((prev) => videoInputs);
   }, []);
 
-  const onSelectDevice = useCallback((e: string) => {
+  const onSelectCameraDevice = useCallback((e: string) => {
     setSelectedDeviceId(e);
   }, []);
+  console.log("re");
 
-  const deviceItems = useMemo(
+  const onSelectHidDevice = useCallback((e: string) => {
+    setSelectHidDevice(parseInt(e));
+  }, []);
+
+  const cameraItems = useMemo(
     () =>
-      devices.map((item) => (
+      cameraDevices.map((item) => (
         <SelectItem key={item.deviceId} value={item.deviceId}>
           {item.label}
         </SelectItem>
       )),
-    [devices]
+
+    [cameraDevices]
   );
+
+  const hidItems = useMemo(
+    () =>
+      hidDevices.map((item) => (
+        <SelectItem key={item.deviceId} value={item.deviceId}>
+          {item.name}
+        </SelectItem>
+      )),
+    [hidDevices]
+  );
+
+  const getHID = async (open: boolean) => {
+    if (!open) {
+      return;
+    }
+
+    await navigator.hid.requestDevice({ filters: [] });
+    window.ipcRenderer.on("send-devices", (e, data: HIDDevice[]) => {
+      setHidDevices(data);
+    });
+  };
 
   useEffect(() => {
     //* Get all devices at first render
@@ -41,18 +71,17 @@ export default function DeviceSetupPage() {
     //* Get all devices when there is changes in devices
     navigator.mediaDevices.ondevicechange = getDevicesAsync;
   }, [getDevicesAsync]);
-
   return (
     <div className='flex items-center justify-between w-full h-full px-10 bg-red-300'>
       <Lane>
         <h3>Bên trái</h3>
         <div className='py-4'>
-          <Select onValueChange={onSelectDevice}>
+          <Select onValueChange={onSelectCameraDevice}>
             <SelectTrigger className='w-fit'>
               <SelectValue placeholder='Chọn Camera' />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>{deviceItems}</SelectGroup>
+              <SelectGroup>{cameraItems}</SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -68,6 +97,15 @@ export default function DeviceSetupPage() {
             }}
           />
         </Frame>
+        <p>May the</p>
+        <Select onValueChange={onSelectHidDevice} onOpenChange={getHID}>
+          <SelectTrigger className='w-fit'>
+            <SelectValue placeholder='Chọn máy đọc thẻ' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>{hidItems}</SelectGroup>
+          </SelectContent>
+        </Select>
       </Lane>
     </div>
   );
