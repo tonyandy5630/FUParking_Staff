@@ -16,8 +16,8 @@ type Props = {
 
 export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
-  const [plateImg, setPlateImg] = useState();
-  const [size] = useState(getSize("md"));
+  const [plateImg, setPlateImg] = useState("");
+  const [size] = useState(getSize(cameraSize));
   const capture = useCallback(() => {
     if (webcamRef.current) {
       const imageSrc = (webcamRef.current as any).getScreenshot();
@@ -37,7 +37,7 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
             videoConstraints={{
               deviceId: props.deviceId,
             }}
-            style={{ objectFit: "fill" }}
+            style={{ objectFit: "cover" }}
           />
         </Frame>
       </div>
@@ -50,9 +50,10 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
       <Frame>
         <img
           src={plateImg}
-          className={`w-[${size.width}px]  h-[${size.height}px]`}
-          width={"100%"}
-          height={"100%"}
+          onDoubleClick={() => setPlateImg("")}
+          className={`aspect-video object-cover`}
+          width='100%'
+          height='100%'
         />
       </Frame>
     </Lane>

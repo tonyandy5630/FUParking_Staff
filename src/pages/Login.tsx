@@ -8,12 +8,15 @@ import { loginAPI } from "@apis/auth.api";
 import { toast } from "react-toastify";
 import MyButton from "@components/Button";
 import { TO_CHECK_IN_CHANNEL } from "@channels/index";
+import { useNavigate } from "react-router-dom";
+import PAGE from "../../url";
 
 const IMG_SIZE = 170;
 
 export default function Login(): JSX.Element {
   const methods = useForm({ resolver: yupResolver(UserSchema) });
   const { handleSubmit, reset } = methods;
+  const navigate = useNavigate();
 
   const loginMutation = useMutation({
     mutationKey: ["loginMutation"],
@@ -29,7 +32,8 @@ export default function Login(): JSX.Element {
           toast.success("Login Successfully");
           toast.onChange((payload) => {
             if (payload.status === "removed")
-              window.ipcRenderer.send(TO_CHECK_IN_CHANNEL);
+              // window.ipcRenderer.send(TO_CHECK_IN_CHANNEL);
+              navigate(PAGE.CHECK_IN);
           });
         },
       });
