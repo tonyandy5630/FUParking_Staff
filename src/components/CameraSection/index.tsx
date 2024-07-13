@@ -51,7 +51,7 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
         <img
           src={plateImg}
           onDoubleClick={() => setPlateImg("")}
-          className={`aspect-video object-cover`}
+          className={`aspect-video`}
           width='100%'
           height='100%'
         />
