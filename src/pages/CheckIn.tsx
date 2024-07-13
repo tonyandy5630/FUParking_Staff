@@ -33,10 +33,10 @@ export default function CheckInPage() {
               Lane 1
             </CameraSection>
           )}
-          {devices[0] !== undefined && (
+          {devices[1] !== undefined && (
             <CameraSection
               key={"test"}
-              deviceId={devices[0].deviceId}
+              deviceId={devices[1].deviceId}
               cameraSize='md'
             >
               Lane 2
