@@ -93,7 +93,7 @@ function createWindow() {
   );
 
   win.webContents.session.setPermissionCheckHandler(
-    (webContents, permission, requestingOrigin, details) => {
+    (_, permission, __, details) => {
       if (
         (permission === "hid" || permission === "media") &&
         (details.securityOrigin === "file://" ||
@@ -106,7 +106,6 @@ function createWindow() {
   );
 
   win.webContents.session.setDevicePermissionHandler((details) => {
-    console.log(details);
     if (
       details.deviceType === "hid" &&
       (details.origin === "file://" ||
@@ -168,6 +167,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
+
     const loginMenu = loginMenuItems(win);
     if (loginMenu.length === 0) {
       Promise.reject();

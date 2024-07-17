@@ -2,17 +2,27 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@utils/utils";
 import * as React from "react";
 
-const frameVariants = cva("border border-solid border-black aspect-video", {
-  variants: {
-    size: {
-      md: "w-camera-md",
-      sm: "w-camera-sm",
+const frameVariants = cva(
+  "border-4 outline-offset-2 border-solid border-black aspect-video",
+  {
+    variants: {
+      size: {
+        md: "w-camera-md",
+        sm: "w-camera-sm",
+      },
+      type: {
+        success: "border-green-500",
+        regular: "border",
+        error: "border-red-500",
+        loading: "border-yellow-500",
+      },
     },
-  },
-  defaultVariants: {
-    size: "md",
-  },
-});
+    defaultVariants: {
+      size: "md",
+      type: "regular",
+    },
+  }
+);
 
 interface FrameProps
   extends React.HTMLAttributes<HTMLElement>,
@@ -22,8 +32,11 @@ export default function Frame({
   children,
   className,
   size = "md",
+  type = "regular",
 }: FrameProps) {
   return (
-    <div className={cn(frameVariants({ size, className }))}>{children}</div>
+    <div className={cn(frameVariants({ size, className, type }))}>
+      {children}
+    </div>
   );
 }

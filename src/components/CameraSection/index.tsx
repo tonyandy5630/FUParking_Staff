@@ -3,7 +3,6 @@ import { getSize } from "@utils/camera";
 import Webcam from "react-webcam";
 import Lane from "./Lane";
 import { useCallback, useRef, useState } from "react";
-import { CAMERA_MD_HEIGHT, CAMERA_MD_WIDTH } from "@constants/camera.const";
 import { Button } from "@components/ui/button";
 import Frame from "./Frame";
 import { Input } from "@components/ui/input";
@@ -18,6 +17,7 @@ type Props = {
   deviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
   children: any;
+  currentDevice: ConstrainDOMString | undefined;
 };
 
 export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
@@ -31,7 +31,18 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
     mutationFn: licensePlateAPI,
   });
 
-  const capture = useCallback(() => {
+  const {
+    isPending: isReadingPlate,
+    isSuccess: isReadPlateSuccess,
+    isError: isReadPlateError,
+  } = plateDetectionMutation;
+
+  const handleChangePlateTxt = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    setPlateText(e.target.value);
+  };
+
+  const capture = useCallback(async () => {
     try {
       if (webcamRef.current) {
         const body = new FormData();
@@ -39,9 +50,9 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
         const file = base64StringToFile(imageSrc, "uploaded_image.png");
         body.append("upload", file);
         body.append("regions", "vn");
-        plateDetectionMutation.mutate(body, {
+        await plateDetectionMutation.mutateAsync(body, {
           onSuccess: (res: SuccessResponse<LicenseResponse>) => {
-            setPlateText(res.data.results[0].plate);
+            setPlateText(res.data.results[0].plate.toUpperCase());
           },
           onError: (error) => {
             toast.error("Không nhận diện được biển số");
@@ -54,7 +65,7 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
     }
   }, [webcamRef]);
   return (
-    <Lane>
+    <Lane focus={props.deviceId === props.currentDevice}>
       <div className='flex flex-col items-start justify-between'>
         <p className='text-md'>{props.children}</p>
         <Frame>
@@ -75,12 +86,18 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
           className='w-2/5 h-7 border-primary'
           placeholder='Biển số xe'
           value={plateText}
+          autoFocus={props.deviceId === props.currentDevice}
+          onChange={handleChangePlateTxt}
         />
         <Button className='h-6 text-primary' variant='ghost'>
           Sửa
         </Button>
       </div>
-      <Frame>
+      <Frame
+        type={
+          isReadingPlate ? "loading" : isReadPlateSuccess ? "success" : "error"
+        }
+      >
         <img
           src={plateImg}
           onDoubleClick={() => setPlateImg("")}
