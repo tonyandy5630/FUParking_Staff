@@ -2,21 +2,23 @@ import { SizeTypes } from "@my_types/my-camera";
 import { getSize } from "@utils/camera";
 import Webcam from "react-webcam";
 import Lane from "./Lane";
-import { ChangeEvent, useCallback, useRef, useState } from "react";
+import { ChangeEvent, memo, useCallback, useRef, useState } from "react";
 import { Button } from "@components/ui/button";
 import Frame from "./Frame";
 import { Input } from "@components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { licensePlateAPI } from "@apis/license.api";
-import { SuccessResponse } from "@my_types/index";
+import { ErrorResponse, SuccessResponse } from "@my_types/index";
 import { LicenseResponse } from "@my_types/license";
 import { toast } from "react-toastify";
 import { base64StringToFile } from "@utils/file";
-import { customerCheckInAPI } from "@apis/check-in.api";
-import { useForm } from "react-hook-form";
+import { CustomerCheckInAPI, GuestCheckInAPI } from "@apis/check-in.api";
+import { FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CheckInSchema from "@utils/schema/checkinSchema";
 import { CheckIn } from "@my_types/check-in";
+import FormInput from "@components/Form/Input";
+import { CUSTOMER_NOT_EXIST_ERROR } from "@constants/error-message.const";
 
 type Props = {
   deviceId: ConstrainDOMString | undefined;
@@ -24,18 +26,26 @@ type Props = {
   children: any;
   currentDevice: ConstrainDOMString | undefined;
 };
-
-export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
+function CameraSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
   const [plateImg, setPlateImg] = useState("");
   const [plateText, setPlateText] = useState("");
   const [size] = useState(getSize(cameraSize));
   const [cardText, setCardText] = useState("");
+  const methods = useForm({
+    resolver: yupResolver(CheckInSchema),
+    defaultValues: {
+      //! HARD CODE FOR TESTING
+      GateInId: "E74F3F1F-BA7B-4989-EC20-08DC7D140E4F",
+    },
+  });
   const {
     formState: { errors },
     handleSubmit,
     reset,
-  } = useForm({ resolver: yupResolver(CheckInSchema) });
+    setValue,
+    getValues,
+  } = methods;
 
   const plateDetectionMutation = useMutation({
     mutationKey: ["plate-detection"],
@@ -50,26 +60,27 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
 
   const focus = props.currentDevice === props.deviceId;
 
-  const checkInMutation = useMutation({
-    mutationKey: ["guest-check-in"],
-    mutationFn: customerCheckInAPI,
+  const customerCheckInMutation = useMutation({
+    mutationKey: ["customer-check-in"],
+    mutationFn: CustomerCheckInAPI,
   });
 
-  const { isSuccess: isCheckInSuccess, isPending: isCheckingPending } =
-    checkInMutation;
+  const guestCheckInMutation = useMutation({
+    mutationKey: ["guest-check-in"],
+    mutationFn: GuestCheckInAPI,
+  });
 
-  const onCheckIn = async (data: CheckIn) => {
-    try {
-      await handleCapturePlate();
-      await checkInMutation.mutateAsync(data, {
-        onSuccess: (res) => {
-          reset();
-        },
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const {
+    isSuccess: isCustomerCheckInSuccess,
+    isPending: isCustomerCheckingIn,
+    isError: isCustomerCheckInError,
+  } = customerCheckInMutation;
+
+  const {
+    isSuccess: isGuestCheckInSuccess,
+    isPending: isGuestCheckingIn,
+    isError: isGuestCheckInError,
+  } = guestCheckInMutation;
 
   const handleChangePlateTxt = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
@@ -78,31 +89,83 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
 
   const onCardTextChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCardText(e.target.value);
-    console.log(e.target.value);
   };
 
-  const handleCapturePlate = useCallback(async () => {
-    try {
-      if (webcamRef.current) {
-        const body = new FormData();
-        const imageSrc = (webcamRef.current as any).getScreenshot();
-        const file = base64StringToFile(imageSrc, "uploaded_image.png");
-        body.append("upload", file);
-        body.append("regions", "vn");
-        await plateDetectionMutation.mutateAsync(body, {
-          onSuccess: (res: SuccessResponse<LicenseResponse>) => {
-            setPlateText(res.data.results[0].plate.toUpperCase());
-          },
-          onError: (error) => {
-            toast.error("Không nhận diện được biển số");
-          },
-        });
-        setPlateImg(imageSrc);
+  const onCheckIn = useCallback(
+    async (checkInData: CheckIn) => {
+      try {
+        if (webcamRef.current) {
+          const plateNumberBody = new FormData();
+          const imageSrc = (webcamRef.current as any).getScreenshot();
+          const file = base64StringToFile(imageSrc, "uploaded_image.png");
+          plateNumberBody.append("upload", file);
+          plateNumberBody.append("regions", "vn");
+
+          await plateDetectionMutation.mutateAsync(plateNumberBody, {
+            onSuccess: async (
+              plateDetectionRes: SuccessResponse<LicenseResponse>
+            ) => {
+              checkInData.PlateNumber =
+                plateDetectionRes.data.results[0].plate.toUpperCase();
+              checkInData.ImageIn = imageSrc;
+
+              const checkInBody = new FormData();
+              checkInBody.append(
+                "PlateNumber",
+                plateDetectionRes.data.results[0].plate.toUpperCase()
+              );
+              console.log(checkInData);
+              checkInBody.append("CardNumber", checkInData.CardNumber ?? "");
+              checkInBody.append("ImageIn", file);
+              //! HARD CODE FOR TESTING
+              checkInBody.append(
+                "GateInId",
+                "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F"
+              );
+
+              setPlateText(checkInData.PlateNumber);
+              setValue("PlateNumber", checkInData.PlateNumber);
+
+              await customerCheckInMutation.mutateAsync(checkInBody as any, {
+                onSuccess: (res) => {
+                  reset();
+                  setPlateImg(imageSrc);
+                },
+                onError: async (error: any) => {
+                  if (
+                    error.response.data.message === CUSTOMER_NOT_EXIST_ERROR
+                  ) {
+                    checkInBody.append(
+                      "VehicleTypeId",
+                      "F5AE3A7E-EAF1-4A38-542F-08DC711EAFF7"
+                    );
+                    await guestCheckInMutation.mutateAsync(checkInBody as any, {
+                      onSuccess: (res) => {
+                        reset();
+                        setPlateImg(imageSrc);
+                      },
+                      onError: (error) => {
+                        reset();
+                        console.error(error);
+                      },
+                    });
+                  }
+                },
+              });
+            },
+            onError: (error) => {
+              toast.error("Không nhận diện được biển số");
+              reset();
+            },
+          });
+        }
+      } catch (error) {
+        reset();
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
-    }
-  }, [webcamRef]);
+    },
+    [webcamRef, plateImg, cardText]
+  );
 
   return (
     <Lane focus={props.deviceId === props.currentDevice}>
@@ -112,7 +175,6 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
           <Webcam
             audio={false}
             ref={webcamRef}
-            onClick={handleCapturePlate}
             className='w-full h-full'
             videoConstraints={{
               deviceId: props.deviceId,
@@ -121,29 +183,37 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
           />
         </Frame>
       </div>
-      <form
-        className='flex items-center justify-end w-full gap-x-1 h-fit'
-        onSubmit={handleSubmit(onCheckIn)}
-      >
-        <Input
-          className='w-2/5 h-7 border-primary'
-          placeholder='Biển số xe'
-          value={plateText}
-          onChange={handleChangePlateTxt}
-        />
-        <input
-          // type='hidden'
-          autoFocus={focus}
-          value={cardText}
-          onChange={onCardTextChange}
-        />
-        <Button type='submit' className='h-6 text-primary' variant='ghost'>
-          Sửa
-        </Button>
-      </form>
+      <FormProvider {...methods}>
+        <form
+          className='flex items-center justify-end w-full gap-x-1 h-fit'
+          onSubmit={handleSubmit(onCheckIn)}
+        >
+          <FormInput
+            className='w-2/5 h-7 border-primary'
+            placeholder='Biển số xe'
+            name='PlateNumber'
+            value={plateText}
+            onChange={handleChangePlateTxt}
+          />
+          <FormInput
+            // type='hidden'
+            autoFocus={focus}
+            value={cardText}
+            name='CardNumber'
+            onChange={onCardTextChange}
+          />
+          <Button type='submit' className='h-6 text-primary' variant='ghost'>
+            Sửa
+          </Button>
+        </form>
+      </FormProvider>
       <Frame
         type={
-          isCheckingPending ? "loading" : isCheckInSuccess ? "success" : "error"
+          isCustomerCheckingIn || isGuestCheckingIn
+            ? "loading"
+            : isCustomerCheckInError && isGuestCheckInError
+            ? "error"
+            : "success"
         }
       >
         <img
@@ -157,3 +227,5 @@ export default function CameraSection({ cameraSize = "sm", ...props }: Props) {
     </Lane>
   );
 }
+
+export default memo(CameraSection);

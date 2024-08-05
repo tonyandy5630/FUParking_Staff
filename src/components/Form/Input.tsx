@@ -10,7 +10,7 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
 const FormInput = React.forwardRef<HTMLInputElement, Props>(
   //! pass ref to Input will break
   ({ className, type, name, ...props }, ref) => {
-    const [value, setValue] = React.useState<string>();
+    // const [value, setValue] = React.useState<string>();
     return (
       <ConnectForm>
         {({ register, formState: { errors } }: UseFormReturn) => (
@@ -25,7 +25,7 @@ const FormInput = React.forwardRef<HTMLInputElement, Props>(
               name={name}
               autoFocus={props.autoFocus}
               placeholder={props.placeholder}
-              onChange={(e) => setValue(e.target.value)}
+              // onChange={(e) => setValue(e.target.value)}
             />
             {errors[name]?.message !== undefined && (
               <p className='p-0 mt-1 ml-1 text-xs text-destructive'>

@@ -46,7 +46,8 @@ export default function CheckInPage() {
     return () => {
       document.removeEventListener("keydown", handleKeyPress);
     };
-  }, [handleDevices, curLane, devices]);
+  }, [handleDevices, curLane, devices.length]);
+
   return (
     <>
       {devices.length !== 0 && (

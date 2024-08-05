@@ -10,6 +10,7 @@ const CheckInPage = lazy(() => import("./pages/CheckIn"));
 const MachineSetupPage = lazy(() => import("./pages/MachineSetup"));
 import Login from "./pages/Login";
 import PAGE from "../url";
+import CheckOutPage from "./pages/CheckOut";
 const DeviceSetupPage = lazy(() => import("./pages/DeviceSetup"));
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -43,6 +44,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             }
           >
             <Route path='in' element={<CheckInPage />} />
+            <Route path='out' element={<CheckOutPage />} />
           </Route>
         </Routes>
       </HashRouter>

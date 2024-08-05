@@ -1,7 +1,7 @@
 import FormInput from "@components/Form/Input";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
-import { UserLogin } from "@my_types/auth";
+import { User, UserLogin } from "@my_types/auth";
 import UserSchema from "@utils/schema/loginSchema";
 import { FormProvider, useForm } from "react-hook-form";
 import { loginAPI } from "@apis/auth.api";
@@ -10,6 +10,8 @@ import MyButton from "@components/Button";
 import { TO_CHECK_IN_CHANNEL } from "@channels/index";
 import { useNavigate } from "react-router-dom";
 import PAGE from "../../url";
+import { ErrorResponse, SuccessResponse } from "@my_types/index";
+import { setTokenToLS } from "@utils/localStorage";
 
 const IMG_SIZE = 170;
 
@@ -28,12 +30,14 @@ export default function Login(): JSX.Element {
   const onSubmitLogin = async (data: UserLogin) => {
     try {
       await loginMutation.mutateAsync(data, {
-        onSuccess: () => {
+        onSuccess: (res) => {
+          setTokenToLS(res.data.data?.bearerToken ?? "");
           toast.success("Login Successfully");
           toast.onChange((payload) => {
             if (payload.status === "removed")
               // window.ipcRenderer.send(TO_CHECK_IN_CHANNEL);
-              navigate(PAGE.CHECK_IN);
+              // navigate(PAGE.CHECK_IN);
+              navigate(PAGE.CHECK_OUT);
           });
         },
       });

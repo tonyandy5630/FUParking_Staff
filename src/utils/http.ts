@@ -1,12 +1,15 @@
 import { ResponseAPI, SuccessResponse } from "../types";
 import axios, { AxiosError, HttpStatusCode, type AxiosInstance } from "axios";
 import { toast } from "react-toastify";
+import { getTokenFromLS } from "./localStorage";
+import { LICENSE_DETECT_API_URL } from "@apis/url/license";
+import { CUSTOMER_NOT_EXIST_ERROR } from "@constants/error-message.const";
 
 class Http {
   instance: AxiosInstance;
-  private accessToken: string;
+  private accessToken: string | null;
   constructor() {
-    this.accessToken = "";
+    this.accessToken = getTokenFromLS();
     this.instance = axios.create({
       baseURL: window.ipcRenderer?.Server_URL ?? "",
       timeout: 10000,
@@ -17,10 +20,11 @@ class Http {
 
     this.instance.interceptors.request.use(
       (config) => {
-        if (this.accessToken !== "" && config.headers) {
-          config.headers.Authorization = `Bearer ${this.accessToken}`;
-          return config;
-        }
+        if (config.url !== LICENSE_DETECT_API_URL)
+          if (this.accessToken !== "" && config.headers) {
+            config.headers.Authorization = `Bearer ${this.accessToken}`;
+            return config;
+          }
         return config;
       },
       (error) => {
@@ -36,7 +40,9 @@ class Http {
         if (error.response?.status !== HttpStatusCode.UnprocessableEntity) {
           const data: any | undefined = error.response?.data;
           const message = data.message || error.message;
-          toast.error(message);
+          if (message !== CUSTOMER_NOT_EXIST_ERROR) {
+            toast.error(message);
+          }
         }
         return Promise.reject(error);
       }
