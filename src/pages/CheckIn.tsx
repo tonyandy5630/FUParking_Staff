@@ -22,6 +22,11 @@ export default function CheckInPage() {
     const handleKeyPress = (event: KeyboardEvent) => {
       // Check if Ctrl key is pressed and Tab key is pressed simultaneously
       event.stopPropagation();
+
+      if (devices.length === 1) {
+        setCurLane(devices[0].deviceId);
+      }
+
       if (devices.length < 2) {
         return;
       }
@@ -41,7 +46,7 @@ export default function CheckInPage() {
     return () => {
       document.removeEventListener("keydown", handleKeyPress);
     };
-  }, [handleDevices, curLane]);
+  }, [handleDevices, curLane, devices]);
   return (
     <>
       {devices.length !== 0 && (

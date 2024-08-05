@@ -1,6 +1,6 @@
 type Props = {
   children: any;
-  focus: boolean;
+  focus?: boolean;
 };
 
 export default function Lane({ children, focus }: Props) {
