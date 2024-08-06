@@ -25,6 +25,7 @@ const FormInput = React.forwardRef<HTMLInputElement, Props>(
               name={name}
               autoFocus={props.autoFocus}
               placeholder={props.placeholder}
+              disabled={props.disabled}
               // onChange={(e) => setValue(e.target.value)}
             />
             {errors[name]?.message !== undefined && (

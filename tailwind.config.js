@@ -18,7 +18,7 @@ module.exports = {
     extend: {
       width: {
         "camera-md": "570px",
-        "camera-sm": "430px",
+        "camera-sm": "480px",
       },
       colors: {
         border: "hsl(var(--border))",

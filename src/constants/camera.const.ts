@@ -11,7 +11,7 @@ export const CAMERA_MD: Size = {
 
 //#region Camera size SM
 export const CAMERA_SM_HEIGHT = 200;
-export const CAMERA_SM_WIDTH = 500;
+export const CAMERA_SM_WIDTH = 300;
 export const CAMERA_SM: Size = {
   width: CAMERA_SM_HEIGHT,
   height: CAMERA_SM_WIDTH,

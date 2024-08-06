@@ -20,12 +20,13 @@ import { CheckIn } from "@my_types/check-in";
 import FormInput from "@components/Form/Input";
 import { CUSTOMER_NOT_EXIST_ERROR } from "@constants/error-message.const";
 
-type Props = {
+export type Props = {
   deviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
   children: any;
   currentDevice: ConstrainDOMString | undefined;
 };
+
 function CameraSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
   const [plateImg, setPlateImg] = useState("");
@@ -39,6 +40,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
       GateInId: "E74F3F1F-BA7B-4989-EC20-08DC7D140E4F",
     },
   });
+
   const {
     formState: { errors },
     handleSubmit,
