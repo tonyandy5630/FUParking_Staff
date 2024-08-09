@@ -1,19 +1,17 @@
-import toLocaleDate from "@utils/date";
+import React from "react";
 
-const MIN_HEIGHT = 16;
+const LOGO_WIDTH = 50;
+const LOGO_HEIGHT = 50;
 
 export default function Header() {
   return (
-    <>
-      <header
-        className={`min-h-9 fixed left-0 right-0 flex items-center justify-between px-3`}
-      >
-        <h2 className='text-xl font-bold text-primary-text'>Cổng 1</h2>
-        <h2 className='text-lg font-bold text-primary-text'>
-          {toLocaleDate(new Date())}
-        </h2>
-      </header>
-      <div className={`min-h-4 mb-2`} />
-    </>
+    <div className='flex items-center justify-start min-w-full p-2 min-h-4 bg-primary-text'>
+      <div className='flex items-center justify-between'>
+        <img src='./Bai_Logo.png' width={LOGO_WIDTH} height={LOGO_HEIGHT} />
+        <p className='font-bold text-white uppercase text-md'>
+          PARKING MANAGEMENT SYSTEM
+        </p>
+      </div>
+    </div>
   );
 }
