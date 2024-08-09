@@ -15,6 +15,7 @@ import { CheckOut, CheckOutResponse } from "@my_types/check-out";
 import { base64StringToFile } from "@utils/file";
 import { ErrorResponse } from "@my_types/index";
 import { NEED_TO_PAY } from "@constants/error-message.const";
+import { toast } from "react-toastify";
 
 function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
@@ -55,12 +56,15 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     mutationFn: checkOutPaymentAPI,
   });
 
+  const { isError: isCheckOutError, isSuccess: isCheckoutSuccess } =
+    checkOutMutation;
+
   const { isError: checkOutError } = checkOutMutation;
 
   const onCheckOutPayment = async () => {
     try {
       const data = getValues("CardNumber") as string;
-
+      console.log(data);
       await paymentMutation.mutateAsync(data, {
         onSuccess: (res) => {
           reset();
@@ -93,10 +97,12 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
           setPlateImg(res.data?.data.imageIn);
           setCashToPay(res.data?.data.amount);
           setPlateText(res.data?.data.plateNumber);
-          console.log(isNeedToPay);
 
           if (isNeedToPay) {
             setNeedPay(true);
+          } else {
+            reset({ CardNumber: "" });
+            toast.success("Xe da thanh toan");
           }
         },
       });
@@ -104,7 +110,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
       console.log(error);
     }
   };
-
+  console.log(plateImg);
   return (
     <Lane focus={props.deviceId === props.currentDevice}>
       <div className='flex flex-col items-start justify-between'>
@@ -132,9 +138,9 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
           onSubmit={handleSubmit(onCheckOut)}
         >
           <div className='flex flex-col items-baseline font-bold gap-x-1'>
-            <p>
-              <span className='text-sm'>Biển xe vào</span>{" "}
-              <span className='text-primary'>{plateText}</span>
+            <p className='mb-3'>
+              <span className='text-sm'>Biển xe ra</span>{" "}
+              <span className='text-lg text-primary'>{plateText}</span>
             </p>
             <FormInput
               onChange={onCardTextChange}
@@ -155,18 +161,23 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
               disabled={!needPay}
               onClick={onCheckOutPayment}
             >
-              Đã thanh toán
+              Thanh toán
             </Button>
           </div>
         </form>
       </FormProvider>
       <Frame
         size={cameraSize}
-        type={needPay || checkOutError ? "error" : "regular"}
+        type={
+          needPay || checkOutError
+            ? "error"
+            : isCheckoutSuccess
+            ? "success"
+            : "loading"
+        }
       >
         <img
           src={plateImg}
-          onDoubleClick={() => setPlateImg("")}
           className={`aspect-video`}
           width='100%'
           height='100%'

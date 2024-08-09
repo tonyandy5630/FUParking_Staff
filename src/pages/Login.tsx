@@ -7,18 +7,34 @@ import { FormProvider, useForm } from "react-hook-form";
 import { loginAPI } from "@apis/auth.api";
 import { toast } from "react-toastify";
 import MyButton from "@components/Button";
-import { TO_CHECK_IN_CHANNEL } from "@channels/index";
+import { EnterIcon, ExitIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
 import PAGE from "../../url";
-import { ErrorResponse, SuccessResponse } from "@my_types/index";
 import { setTokenToLS } from "@utils/localStorage";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
+import { ChangeEvent, useState } from "react";
 
 const IMG_SIZE = 170;
+const GATE_IN = "in";
+const GATE_OUT = "out";
 
 export default function Login(): JSX.Element {
   const methods = useForm({ resolver: yupResolver(UserSchema) });
   const { handleSubmit, reset } = methods;
+  const [gate, setGate] = useState(GATE_IN);
   const navigate = useNavigate();
+
+  const handleGateChange = (value: string) => {
+    setGate(value);
+    console.log(value);
+  };
 
   const loginMutation = useMutation({
     mutationKey: ["loginMutation"],
@@ -35,9 +51,13 @@ export default function Login(): JSX.Element {
           toast.success("Login Successfully");
           toast.onChange((payload) => {
             if (payload.status === "removed")
-              // window.ipcRenderer.send(TO_CHECK_IN_CHANNEL);
-              // navigate(PAGE.CHECK_IN);
-              navigate(PAGE.CHECK_OUT);
+              if (gate === GATE_IN) {
+                // window.ipcRenderer.send(TO_CHECK_IN_CHANNEL);
+                // navigate(PAGE.CHECK_IN);
+                navigate(PAGE.CHECK_IN);
+              } else {
+                navigate(PAGE.CHECK_OUT);
+              }
           });
         },
       });
@@ -52,6 +72,29 @@ export default function Login(): JSX.Element {
         <div className='flex flex-col items-center justify-center'>
           <img src='/Bai_Logo.png' width={IMG_SIZE} height={IMG_SIZE} />
           <h1 className='text-4xl font-bold'>BAI Parking System</h1>
+        </div>
+        <div className='absolute top-3 right-5 border-primary h-44'>
+          <Select onValueChange={handleGateChange} defaultValue={gate}>
+            <SelectTrigger className='w-[150px]'>
+              <SelectValue placeholder='Chọn cổng' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value={GATE_IN}>
+                  <div className='flex items-center justify-around gap-x-3'>
+                    <EnterIcon />
+                    Cổng vào
+                  </div>
+                </SelectItem>
+                <SelectItem value={GATE_OUT}>
+                  <div className='flex items-center justify-around gap-x-3'>
+                    <ExitIcon />
+                    Cổng ra
+                  </div>
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
         <FormProvider {...methods}>
           <form

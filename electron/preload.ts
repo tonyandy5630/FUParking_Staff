@@ -19,7 +19,6 @@ export const ipcAPI = {
     const [channel, ...omit] = args;
     return ipcRenderer.invoke(channel, ...omit);
   },
-  Server_URL: process.env.DEV_SERVER_API_URL,
   // You can expose other APTs you need here.
   // ...
 };

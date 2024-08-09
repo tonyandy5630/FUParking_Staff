@@ -93,81 +93,74 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
     setCardText(e.target.value);
   };
 
-  const onCheckIn = useCallback(
-    async (checkInData: CheckIn) => {
-      try {
-        if (webcamRef.current) {
-          const plateNumberBody = new FormData();
-          const imageSrc = (webcamRef.current as any).getScreenshot();
-          const file = base64StringToFile(imageSrc, "uploaded_image.png");
-          plateNumberBody.append("upload", file);
-          plateNumberBody.append("regions", "vn");
+  const onCheckIn = async (checkInData: CheckIn) => {
+    try {
+      if (webcamRef.current) {
+        const plateNumberBody = new FormData();
+        const imageSrc = (webcamRef.current as any).getScreenshot();
+        const file = base64StringToFile(imageSrc, "uploaded_image.png");
+        plateNumberBody.append("upload", file);
+        plateNumberBody.append("regions", "vn");
 
-          await plateDetectionMutation.mutateAsync(plateNumberBody, {
-            onSuccess: async (
-              plateDetectionRes: SuccessResponse<LicenseResponse>
-            ) => {
-              checkInData.PlateNumber =
-                plateDetectionRes.data.results[0].plate.toUpperCase();
-              checkInData.ImageIn = imageSrc;
+        await plateDetectionMutation.mutateAsync(plateNumberBody, {
+          onSuccess: async (
+            plateDetectionRes: SuccessResponse<LicenseResponse>
+          ) => {
+            checkInData.PlateNumber =
+              plateDetectionRes.data.results[0].plate.toUpperCase();
+            checkInData.ImageIn = imageSrc;
+            const checkInBody = new FormData();
+            checkInBody.append(
+              "PlateNumber",
+              plateDetectionRes.data.results[0].plate.toUpperCase()
+            );
+            checkInBody.append("CardNumber", checkInData.CardNumber ?? "");
+            checkInBody.append("ImageIn", file);
+            //! HARD CODE FOR TESTING
+            checkInBody.append(
+              "GateInId",
+              "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F"
+            );
 
-              const checkInBody = new FormData();
-              checkInBody.append(
-                "PlateNumber",
-                plateDetectionRes.data.results[0].plate.toUpperCase()
-              );
-              console.log(checkInData);
-              checkInBody.append("CardNumber", checkInData.CardNumber ?? "");
-              checkInBody.append("ImageIn", file);
-              //! HARD CODE FOR TESTING
-              checkInBody.append(
-                "GateInId",
-                "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F"
-              );
+            setPlateText(plateDetectionRes.data.results[0].plate.toUpperCase());
+            setValue("PlateNumber", checkInData.PlateNumber);
 
-              setPlateText(checkInData.PlateNumber);
-              setValue("PlateNumber", checkInData.PlateNumber);
-
-              await customerCheckInMutation.mutateAsync(checkInBody as any, {
-                onSuccess: (res) => {
-                  reset();
-                  setPlateImg(imageSrc);
-                },
-                onError: async (error: any) => {
-                  if (
-                    error.response.data.message === CUSTOMER_NOT_EXIST_ERROR
-                  ) {
-                    checkInBody.append(
-                      "VehicleTypeId",
-                      "F5AE3A7E-EAF1-4A38-542F-08DC711EAFF7"
-                    );
-                    await guestCheckInMutation.mutateAsync(checkInBody as any, {
-                      onSuccess: (res) => {
-                        reset();
-                        setPlateImg(imageSrc);
-                      },
-                      onError: (error) => {
-                        reset();
-                        console.error(error);
-                      },
-                    });
-                  }
-                },
-              });
-            },
-            onError: (error) => {
-              toast.error("Không nhận diện được biển số");
-              reset();
-            },
-          });
-        }
-      } catch (error) {
-        reset();
-        console.log(error);
+            await customerCheckInMutation.mutateAsync(checkInBody as any, {
+              onSuccess: (res) => {
+                setPlateImg(imageSrc);
+                reset({ CardNumber: "" });
+                reset();
+              },
+              onError: async (error: any) => {
+                if (error.response.data.message === CUSTOMER_NOT_EXIST_ERROR) {
+                  checkInBody.append(
+                    "VehicleTypeId",
+                    "F5AE3A7E-EAF1-4A38-542F-08DC711EAFF7"
+                  );
+                  await guestCheckInMutation.mutateAsync(checkInBody as any, {
+                    onSuccess: (res) => {
+                      setPlateImg(imageSrc);
+                      reset({ CardNumber: "" });
+                    },
+                    onError: (error) => {
+                      reset();
+                    },
+                  });
+                }
+              },
+            });
+          },
+          onError: (error) => {
+            toast.error("Không nhận diện được biển số");
+            reset();
+          },
+        });
       }
-    },
-    [webcamRef, plateImg, cardText]
-  );
+    } catch (error) {
+      reset();
+      console.log(error);
+    }
+  };
 
   return (
     <Lane focus={props.deviceId === props.currentDevice}>

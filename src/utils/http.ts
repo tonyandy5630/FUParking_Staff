@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { getTokenFromLS } from "./localStorage";
 import { LICENSE_DETECT_API_URL } from "@apis/url/license";
 import { CUSTOMER_NOT_EXIST_ERROR } from "@constants/error-message.const";
+import baseAPI_URL from "@apis/url";
 
 class Http {
   instance: AxiosInstance;
@@ -11,8 +12,8 @@ class Http {
   constructor() {
     this.accessToken = getTokenFromLS();
     this.instance = axios.create({
-      baseURL: window.ipcRenderer?.Server_URL ?? "",
-      timeout: 10000,
+      baseURL: baseAPI_URL ?? "",
+      timeout: 30000,
       headers: {
         "Content-Type": "application/json",
       },
