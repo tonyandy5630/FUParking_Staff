@@ -1,5 +1,5 @@
 export type CheckIn = {
-  CardNumber?: string;
+  CardId?: string;
   GateInId?: string;
   PlateNumber?: string;
   ImageIn?: any;

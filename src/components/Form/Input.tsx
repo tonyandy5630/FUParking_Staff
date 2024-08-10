@@ -1,16 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import ConnectForm from "./ConnectForm";
 import { UseFormReturn } from "react-hook-form";
 import { Input } from "@components/ui/input";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const FormInput = React.forwardRef<HTMLInputElement, Props>(
   //! pass ref to Input will break
-  ({ className, type, name, ...props }, ref) => {
-    // const [value, setValue] = React.useState<string>();
+  ({ className, type, name, onChange, ...props }, ref) => {
     return (
       <ConnectForm>
         {({ register, formState: { errors } }: UseFormReturn) => (
@@ -20,13 +20,15 @@ const FormInput = React.forwardRef<HTMLInputElement, Props>(
               className={`${className} p-1.5 pl-3 pr-3 w-full border rounded-sm min-h-full ${
                 errors[name]?.message !== undefined && "border-destructive"
               }`}
+              ref={ref}
               type={type}
               id={name}
               name={name}
               autoFocus={props.autoFocus}
               placeholder={props.placeholder}
+              onChange={onChange}
               disabled={props.disabled}
-              // onChange={(e) => setValue(e.target.value)}
+              {...props}
             />
             {errors[name]?.message !== undefined && (
               <p className='p-0 mt-1 ml-1 text-xs text-destructive'>

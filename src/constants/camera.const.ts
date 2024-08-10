@@ -2,7 +2,7 @@ import { Size } from "@my_types/my-camera";
 
 //#region Camera size MD
 export const CAMERA_MD_HEIGHT = 390;
-export const CAMERA_MD_WIDTH = 570;
+export const CAMERA_MD_WIDTH = 768;
 export const CAMERA_MD: Size = {
   width: CAMERA_MD_WIDTH,
   height: CAMERA_MD_HEIGHT,

@@ -86,7 +86,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
       const file = base64StringToFile(imageSrc, "uploaded_image.png");
       const current = new Date().toLocaleTimeString();
 
-      checkOutBody.append("CardNumber", data.CardNumber ?? "");
+      checkOutBody.append("CardNumber", cardText);
       checkOutBody.append("ImageOut", file);
       checkOutBody.append("TimeOut", current);
       checkOutBody.append("GateOutId", data.GateOutId ?? "");

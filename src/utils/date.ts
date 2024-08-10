@@ -1,7 +1,8 @@
 const options: Intl.DateTimeFormatOptions = {
-  weekday: "long",
+  hour: "numeric",
+  minute: "numeric",
   year: "numeric",
-  month: "long",
+  month: "numeric",
   day: "numeric",
 };
 
