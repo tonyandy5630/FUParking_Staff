@@ -26,17 +26,23 @@ const frameVariants = cva(
 
 interface FrameProps
   extends React.HTMLAttributes<HTMLElement>,
-    VariantProps<typeof frameVariants> {}
+    VariantProps<typeof frameVariants> {
+  title?: string;
+}
 
 export default function Frame({
   children,
   className,
   size = "md",
+  title,
   type = "regular",
 }: FrameProps) {
   return (
-    <div className={cn(frameVariants({ size, className, type }))}>
-      {children}
+    <div>
+      <p className='min-w-full text-center'>{title}</p>
+      <div className={cn(frameVariants({ size, className, type }))}>
+        {children}
+      </div>
     </div>
   );
 }

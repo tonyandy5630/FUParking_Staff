@@ -14,4 +14,4 @@ export const checkOutAPI = (data: ErrorResponse<CheckOutResponse>) =>
   });
 
 export const checkOutPaymentAPI = (CardNumber: string) =>
-  http.post(CHECK_OUT_PAYMENT_API_URL, CardNumber);
+  http.post(CHECK_OUT_PAYMENT_API_URL + "?CardNumber=" + CardNumber);

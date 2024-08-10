@@ -5,12 +5,11 @@ import { Input } from "@components/ui/input";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const FormInput = React.forwardRef<HTMLInputElement, Props>(
   //! pass ref to Input will break
-  ({ className, type, name, onChange, ...props }, ref) => {
+  ({ className, type, name, ...props }, ref) => {
     return (
       <ConnectForm>
         {({ register, formState: { errors } }: UseFormReturn) => (
@@ -26,7 +25,6 @@ const FormInput = React.forwardRef<HTMLInputElement, Props>(
               name={name}
               autoFocus={props.autoFocus}
               placeholder={props.placeholder}
-              onChange={onChange}
               disabled={props.disabled}
               {...props}
             />

@@ -13,18 +13,29 @@ import FormInput from "@components/Form/Input";
 import { Button } from "@components/ui/button";
 import { CheckOut, CheckOutResponse } from "@my_types/check-out";
 import { base64StringToFile } from "@utils/file";
-import { ErrorResponse } from "@my_types/index";
+import { ErrorResponse, SuccessResponse } from "@my_types/index";
 import { NEED_TO_PAY } from "@constants/error-message.const";
 import { toast } from "react-toastify";
+import FormItem from "../Form/FormItem";
+import FormBox from "../Form/FormBox";
+import toLocaleDate from "@utils/date";
+import { licensePlateAPI } from "@apis/license.api";
+import { LicenseResponse } from "@my_types/license";
 
 function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
   const [plateImg, setPlateImg] = useState<string | undefined>("");
+  const [imgOut, setImgOut] = useState<string | undefined>("");
   const [plateText, setPlateText] = useState<string | undefined>("");
   const [size] = useState(getSize(cameraSize));
   const [cashToPay, setCashToPay] = useState<number | undefined>(0);
   const [cardText, setCardText] = useState("");
+  const [customerType, setCustomerType] = useState("");
   const [needPay, setNeedPay] = useState(false);
+  const [timeIn, setTimeIn] = useState("");
+  const [timeOut, setTimeOut] = useState("");
+  const [message, setMessage] = useState("");
+  const cardRef = useRef<HTMLInputElement>(null);
 
   const methods = useForm({
     resolver: yupResolver(CheckOutSchema),
@@ -36,6 +47,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
 
   const onCardTextChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCardText(e.target.value);
+    console.log(e.target.value);
   };
 
   const {
@@ -56,47 +68,98 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     mutationFn: checkOutPaymentAPI,
   });
 
-  const { isError: isCheckOutError, isSuccess: isCheckoutSuccess } =
-    checkOutMutation;
+  const {
+    isError: isCheckOutError,
+    isSuccess: isCheckoutSuccess,
+    isPending: isCheckingOut,
+  } = checkOutMutation;
 
-  const { isError: checkOutError } = checkOutMutation;
+  const plateDetectionMutation = useMutation({
+    mutationKey: ["plate-detection"],
+    mutationFn: licensePlateAPI,
+  });
 
-  const onCheckOutPayment = async () => {
+  const {
+    isPending: isReadingPlate,
+    isSuccess: isReadPlateSuccess,
+    isError: isReadPlateError,
+  } = plateDetectionMutation;
+
+  const handleCheckOutPayment = async () => {
     try {
-      const data = getValues("CardNumber") as string;
-      console.log(data);
-      await paymentMutation.mutateAsync(data, {
-        onSuccess: (res) => {
-          reset();
-          setNeedPay(false);
-          setPlateImg("");
-          setPlateText("Xe tiếp theo");
-          setCashToPay(0);
-        },
-      });
+      if (needPay) {
+        const data = getValues("CardNumber") as string;
+        await paymentMutation.mutateAsync(data, {
+          onSuccess: (res) => {
+            reset();
+            setCashToPay(0);
+          },
+        });
+      } else {
+        resetInfo();
+        reset();
+      }
     } catch (error) {
-      console.log(error);
+      reset();
+      setMessage("LỖI HỆ THỐNG");
+    } finally {
+      setNeedPay(false);
     }
   };
 
-  const onCheckOut = async (data: CheckOut) => {
+  const focusCardInput = () => {
+    if (cardRef.current) cardRef.current?.focus();
+  };
+
+  const onCheckOut = async (checkOutData: CheckOut) => {
     try {
-      const checkOutBody = new FormData();
+      const plateNumberBody = new FormData();
       const imageSrc = (webcamRef.current as any).getScreenshot();
       const file = base64StringToFile(imageSrc, "uploaded_image.png");
-      const current = new Date().toLocaleTimeString();
 
-      checkOutBody.append("CardNumber", cardText);
+      plateNumberBody.append("upload", file);
+      plateNumberBody.append("regions", "vn");
+      const current = new Date().toISOString();
+
+      let plateRead = "";
+
+      await plateDetectionMutation.mutateAsync(plateNumberBody, {
+        onSuccess: (plateDetectionRes: SuccessResponse<LicenseResponse>) => {
+          setImgOut(imageSrc);
+          plateRead = plateDetectionRes.data.results[0].plate.toUpperCase();
+        },
+      });
+
+      console.log(cardRef.current);
+      const checkOutBody = new FormData();
+      checkOutBody.append("CardNumber", cardRef.current?.value as string);
       checkOutBody.append("ImageOut", file);
       checkOutBody.append("TimeOut", current);
-      checkOutBody.append("GateOutId", data.GateOutId ?? "");
-
+      checkOutBody.append("GateOutId", checkOutData.GateOutId ?? "");
       await checkOutMutation.mutateAsync(checkOutBody as any, {
         onSuccess: (res: ErrorResponse<CheckOutResponse>) => {
           const isNeedToPay = res.data?.data.message === NEED_TO_PAY;
-          setPlateImg(res.data?.data.imageIn);
-          setCashToPay(res.data?.data.amount);
-          setPlateText(res.data?.data.plateNumber);
+          if (res.data) {
+            const {
+              amount,
+              imageIn,
+              message,
+              plateNumber,
+              timeIn,
+              typeOfCustomer,
+            } = res.data.data;
+            setPlateImg(imageIn);
+            setCashToPay(amount);
+            setPlateText(plateNumber);
+            setTimeIn(toLocaleDate(new Date(timeIn)));
+            setCustomerType(typeOfCustomer);
+            setTimeOut(toLocaleDate(new Date()));
+            if (plateNumber === plateRead) {
+              setMessage("BIỂN SỐ TRÙNG KHỚP");
+            } else {
+              setMessage("BIỂN SỐ KHÔNG TRÙNG KHỚP");
+            }
+          }
 
           if (isNeedToPay) {
             setNeedPay(true);
@@ -107,20 +170,34 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         },
       });
     } catch (error) {
-      console.log(error);
+      setMessage("LỖI HỆ THỐNG");
     }
   };
-  console.log(plateImg);
+
+  const resetInfo = () => {
+    setCardText("");
+    setPlateText("");
+    setImgOut("");
+    setPlateImg("");
+    setMessage("");
+    setTimeIn("");
+    setCashToPay(0);
+    setCustomerType("");
+    focusCardInput();
+  };
+
+  const handleFinishCheckOut = async (
+    e: React.KeyboardEvent<HTMLFormElement>
+  ) => {
+    if (e.code === "Space") {
+      await handleCheckOutPayment();
+    }
+  };
+
   return (
     <Lane focus={props.deviceId === props.currentDevice}>
-      <div className='flex flex-col items-start justify-between'>
-        <div className='flex items-center justify-between min-w-full'>
-          <p className='text-md'>{props.children}</p>
-          {/* <p className='text-lg font-bold w-fit'>
-            Giờ vào <span className='text-primary'>13:50</span>
-          </p> */}
-        </div>
-        <Frame size={cameraSize}>
+      <div className='flex items-start justify-between min-w-full'>
+        <Frame size={cameraSize} title='Camera'>
           <Webcam
             audio={false}
             ref={webcamRef}
@@ -131,58 +208,97 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
             style={{ objectFit: "cover" }}
           />
         </Frame>
+        <Frame size={cameraSize} title='Ảnh xe ra'>
+          <img
+            src={isCheckingOut ? "./loading.svg" : imgOut}
+            className={`aspect-video`}
+            width='100%'
+            height='100%'
+          />
+        </Frame>
+        <Frame size={cameraSize} title='Ảnh xe vào'>
+          <img
+            src={isCheckingOut ? "./loading.svg" : plateImg}
+            className={`aspect-video`}
+            width='100%'
+            height='100%'
+          />
+        </Frame>
       </div>
-      <FormProvider {...methods}>
-        <form
-          className='flex items-center justify-between min-w-full'
-          onSubmit={handleSubmit(onCheckOut)}
+      <div className='flex items-center justify-between min-w-full'>
+        <FormProvider {...methods}>
+          <form
+            className='flex flex-col items-center border border-solid w-fit gap-x-1 min-h-[400px] h-[375px]'
+            onKeyDown={handleFinishCheckOut}
+            onSubmit={handleSubmit(onCheckOut)}
+          >
+            <div className='flex items-center justify-center min-w-full font-bold text-white bg-primary'>
+              <h5>THÔNG TIN THẺ</h5>
+            </div>
+            <div className='grid h-full min-w-full grid-cols-[repeat(2,1fr_400px)]'>
+              <FormItem>
+                <FormInput
+                  autoFocus={true}
+                  placeholder='SỔ THẺ'
+                  name='CardId'
+                  ref={cardRef}
+                  value={cardText}
+                  onChange={onCardTextChange}
+                />
+              </FormItem>
+              <FormItem>
+                <div className='min-w-full border border-black'>
+                  <div className='min-w-full text-center bg-green-300'>
+                    THÔNG TIN KHÁCH HÀNG
+                  </div>
+                  <div className='text-center uppercase'>
+                    {customerType === ""
+                      ? "KHÁCH HÀNG TIẾP THEO"
+                      : customerType}
+                  </div>
+                </div>
+              </FormItem>
+              <FormItem>
+                <FormBox title='T/G xe vào: '>{timeIn}</FormBox>
+              </FormItem>
+              <FormItem>
+                <FormBox title='Phí giữ xe: '>{cashToPay}</FormBox>
+              </FormItem>
+              <FormItem>
+                <FormBox title='T/G xe ra: '>{timeOut}</FormBox>
+              </FormItem>
+              <FormItem>
+                <FormBox>{message}</FormBox>
+              </FormItem>
+              <FormItem>
+                <FormBox title='Biển số xe: '>{plateText}</FormBox>
+              </FormItem>
+              <FormItem>
+                <Button className='min-w-full' onClick={handleCheckOutPayment}>
+                  "Space": Đồng ý mở cổng
+                </Button>
+              </FormItem>
+            </div>
+          </form>
+        </FormProvider>
+        <Frame
+          size={cameraSize}
+          type={
+            needPay || isCheckOutError
+              ? "error"
+              : isCheckoutSuccess
+              ? "success"
+              : "loading"
+          }
         >
-          <div className='flex flex-col items-baseline font-bold gap-x-1'>
-            <p className='mb-3'>
-              <span className='text-sm'>Biển xe ra</span>{" "}
-              <span className='text-lg text-primary'>{plateText}</span>
-            </p>
-            <FormInput
-              onChange={onCardTextChange}
-              value={cardText}
-              disabled={needPay}
-              autoFocus={true}
-              name='CardNumber'
-            />
-          </div>
-          <div className='flex flex-col items-baseline font-bold gap-x-1'>
-            <p className='text-lg font-bold'>
-              <span className='font-bold text-primary'>{cashToPay}</span> VND
-            </p>
-            <Button
-              className='h-7 text-primary'
-              type='button'
-              variant='outline'
-              disabled={!needPay}
-              onClick={onCheckOutPayment}
-            >
-              Thanh toán
-            </Button>
-          </div>
-        </form>
-      </FormProvider>
-      <Frame
-        size={cameraSize}
-        type={
-          needPay || checkOutError
-            ? "error"
-            : isCheckoutSuccess
-            ? "success"
-            : "loading"
-        }
-      >
-        <img
-          src={plateImg}
-          className={`aspect-video`}
-          width='100%'
-          height='100%'
-        />
-      </Frame>
+          <img
+            src={plateImg}
+            className={`aspect-video`}
+            width='100%'
+            height='100%'
+          />
+        </Frame>
+      </div>
     </Lane>
   );
 }

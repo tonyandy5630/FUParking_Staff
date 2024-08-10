@@ -13,6 +13,8 @@ export type CheckOutResponse = {
     imageIn: string;
     message: string;
     plateNumber: string;
+    timeIn: string;
+    typeOfCustomer: string;
   };
 };
 

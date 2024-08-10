@@ -169,7 +169,6 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
   };
   const onCheckIn = async (checkInData: CheckIn) => {
     try {
-      console.log(checkInData);
       if (webcamRef.current) {
         const plateNumberBody = new FormData();
         const imageSrc = (webcamRef.current as any).getScreenshot();
@@ -292,7 +291,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
             <div className='flex items-center justify-center min-w-full font-bold text-white bg-primary'>
               <h5>THÔNG TIN THẺ</h5>
             </div>
-            <div className='grid h-full min-w-full grid-cols-2 '>
+            <div className='grid h-full min-w-full grid-cols-4 '>
               <FormItem>
                 <FormInput
                   autoFocus={true}
@@ -374,7 +373,6 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
                 ? "./loading.svg"
                 : plateImg
             }
-            onDoubleClick={() => setPlateImg("")}
             className={`aspect-video`}
             width='100%'
             height='100%'
