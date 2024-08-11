@@ -17,9 +17,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import CheckInSchema, {
   CheckInSchemaType as CheckInType,
 } from "@utils/schema/checkinSchema";
-import { CheckIn } from "@my_types/check-in";
+import { CheckIn, UpdateVehicleTypeInfo } from "@my_types/check-in";
 import FormInput from "@components/Form/Input";
 import { CUSTOMER_NOT_EXIST_ERROR } from "@constants/error-message.const";
+import loading from "../../assets/loading.svg";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,8 @@ import FormItem from "./Form/FormItem";
 import FormBox from "./Form/FormBox";
 import toLocaleDate from "@utils/date";
 import { getVehicleTypesAPI } from "@apis/vehicle.api";
+import UpdateVehicleTypeDialog from "@components/UpdateVehicleTypeDialog";
+import { GET_INFORMATION_SUCCESSFULLY } from "@constants/message.const";
 
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
@@ -54,6 +57,10 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
   const [imageFile, setImageFile] = useState<any>();
   const [message, setMessage] = useState("");
   const [openVehicleTypes, setOpenVehicleTypes] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [updateVehicleInfo, setUpdateVehicleInfo] = useState<
+    UpdateVehicleTypeInfo | undefined
+  >(undefined);
   const methods = useForm({
     resolver: yupResolver(CheckInSchema),
     defaultValues: {
@@ -144,6 +151,10 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
     if (cardRef.current) cardRef.current?.focus();
   };
 
+  const handleOpenDialogChange = () => {
+    setOpenDialog((prev) => !prev);
+  };
+
   const handleVehicleTypeChange = useCallback(
     async (e: string) => {
       try {
@@ -213,6 +224,12 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
             setPlateImg(imageSrc);
             await customerCheckInMutation.mutateAsync(checkInBody as any, {
               onSuccess: (res) => {
+                if (res.data.message === GET_INFORMATION_SUCCESSFULLY) {
+                  if (res.data.data) {
+                    setUpdateVehicleInfo(res.data.data);
+                    setOpenDialog(true);
+                  }
+                }
                 setPlateImg(imageSrc);
                 setCustomerType("KHÁCH HÀNG SỬ DỤNG APP");
                 setMessage("KHÁCH CÓ THỂ VÀO");
@@ -260,6 +277,11 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
 
   return (
     <Lane focus={props.deviceId === props.currentDevice}>
+      <UpdateVehicleTypeDialog
+        open={openDialog}
+        info={updateVehicleInfo}
+        onOpenChange={handleOpenDialogChange}
+      />
       <div className='flex items-start justify-between min-w-full'>
         <Frame>
           <Webcam
@@ -377,11 +399,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
         >
           {}
           <img
-            src={
-              isCustomerCheckingIn || isGuestCheckingIn
-                ? "./loading.svg"
-                : plateImg
-            }
+            src={isCustomerCheckingIn || isGuestCheckingIn ? loading : plateImg}
             className={`aspect-video`}
             width='100%'
             height='100%'

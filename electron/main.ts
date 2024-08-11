@@ -54,7 +54,6 @@ function createWindow() {
     show: false,
     resizable: true,
   });
-  // win.webContents.openDevTools();
 
   win.once("ready-to-show", () => {
     win?.show();
@@ -62,6 +61,7 @@ function createWindow() {
   try {
     if (VITE_DEV_SERVER_URL) {
       win.loadURL(VITE_DEV_SERVER_URL);
+      win.webContents.openDevTools();
     } else {
       // win.loadFile(path.join(RENDERER_DIST, "index.html"));
       win.loadFile(path.join(__dirname, "../dist/index.html"));

@@ -1,14 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import ConnectForm from "./ConnectForm";
 import { UseFormReturn } from "react-hook-form";
 import { Input } from "@components/ui/input";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@components/ui/form";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
