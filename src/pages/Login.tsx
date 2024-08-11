@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { ChangeEvent, useState } from "react";
+import logo from "../assets/Bai_Logo.png";
 
 const IMG_SIZE = 170;
 const GATE_IN = "in";
@@ -70,7 +71,7 @@ export default function Login(): JSX.Element {
     <div className='flex flex-col items-center justify-center w-full h-full min-h-full'>
       <main className='flex flex-col items-center justify-between min-w-full gap-10 h-fit '>
         <div className='flex flex-col items-center justify-center'>
-          <img src='/Bai_Logo.png' width={IMG_SIZE} height={IMG_SIZE} />
+          <img src={logo} width={IMG_SIZE} height={IMG_SIZE} />
           <h1 className='text-4xl font-bold'>BAI Parking System</h1>
         </div>
         <div className='absolute top-3 right-5 border-primary h-44'>

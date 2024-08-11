@@ -1,9 +1,8 @@
-import React, { ChangeEvent, memo, useCallback, useRef, useState } from "react";
+import React, { memo, useCallback, useRef, useState } from "react";
 import { Props } from "..";
 import Lane from "../Lane";
 import Frame from "../Frame";
 import Webcam from "react-webcam";
-import { getSize } from "@utils/camera";
 import { FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CheckOutSchema from "@utils/schema/checkoutSchema";
@@ -21,6 +20,7 @@ import FormBox from "../Form/FormBox";
 import toLocaleDate from "@utils/date";
 import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
+import loading from "../../../assets/loading.svg";
 
 function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
@@ -213,7 +213,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         </Frame>
         <Frame size={cameraSize} title='Ảnh xe ra'>
           <img
-            src={isCheckingOut ? "./loading.svg" : imgOut}
+            src={isCheckingOut ? loading : imgOut}
             className={`aspect-video`}
             width='100%'
             height='100%'
@@ -221,7 +221,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         </Frame>
         <Frame size={cameraSize} title='Ảnh xe vào'>
           <img
-            src={isCheckingOut ? "./loading.svg" : plateImg}
+            src={isCheckingOut ? loading : plateImg}
             className={`aspect-video`}
             width='100%'
             height='100%'

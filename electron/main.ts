@@ -54,7 +54,7 @@ function createWindow() {
     show: false,
     resizable: true,
   });
-  win.webContents.openDevTools();
+  // win.webContents.openDevTools();
 
   win.once("ready-to-show", () => {
     win?.show();
@@ -65,7 +65,6 @@ function createWindow() {
     } else {
       // win.loadFile(path.join(RENDERER_DIST, "index.html"));
       win.loadFile(path.join(__dirname, "../dist/index.html"));
-      console.log(__dirname);
     }
   } catch (error) {
     console.error("Failed to load content:", error);
