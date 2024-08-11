@@ -2,7 +2,7 @@ import { SizeTypes } from "@my_types/my-camera";
 import { getSize } from "@utils/camera";
 import Webcam from "react-webcam";
 import Lane from "./Lane";
-import { ChangeEvent, memo, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@components/ui/button";
 import Frame from "./Frame";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -32,6 +32,7 @@ import FormItem from "./Form/FormItem";
 import FormBox from "./Form/FormBox";
 import toLocaleDate from "@utils/date";
 import { getVehicleTypesAPI } from "@apis/vehicle.api";
+
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
@@ -143,30 +144,36 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
     if (cardRef.current) cardRef.current?.focus();
   };
 
-  const handleVehicleTypeChange = async (e: string) => {
-    try {
-      const checkInBody = new FormData();
-      const file = base64StringToFile(imageFile, "uploaded_image.png");
-      checkInBody.append("GateInId", "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F");
-      checkInBody.append("PlateNumber", plateText);
-      checkInBody.append("CardNumber", cardRef.current?.value as string);
-      checkInBody.append("ImageIn", file);
-      checkInBody.append("VehicleTypeId", e);
-      setOpenVehicleTypes(false);
+  const handleVehicleTypeChange = useCallback(
+    async (e: string) => {
+      try {
+        const checkInBody = new FormData();
+        const file = base64StringToFile(imageFile, "uploaded_image.png");
+        checkInBody.append("GateInId", "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F");
+        checkInBody.append("PlateNumber", plateText);
+        checkInBody.append(
+          "CardNumber",
+          (cardRef.current?.value as string) ?? cardText
+        );
+        checkInBody.append("ImageIn", file);
+        checkInBody.append("VehicleTypeId", e);
+        setOpenVehicleTypes(false);
 
-      await guestCheckInMutation.mutateAsync(checkInBody as any, {
-        onSuccess: (res) => {
-          setPlateImg(imageFile);
-          setIsGuest(false);
-          setMessage("KHÁCH CÓ THỂ VÀO");
-          setTime(toLocaleDate(new Date()));
-        },
-      });
-    } catch (error) {
-      reset();
-      focusCardInput();
-    }
-  };
+        await guestCheckInMutation.mutateAsync(checkInBody as any, {
+          onSuccess: (res) => {
+            setPlateImg(imageFile);
+            setIsGuest(false);
+            setMessage("KHÁCH CÓ THỂ VÀO");
+            setTime(toLocaleDate(new Date()));
+          },
+        });
+      } catch (error) {
+        reset();
+        focusCardInput();
+      }
+    },
+    [plateText, imageFile, cardText]
+  );
   const onCheckIn = async (checkInData: CheckIn) => {
     try {
       if (webcamRef.current) {
@@ -190,7 +197,10 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
               "PlateNumber",
               plateDetectionRes.data.results[0].plate.toUpperCase()
             );
-            checkInBody.append("CardNumber", cardRef.current?.value as string);
+            checkInBody.append(
+              "CardNumber",
+              (cardRef.current?.value as string) ?? cardText
+            );
             checkInBody.append("ImageIn", file);
             //! HARD CODE FOR TESTING
             checkInBody.append(
@@ -201,7 +211,6 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
             setPlateText(plateDetectionRes.data.results[0].plate.toUpperCase());
             setValue("PlateNumber", checkInData.PlateNumber);
             setPlateImg(imageSrc);
-            setCardText(checkInData.CardId as string);
             await customerCheckInMutation.mutateAsync(checkInBody as any, {
               onSuccess: (res) => {
                 setPlateImg(imageSrc);

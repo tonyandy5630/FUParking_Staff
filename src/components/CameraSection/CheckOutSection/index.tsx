@@ -1,4 +1,4 @@
-import React, { ChangeEvent, memo, useRef, useState } from "react";
+import React, { ChangeEvent, memo, useCallback, useRef, useState } from "react";
 import { Props } from "..";
 import Lane from "../Lane";
 import Frame from "../Frame";
@@ -27,9 +27,8 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const [plateImg, setPlateImg] = useState<string | undefined>("");
   const [imgOut, setImgOut] = useState<string | undefined>("");
   const [plateText, setPlateText] = useState<string | undefined>("");
-  const [size] = useState(getSize(cameraSize));
   const [cashToPay, setCashToPay] = useState<number | undefined>(0);
-  const [cardText, setCardText] = useState("");
+  const [checkOutCardText, setCheckOutCardText] = useState("");
   const [customerType, setCustomerType] = useState("");
   const [needPay, setNeedPay] = useState(false);
   const [timeIn, setTimeIn] = useState("");
@@ -43,11 +42,13 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
       //! HARD CODE FOR TESTING
       GateOutId: "E74F3F1F-BA7B-4989-EC20-08DD7D140E5F",
     },
+    values: {
+      GateOutId: "E74F3F1F-BA7B-4989-EC20-08DD7D140E5F",
+    },
   });
 
-  const onCardTextChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setCardText(e.target.value);
-    console.log(e.target.value);
+  const onCheckOutCardTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCheckOutCardText(e.target.value);
   };
 
   const {
@@ -75,7 +76,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   } = checkOutMutation;
 
   const plateDetectionMutation = useMutation({
-    mutationKey: ["plate-detection"],
+    mutationKey: ["plate-detection-check-out"],
     mutationFn: licensePlateAPI,
   });
 
@@ -85,27 +86,26 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     isError: isReadPlateError,
   } = plateDetectionMutation;
 
-  const handleCheckOutPayment = async () => {
+  const handleCheckOutPayment = useCallback(async () => {
     try {
       if (needPay) {
-        const data = getValues("CardNumber") as string;
+        const data = (getValues("CardNumber") as string) ?? checkOutCardText;
         await paymentMutation.mutateAsync(data, {
           onSuccess: (res) => {
-            reset();
+            reset({ CardNumber: "" });
+
+            resetInfo();
             setCashToPay(0);
           },
         });
-      } else {
-        resetInfo();
-        reset();
       }
     } catch (error) {
-      reset();
+      reset({ CardNumber: "" });
       setMessage("LỖI HỆ THỐNG");
     } finally {
       setNeedPay(false);
     }
-  };
+  }, [paymentMutation.isPending, needPay, checkOutCardText]);
 
   const focusCardInput = () => {
     if (cardRef.current) cardRef.current?.focus();
@@ -130,9 +130,11 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         },
       });
 
-      console.log(cardRef.current);
       const checkOutBody = new FormData();
-      checkOutBody.append("CardNumber", cardRef.current?.value as string);
+      checkOutBody.append(
+        "CardNumber",
+        (cardRef.current?.value as string) ?? checkOutCardText
+      );
       checkOutBody.append("ImageOut", file);
       checkOutBody.append("TimeOut", current);
       checkOutBody.append("GateOutId", checkOutData.GateOutId ?? "");
@@ -175,7 +177,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   };
 
   const resetInfo = () => {
-    setCardText("");
+    setCheckOutCardText("");
     setPlateText("");
     setImgOut("");
     setPlateImg("");
@@ -185,15 +187,16 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     setCustomerType("");
     focusCardInput();
   };
-
-  const handleFinishCheckOut = async (
-    e: React.KeyboardEvent<HTMLFormElement>
-  ) => {
-    if (e.code === "Space") {
-      await handleCheckOutPayment();
-    }
-  };
-
+  const handleFinishCheckOut = useCallback(
+    async (e: React.KeyboardEvent<HTMLFormElement>) => {
+      if (e.code === "Space" && needPay) {
+        await handleCheckOutPayment();
+      } else if (e.code === "Space") {
+        resetInfo();
+      }
+    },
+    [isCheckoutSuccess, needPay]
+  );
   return (
     <Lane focus={props.deviceId === props.currentDevice}>
       <div className='flex items-start justify-between min-w-full'>
@@ -242,8 +245,8 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
                   placeholder='SỔ THẺ'
                   name='CardId'
                   ref={cardRef}
-                  value={cardText}
-                  onChange={onCardTextChange}
+                  value={checkOutCardText}
+                  onChange={onCheckOutCardTextChange}
                 />
               </FormItem>
               <FormItem>
@@ -274,7 +277,11 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
                 <FormBox title='Biển số xe: '>{plateText}</FormBox>
               </FormItem>
               <FormItem>
-                <Button className='min-w-full' onClick={handleCheckOutPayment}>
+                <Button
+                  className='min-w-full'
+                  type='button'
+                  onClick={handleCheckOutPayment}
+                >
                   "Space": Đồng ý mở cổng
                 </Button>
               </FormItem>
