@@ -380,7 +380,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
               </FormItem>
               <FormItem className='grid-cols-2 gap-1'>
                 <div className='max-h-[50%]'>
-                  <Button type='button'>"Enter":nhập biển</Button>
+                  <Button type='submit'>"Enter":nhập biển</Button>
                 </div>
                 <FormInput
                   placeholder='BIỂN SỐ XE'
