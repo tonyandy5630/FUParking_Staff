@@ -43,7 +43,7 @@ type Props = {
   onOpenChange?: any;
 };
 
-export default function UpdateVehicleTypeDialog({
+function UpdateVehicleTypeDialog({
   open = false,
   info = initalInfo,
   onOpenChange,
@@ -110,7 +110,6 @@ export default function UpdateVehicleTypeDialog({
     }
   }, [isSuccessVehicleTypes]);
 
-  console.log(errors);
   const handleUpdateVehicle = async (data: UpdateVehicleSchemaType) => {
     try {
       data.plateNumber = plateText;
@@ -200,3 +199,5 @@ export default function UpdateVehicleTypeDialog({
     </Dialog>
   );
 }
+
+export default React.memo(UpdateVehicleTypeDialog);

@@ -261,6 +261,8 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
     }
   };
 
+  console.log(toLocaleDate(new Date()));
+
   const handleOpenGate = (e: React.KeyboardEvent<HTMLFormElement>) => {
     if (e.code === "Space") {
       reset();

@@ -17,7 +17,7 @@ import { NEED_TO_PAY } from "@constants/error-message.const";
 import { toast } from "react-toastify";
 import FormItem from "../Form/FormItem";
 import FormBox from "../Form/FormBox";
-import toLocaleDate from "@utils/date";
+import toLocaleDate, { getLocalISOString } from "@utils/date";
 import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
 import loading from "../../../assets/loading.svg";
@@ -110,7 +110,6 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const focusCardInput = () => {
     if (cardRef.current) cardRef.current?.focus();
   };
-
   const onCheckOut = async (checkOutData: CheckOut) => {
     try {
       const plateNumberBody = new FormData();
@@ -119,7 +118,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
 
       plateNumberBody.append("upload", file);
       plateNumberBody.append("regions", "vn");
-      const current = new Date().toISOString();
+      const current = getLocalISOString(new Date());
 
       let plateRead = "";
 
