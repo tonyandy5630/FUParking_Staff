@@ -62,16 +62,6 @@ export default function CheckInPage() {
               Lane 1
             </CameraSection>
           )}
-          {devices[1] !== undefined && (
-            <CameraSection
-              key={devices[1].deviceId}
-              deviceId={devices[1].deviceId}
-              currentDevice={curLane}
-              cameraSize='md'
-            >
-              Lane 2
-            </CameraSection>
-          )}
         </div>
       )}
     </>

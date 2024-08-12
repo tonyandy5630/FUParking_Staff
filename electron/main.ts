@@ -44,19 +44,18 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let win: BrowserWindow | null;
 
 function createWindow() {
+  const logoURL = path.join(__dirname, "../src/assets/Bai_Logo.png");
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC as string, "Bai_Logo.png"),
+    icon: path.join(logoURL),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },
-    center: true,
     title: "Bai Parking System",
-    show: false,
-    resizable: true,
   });
 
   win.once("ready-to-show", () => {
     win?.show();
+    win?.maximize();
   });
   try {
     if (VITE_DEV_SERVER_URL) {
