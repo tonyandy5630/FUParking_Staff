@@ -1,8 +1,7 @@
 import { SizeTypes } from "@my_types/my-camera";
-import { getSize } from "@utils/camera";
 import Webcam from "react-webcam";
 import Lane from "./Lane";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState, lazy } from "react";
 import { Button } from "@components/ui/button";
 import Frame from "./Frame";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -33,8 +32,15 @@ import FormItem from "./Form/FormItem";
 import FormBox from "./Form/FormBox";
 import toLocaleDate from "@utils/date";
 import { getVehicleTypesAPI } from "@apis/vehicle.api";
-import UpdateVehicleTypeDialog from "@components/UpdateVehicleTypeDialog";
+const UpdateVehicleTypeDialog = lazy(
+  () => import("@components/UpdateVehicleTypeDialog")
+);
 import { GET_INFORMATION_SUCCESSFULLY } from "@constants/message.const";
+import {
+  DEFAULT_GUEST,
+  GUEST,
+  SYSTEM_CUSTOMER,
+} from "@constants/customer.const";
 
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
@@ -43,18 +49,21 @@ export type Props = {
   currentDevice: ConstrainDOMString | undefined;
 };
 
+const initCheckInInfo = {
+  plateImg: "",
+  plateText: "",
+  cardText: "",
+  imageFile: "",
+  time: "",
+  customerType: DEFAULT_GUEST,
+};
+
 function CameraSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
-  const [plateImg, setPlateImg] = useState("");
-  const [plateText, setPlateText] = useState("");
-  const [size] = useState(getSize("md"));
-  const [cardText, setCardText] = useState("");
-  const [time, setTime] = useState("");
+  const [checkInInfo, setCheckInInfo] = useState(initCheckInInfo);
   const [isGuest, setIsGuest] = useState(false);
-  const [customerType, setCustomerType] = useState("");
   const cardRef = useRef<HTMLInputElement>(null);
   const plateRef = useRef<HTMLInputElement>(null);
-  const [imageFile, setImageFile] = useState<any>();
   const [message, setMessage] = useState("");
   const [openVehicleTypes, setOpenVehicleTypes] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -106,12 +115,6 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
     mutationFn: licensePlateAPI,
   });
 
-  const {
-    isPending: isReadingPlate,
-    isSuccess: isReadPlateSuccess,
-    isError: isReadPlateError,
-  } = plateDetectionMutation;
-
   const customerCheckInMutation = useMutation({
     mutationKey: ["customer-check-in"],
     mutationFn: CustomerCheckInAPI,
@@ -136,11 +139,11 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
 
   const handleChangePlateTxt = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
-    setPlateText(e.target.value);
+    setCheckInInfo((prev) => ({ ...prev, plateText: e.target.value }));
   };
 
   const onCardTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCardText(e.target.value);
+    setCheckInInfo((prev) => ({ ...prev, cardText: e.target.value }));
   };
 
   const focusPlateInput = () => {
@@ -158,6 +161,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
   const handleVehicleTypeChange = useCallback(
     async (e: string) => {
       try {
+        const { imageFile, cardText, plateText, time, plateImg } = checkInInfo;
         const checkInBody = new FormData();
         const file = base64StringToFile(imageFile, "uploaded_image.png");
         checkInBody.append("GateInId", "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F");
@@ -172,10 +176,13 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
 
         await guestCheckInMutation.mutateAsync(checkInBody as any, {
           onSuccess: (res) => {
-            setPlateImg(imageFile);
             setIsGuest(false);
             setMessage("KHÁCH CÓ THỂ VÀO");
-            setTime(toLocaleDate(new Date()));
+            setCheckInInfo((prev) => ({
+              ...prev,
+              plateImg: imageFile,
+              time: toLocaleDate(new Date()),
+            }));
           },
         });
       } catch (error) {
@@ -183,14 +190,14 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
         focusCardInput();
       }
     },
-    [plateText, imageFile, cardText]
+    [checkInInfo.plateText, checkInInfo.imageFile, checkInInfo.cardText]
   );
   const onCheckIn = async (checkInData: CheckIn) => {
     try {
       if (webcamRef.current) {
         const plateNumberBody = new FormData();
         const imageSrc = (webcamRef.current as any).getScreenshot();
-        setImageFile(imageSrc);
+        setCheckInInfo((prev) => ({ ...prev, imageFile: imageSrc }));
         const file = base64StringToFile(imageSrc, "uploaded_image.png");
 
         plateNumberBody.append("upload", file);
@@ -210,7 +217,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
             );
             checkInBody.append(
               "CardNumber",
-              (cardRef.current?.value as string) ?? cardText
+              (cardRef.current?.value as string) ?? checkInInfo.cardText
             );
             checkInBody.append("ImageIn", file);
             //! HARD CODE FOR TESTING
@@ -219,9 +226,12 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
               "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F"
             );
 
-            setPlateText(plateDetectionRes.data.results[0].plate.toUpperCase());
             setValue("PlateNumber", checkInData.PlateNumber);
-            setPlateImg(imageSrc);
+            setCheckInInfo((prev) => ({
+              ...prev,
+              plateText: plateDetectionRes.data.results[0].plate.toUpperCase(),
+              plateImg: imageSrc,
+            }));
             await customerCheckInMutation.mutateAsync(checkInBody as any, {
               onSuccess: (res) => {
                 if (res.data.message === GET_INFORMATION_SUCCESSFULLY) {
@@ -230,18 +240,24 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
                     setOpenDialog(true);
                   }
                 }
-                setPlateImg(imageSrc);
-                setCustomerType("KHÁCH HÀNG SỬ DỤNG APP");
                 setMessage("KHÁCH CÓ THỂ VÀO");
                 focusPlateInput();
-                setTime(toLocaleDate(new Date()));
+                setCheckInInfo((prev) => ({
+                  ...prev,
+                  plateImg: imageSrc,
+                  customerType: SYSTEM_CUSTOMER,
+                  time: toLocaleDate(new Date()),
+                }));
               },
               onError: async (error: any) => {
                 if (error.response.data.message === CUSTOMER_NOT_EXIST_ERROR) {
                   setIsGuest(true);
                   setOpenVehicleTypes(true);
                   setMessage("Chọn loại xe");
-                  setCustomerType("KHÁCH VÃNG LAI");
+                  setCheckInInfo((prev) => ({
+                    ...prev,
+                    customerType: GUEST,
+                  }));
                 }
               },
             });
@@ -261,19 +277,12 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
     }
   };
 
-  console.log(toLocaleDate(new Date()));
-
   const handleOpenGate = (e: React.KeyboardEvent<HTMLFormElement>) => {
     if (e.code === "Space") {
       reset();
       focusCardInput();
       setIsGuest(false);
-      setCustomerType("");
-      setTime("");
-      setCardText("");
-      setPlateText("");
-      setPlateImg("");
-      setMessage("");
+      setCheckInInfo(initCheckInInfo);
     }
   };
 
@@ -306,8 +315,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
           }
         >
           <img
-            src={plateImg}
-            onDoubleClick={() => setPlateImg("")}
+            src={checkInInfo.plateImg}
             className={`aspect-video`}
             width='100%'
             height='100%'
@@ -331,7 +339,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
                   placeholder='SỔ THẺ'
                   name='CardId'
                   ref={cardRef}
-                  value={cardText}
+                  value={checkInInfo.cardText}
                   onChange={onCardTextChange}
                 />
               </FormItem>
@@ -341,14 +349,14 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
                     THÔNG TIN KHÁCH HÀNG
                   </div>
                   <div className='text-center uppercase'>
-                    {customerType === ""
+                    {checkInInfo.customerType === ""
                       ? "KHÁCH HÀNG TIẾP THEO"
-                      : customerType}
+                      : checkInInfo.customerType}
                   </div>
                 </div>
               </FormItem>
               <FormItem>
-                <FormBox title='T/G xe vào: '>{time}</FormBox>
+                <FormBox title='T/G xe vào: '>{checkInInfo.time}</FormBox>
               </FormItem>
               <FormItem>
                 <Select
@@ -365,7 +373,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
                 </Select>
               </FormItem>
               <FormItem>
-                <FormBox title='Biển số xe: '>{plateText}</FormBox>
+                <FormBox title='Biển số xe: '>{checkInInfo.plateText}</FormBox>
               </FormItem>
               <FormItem>
                 <FormBox>{message}</FormBox>
@@ -376,7 +384,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
                 </div>
                 <FormInput
                   placeholder='BIỂN SỐ XE'
-                  value={plateText}
+                  value={checkInInfo.plateText}
                   ref={plateRef}
                   name='PlateNumber'
                   onChange={handleChangePlateTxt}
@@ -401,7 +409,11 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
         >
           {}
           <img
-            src={isCustomerCheckingIn || isGuestCheckingIn ? loading : plateImg}
+            src={
+              isCustomerCheckingIn || isGuestCheckingIn
+                ? loading
+                : checkInInfo.plateImg
+            }
             className={`aspect-video`}
             width='100%'
             height='100%'
