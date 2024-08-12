@@ -21,18 +21,22 @@ import toLocaleDate, { getLocalISOString } from "@utils/date";
 import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
 import loading from "../../../assets/loading.svg";
+import { DEFAULT_GUEST } from "@constants/customer.const";
 
+const initCheckOutInfo = {
+  plateImg: "",
+  imgOut: "",
+  plateText: "",
+  cashToPay: 0,
+  checkOutCardText: "",
+  customerType: DEFAULT_GUEST,
+  needPay: false,
+  timeIn: "",
+  timeOut: "",
+};
 function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
-  const [plateImg, setPlateImg] = useState<string | undefined>("");
-  const [imgOut, setImgOut] = useState<string | undefined>("");
-  const [plateText, setPlateText] = useState<string | undefined>("");
-  const [cashToPay, setCashToPay] = useState<number | undefined>(0);
-  const [checkOutCardText, setCheckOutCardText] = useState("");
-  const [customerType, setCustomerType] = useState("");
-  const [needPay, setNeedPay] = useState(false);
-  const [timeIn, setTimeIn] = useState("");
-  const [timeOut, setTimeOut] = useState("");
+  const [checkOutInfo, setCheckOutInfo] = useState(initCheckOutInfo);
   const [message, setMessage] = useState("");
   const cardRef = useRef<HTMLInputElement>(null);
 
@@ -48,7 +52,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   });
 
   const onCheckOutCardTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCheckOutCardText(e.target.value);
+    setCheckOutInfo((prev) => ({ ...prev, checkOutCardText: e.target.value }));
   };
 
   const {
@@ -80,22 +84,16 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     mutationFn: licensePlateAPI,
   });
 
-  const {
-    isPending: isReadingPlate,
-    isSuccess: isReadPlateSuccess,
-    isError: isReadPlateError,
-  } = plateDetectionMutation;
-
   const handleCheckOutPayment = useCallback(async () => {
     try {
+      const { needPay, checkOutCardText } = checkOutInfo;
       if (needPay) {
         const data = (getValues("CardNumber") as string) ?? checkOutCardText;
         await paymentMutation.mutateAsync(data, {
           onSuccess: (res) => {
             reset({ CardNumber: "" });
-
             resetInfo();
-            setCashToPay(0);
+            setCheckOutInfo((prev) => ({ ...prev, cashToPay: 0 }));
           },
         });
       }
@@ -103,9 +101,13 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
       reset({ CardNumber: "" });
       setMessage("LỖI HỆ THỐNG");
     } finally {
-      setNeedPay(false);
+      setCheckOutInfo((prev) => ({ ...prev, needPay: false }));
     }
-  }, [paymentMutation.isPending, needPay, checkOutCardText]);
+  }, [
+    paymentMutation.isPending,
+    checkOutInfo.needPay,
+    checkOutInfo.checkOutCardText,
+  ]);
 
   const focusCardInput = () => {
     if (cardRef.current) cardRef.current?.focus();
@@ -124,7 +126,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
 
       await plateDetectionMutation.mutateAsync(plateNumberBody, {
         onSuccess: (plateDetectionRes: SuccessResponse<LicenseResponse>) => {
-          setImgOut(imageSrc);
+          setCheckOutInfo((prev) => ({ ...prev, imgOut: imageSrc }));
           plateRead = plateDetectionRes.data.results[0].plate.toUpperCase();
         },
       });
@@ -132,7 +134,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
       const checkOutBody = new FormData();
       checkOutBody.append(
         "CardNumber",
-        (cardRef.current?.value as string) ?? checkOutCardText
+        (cardRef.current?.value as string) ?? checkOutInfo.checkOutCardText
       );
       checkOutBody.append("ImageOut", file);
       checkOutBody.append("TimeOut", current);
@@ -149,12 +151,15 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
               timeIn,
               typeOfCustomer,
             } = res.data.data;
-            setPlateImg(imageIn);
-            setCashToPay(amount);
-            setPlateText(plateNumber);
-            setTimeIn(toLocaleDate(new Date(timeIn)));
-            setCustomerType(typeOfCustomer);
-            setTimeOut(toLocaleDate(new Date()));
+            setCheckOutInfo((prev) => ({
+              ...prev,
+              plateImg: imageIn,
+              cashToPay: amount,
+              plateText: plateNumber,
+              timeIn: toLocaleDate(new Date(timeIn)),
+              customerType: typeOfCustomer,
+              timeOut: toLocaleDate(new Date()),
+            }));
             if (plateNumber === plateRead) {
               setMessage("BIỂN SỐ TRÙNG KHỚP");
             } else {
@@ -163,7 +168,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
           }
 
           if (isNeedToPay) {
-            setNeedPay(true);
+            setCheckOutInfo((prev) => ({ ...prev, needPay: true }));
           } else {
             reset({ CardNumber: "" });
             toast.success("Xe da thanh toan");
@@ -176,25 +181,19 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   };
 
   const resetInfo = () => {
-    setCheckOutCardText("");
-    setPlateText("");
-    setImgOut("");
-    setPlateImg("");
     setMessage("");
-    setTimeIn("");
-    setCashToPay(0);
-    setCustomerType("");
+    setCheckOutInfo(initCheckOutInfo);
     focusCardInput();
   };
   const handleFinishCheckOut = useCallback(
     async (e: React.KeyboardEvent<HTMLFormElement>) => {
-      if (e.code === "Space" && needPay) {
+      if (e.code === "Space" && checkOutInfo.needPay) {
         await handleCheckOutPayment();
       } else if (e.code === "Space") {
         resetInfo();
       }
     },
-    [isCheckoutSuccess, needPay]
+    [isCheckoutSuccess, checkOutInfo.needPay]
   );
   return (
     <Lane focus={props.deviceId === props.currentDevice}>
@@ -212,7 +211,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         </Frame>
         <Frame size={cameraSize} title='Ảnh xe ra'>
           <img
-            src={isCheckingOut ? loading : imgOut}
+            src={isCheckingOut ? loading : checkOutInfo.imgOut}
             className={`aspect-video`}
             width='100%'
             height='100%'
@@ -220,7 +219,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         </Frame>
         <Frame size={cameraSize} title='Ảnh xe vào'>
           <img
-            src={isCheckingOut ? loading : plateImg}
+            src={isCheckingOut ? loading : checkOutInfo.plateImg}
             className={`aspect-video`}
             width='100%'
             height='100%'
@@ -244,7 +243,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
                   placeholder='SỔ THẺ'
                   name='CardId'
                   ref={cardRef}
-                  value={checkOutCardText}
+                  value={checkOutInfo.checkOutCardText}
                   onChange={onCheckOutCardTextChange}
                 />
               </FormItem>
@@ -254,26 +253,26 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
                     THÔNG TIN KHÁCH HÀNG
                   </div>
                   <div className='text-center uppercase'>
-                    {customerType === ""
+                    {checkOutInfo.customerType === ""
                       ? "KHÁCH HÀNG TIẾP THEO"
-                      : customerType}
+                      : checkOutInfo.customerType}
                   </div>
                 </div>
               </FormItem>
               <FormItem>
-                <FormBox title='T/G xe vào: '>{timeIn}</FormBox>
+                <FormBox title='T/G xe vào: '>{checkOutInfo.timeIn}</FormBox>
               </FormItem>
               <FormItem>
-                <FormBox title='Phí giữ xe: '>{cashToPay}</FormBox>
+                <FormBox title='Phí giữ xe: '>{checkOutInfo.cashToPay}</FormBox>
               </FormItem>
               <FormItem>
-                <FormBox title='T/G xe ra: '>{timeOut}</FormBox>
+                <FormBox title='T/G xe ra: '>{checkOutInfo.timeOut}</FormBox>
               </FormItem>
               <FormItem>
                 <FormBox>{message}</FormBox>
               </FormItem>
               <FormItem>
-                <FormBox title='Biển số xe: '>{plateText}</FormBox>
+                <FormBox title='Biển số xe: '>{checkOutInfo.plateText}</FormBox>
               </FormItem>
               <FormItem>
                 <Button
@@ -290,7 +289,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         <Frame
           size={cameraSize}
           type={
-            needPay || isCheckOutError
+            checkOutInfo.needPay || isCheckOutError
               ? "error"
               : isCheckoutSuccess
               ? "success"
@@ -298,7 +297,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
           }
         >
           <img
-            src={plateImg}
+            src={checkOutInfo.plateImg}
             className={`aspect-video`}
             width='100%'
             height='100%'
