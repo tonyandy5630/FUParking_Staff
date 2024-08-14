@@ -19,7 +19,6 @@ import CheckInSchema, {
 import { CheckIn, UpdateVehicleTypeInfo } from "@my_types/check-in";
 import FormInput from "@components/Form/Input";
 import { CUSTOMER_NOT_EXIST_ERROR } from "@constants/error-message.const";
-import loading from "../../assets/loading.svg";
 import {
   Select,
   SelectContent,
@@ -41,6 +40,7 @@ import {
   GUEST,
   SYSTEM_CUSTOMER,
 } from "@constants/customer.const";
+import Image from "@components/Image";
 
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
@@ -192,6 +192,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
     },
     [checkInInfo.plateText, checkInInfo.imageFile, checkInInfo.cardText]
   );
+
   const onCheckIn = async (checkInData: CheckIn) => {
     try {
       if (webcamRef.current) {
@@ -305,20 +306,10 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
             style={{ objectFit: "cover" }}
           />
         </Frame>
-        <Frame
-          type={
-            isCustomerCheckingIn || isGuestCheckingIn
-              ? "loading"
-              : isCustomerCheckInError && isGuestCheckInError
-              ? "error"
-              : "success"
-          }
-        >
-          <img
+        <Frame>
+          <Image
             src={checkInInfo.plateImg}
-            className={`aspect-video`}
-            width='100%'
-            height='100%'
+            isLoading={isCustomerCheckingIn || isGuestCheckingIn}
           />
         </Frame>
       </div>
@@ -398,25 +389,10 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
             </div>
           </form>
         </FormProvider>
-        <Frame
-          type={
-            isCustomerCheckingIn || isGuestCheckingIn
-              ? "loading"
-              : isCustomerCheckInError && isGuestCheckInError
-              ? "error"
-              : "success"
-          }
-        >
-          {}
-          <img
-            src={
-              isCustomerCheckingIn || isGuestCheckingIn
-                ? loading
-                : checkInInfo.plateImg
-            }
-            className={`aspect-video`}
-            width='100%'
-            height='100%'
+        <Frame>
+          <Image
+            src={checkInInfo.plateImg}
+            isLoading={isCustomerCheckingIn || isGuestCheckingIn}
           />
         </Frame>
       </div>

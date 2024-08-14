@@ -14,14 +14,13 @@ import { CheckOut, CheckOutResponse } from "@my_types/check-out";
 import { base64StringToFile } from "@utils/file";
 import { ErrorResponse, SuccessResponse } from "@my_types/index";
 import { NEED_TO_PAY } from "@constants/error-message.const";
-import { toast } from "react-toastify";
 import FormItem from "../Form/FormItem";
 import FormBox from "../Form/FormBox";
 import toLocaleDate, { getLocalISOString } from "@utils/date";
 import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
-import loading from "../../../assets/loading.svg";
 import { DEFAULT_GUEST } from "@constants/customer.const";
+import Image from "@components/Image";
 
 const initCheckOutInfo = {
   plateImg: "",
@@ -34,6 +33,7 @@ const initCheckOutInfo = {
   timeIn: "",
   timeOut: "",
 };
+
 function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
   const [checkOutInfo, setCheckOutInfo] = useState(initCheckOutInfo);
@@ -213,19 +213,15 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
           />
         </Frame>
         <Frame size={cameraSize} title='Ảnh xe ra'>
-          <img
-            src={isCheckingOut ? loading : checkOutInfo.imgOut}
-            className={`aspect-video`}
-            width='100%'
-            height='100%'
+          <Image
+            src={checkOutInfo.imgOut}
+            isLoading={isCheckingOut || checkOutMutation.isPending}
           />
         </Frame>
         <Frame size={cameraSize} title='Ảnh xe vào'>
-          <img
-            src={isCheckingOut ? loading : checkOutInfo.plateImg}
-            className={`aspect-video`}
-            width='100%'
-            height='100%'
+          <Image
+            src={checkOutInfo.plateImg}
+            isLoading={isCheckingOut || checkOutMutation.isPending}
           />
         </Frame>
       </div>
@@ -289,22 +285,8 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
             </div>
           </form>
         </FormProvider>
-        <Frame
-          size={cameraSize}
-          type={
-            checkOutInfo.needPay || isCheckOutError
-              ? "error"
-              : isCheckoutSuccess
-              ? "success"
-              : "loading"
-          }
-        >
-          <img
-            src={checkOutInfo.plateImg}
-            className={`aspect-video`}
-            width='100%'
-            height='100%'
-          />
+        <Frame size={cameraSize}>
+          <Image src={checkOutInfo.plateImg} isLoading={isCheckingOut} />
         </Frame>
       </div>
     </Lane>
@@ -312,7 +294,3 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
 }
 
 export default memo(CheckoutSection);
-
-if (import.meta.hot) {
-  import.meta.hot.accept();
-}
