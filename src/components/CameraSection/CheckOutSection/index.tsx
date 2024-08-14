@@ -38,7 +38,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
   const [checkOutInfo, setCheckOutInfo] = useState(initCheckOutInfo);
   const [message, setMessage] = useState("");
-  const cardRef = useRef<HTMLInputElement>(null);
+  const checkOutCardRef = useRef<HTMLInputElement>(null);
 
   const methods = useForm({
     resolver: yupResolver(CheckOutSchema),
@@ -109,9 +109,12 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     checkOutInfo.checkOutCardText,
   ]);
 
-  const focusCardInput = () => {
-    if (cardRef.current) cardRef.current?.focus();
+  const focusCardCheckOutInput = () => {
+    if (checkOutCardRef.current) {
+      checkOutCardRef.current?.focus();
+    }
   };
+
   const onCheckOut = async (checkOutData: CheckOut) => {
     try {
       const plateNumberBody = new FormData();
@@ -134,7 +137,8 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
       const checkOutBody = new FormData();
       checkOutBody.append(
         "CardNumber",
-        (cardRef.current?.value as string) ?? checkOutInfo.checkOutCardText
+        (checkOutCardRef.current?.value as string) ??
+          checkOutInfo.checkOutCardText
       );
       checkOutBody.append("ImageOut", file);
       checkOutBody.append("TimeOut", current);
@@ -171,7 +175,6 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
             setCheckOutInfo((prev) => ({ ...prev, needPay: true }));
           } else {
             reset({ CardNumber: "" });
-            toast.success("Xe da thanh toan");
           }
         },
       });
@@ -179,11 +182,10 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
       setMessage("LỖI HỆ THỐNG");
     }
   };
-
   const resetInfo = () => {
     setMessage("");
     setCheckOutInfo(initCheckOutInfo);
-    focusCardInput();
+    focusCardCheckOutInput();
   };
   const handleFinishCheckOut = useCallback(
     async (e: React.KeyboardEvent<HTMLFormElement>) => {
@@ -195,6 +197,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     },
     [isCheckoutSuccess, checkOutInfo.needPay]
   );
+
   return (
     <Lane focus={props.deviceId === props.currentDevice}>
       <div className='flex items-start justify-between min-w-full'>
@@ -242,7 +245,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
                   autoFocus={true}
                   placeholder='SỔ THẺ'
                   name='CardId'
-                  ref={cardRef}
+                  ref={checkOutCardRef}
                   value={checkOutInfo.checkOutCardText}
                   onChange={onCheckOutCardTextChange}
                 />
@@ -309,3 +312,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
 }
 
 export default memo(CheckoutSection);
+
+if (import.meta.hot) {
+  import.meta.hot.accept();
+}

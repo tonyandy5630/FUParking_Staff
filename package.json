@@ -64,8 +64,7 @@
     "dist-electron/**/*",
     "node_modules/**/*",
     "main.js",
-    "package.json",
-    ".env"
+    "package.json"
   ],
   "build": {
     "appId": "com.test.test",
@@ -73,9 +72,6 @@
     "directories": {
       "buildResources": "assets",
       "output": "release"
-    },
-    "extraResources": [
-      ".env"
-    ]
+    }
   }
 }
