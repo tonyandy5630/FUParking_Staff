@@ -5,7 +5,8 @@ const CheckOutSchema = object({
   GateOutId: string().trim(),
   TimeOut: date(),
   ImageOut: mixed(),
+  PlateNumber: string().trim(),
 });
 
-export type CheckOutSchema = InferType<typeof CheckOutSchema>;
+export type CheckOutSchemaType = InferType<typeof CheckOutSchema>;
 export default CheckOutSchema;

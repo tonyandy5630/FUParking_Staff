@@ -6,7 +6,7 @@ import {
 import { ErrorResponse } from "@my_types/index";
 import { CheckOut, CheckOutResponse } from "@my_types/check-out";
 
-export const checkOutAPI = (data: ErrorResponse<CheckOutResponse>) =>
+export const checkOutAPI = (data: CheckOut) =>
   http.post(CHECK_OUT_GUEST_API_URL, data, {
     headers: {
       "Content-Type": "multipart/form-data",

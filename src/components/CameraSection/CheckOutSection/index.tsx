@@ -13,7 +13,10 @@ import { Button } from "@components/ui/button";
 import { CheckOut, CheckOutResponse } from "@my_types/check-out";
 import { base64StringToFile } from "@utils/file";
 import { ErrorResponse, SuccessResponse } from "@my_types/index";
-import { NEED_TO_PAY } from "@constants/error-message.const";
+import {
+  NEED_TO_PAY,
+  PLATE_NUMBER_NOT_MATCHED,
+} from "@constants/error-message.const";
 import FormItem from "../Form/FormItem";
 import FormBox from "../Form/FormBox";
 import toLocaleDate, { getLocalISOString } from "@utils/date";
@@ -39,7 +42,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const [checkOutInfo, setCheckOutInfo] = useState(initCheckOutInfo);
   const [message, setMessage] = useState("");
   const checkOutCardRef = useRef<HTMLInputElement>(null);
-
+  const plateRef = useRef<HTMLInputElement>(null);
   const methods = useForm({
     resolver: yupResolver(CheckOutSchema),
     defaultValues: {
@@ -48,6 +51,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     },
     values: {
       GateOutId: "E74F3F1F-BA7B-4989-EC20-08DD7D140E5F",
+      PlateNumber: "29B139393",
     },
   });
 
@@ -72,6 +76,11 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     mutationKey: ["payment"],
     mutationFn: checkOutPaymentAPI,
   });
+
+  const handleChangePlateTxt = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    setCheckOutInfo((prev) => ({ ...prev, plateText: e.target.value }));
+  };
 
   const {
     isError: isCheckOutError,
@@ -115,8 +124,69 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
     }
   };
 
+  const handleFixPlate = async () => {
+    try {
+      const checkOutBody = new FormData();
+      checkOutBody.append(
+        "CardNumber",
+        (checkOutCardRef.current?.value as string) ??
+          checkOutInfo.checkOutCardText
+      );
+      const imageSrc = checkOutInfo.imgOut;
+      const file = base64StringToFile(imageSrc, "uploaded_image.png");
+
+      checkOutBody.append("PlateNumber", checkOutInfo.plateText);
+      checkOutBody.append("ImageOut", file);
+      checkOutBody.append("TimeOut", getLocalISOString(new Date()));
+      checkOutBody.append("GateOutId", "E74F3F1F-BA7B-4989-EC20-08DD7D140E5F");
+
+      await checkOutMutation.mutateAsync(checkOutBody as any, {
+        onSuccess: (res) => {
+          const isNeedToPay = res.data?.data.message === NEED_TO_PAY;
+          if (res.data) {
+            const {
+              amount,
+              imageIn,
+              message,
+              plateNumber,
+              timeIn,
+              typeOfCustomer,
+            } = res.data.data;
+            setCheckOutInfo((prev) => ({
+              ...prev,
+              plateImg: imageIn,
+              cashToPay: amount,
+              plateText: plateNumber,
+              timeIn: toLocaleDate(new Date(timeIn)),
+              customerType: typeOfCustomer,
+              timeOut: toLocaleDate(new Date()),
+            }));
+            if (plateNumber === checkOutInfo.plateText) {
+              setMessage("BIỂN SỐ TRÙNG KHỚP");
+            } else {
+              setMessage("BIỂN SỐ KHÔNG TRÙNG KHỚP");
+            }
+          }
+
+          if (isNeedToPay) {
+            setCheckOutInfo((prev) => ({ ...prev, needPay: true }));
+          } else {
+            resetInfo();
+            reset({ CardNumber: "" });
+          }
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const onCheckOut = async (checkOutData: CheckOut) => {
     try {
+      console.log(checkOutData);
+      if (!webcamRef.current as any) {
+        setMessage("KHÔNG TÌM THẤY CAMERA");
+      }
       const plateNumberBody = new FormData();
       const imageSrc = (webcamRef.current as any).getScreenshot();
       const file = base64StringToFile(imageSrc, "uploaded_image.png");
@@ -140,6 +210,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         (checkOutCardRef.current?.value as string) ??
           checkOutInfo.checkOutCardText
       );
+      checkOutBody.append("PlateNumber", plateRead);
       checkOutBody.append("ImageOut", file);
       checkOutBody.append("TimeOut", current);
       checkOutBody.append("GateOutId", checkOutData.GateOutId ?? "");
@@ -177,9 +248,19 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
             reset({ CardNumber: "" });
           }
         },
+        onError: (error: any) => {
+          if (error.response.data.message === PLATE_NUMBER_NOT_MATCHED) {
+            setCheckOutInfo((prev) => ({
+              ...prev,
+              plateText: plateRead,
+            }));
+            if (plateRef.current) plateRef.current.focus();
+            setMessage("BIỂN SỐ KHÔNG TRÙNG KHỚP");
+          }
+        },
       });
     } catch (error) {
-      setMessage("LỖI HỆ THỐNG");
+      console.log(error);
     }
   };
   const resetInfo = () => {
@@ -273,10 +354,28 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
               <FormItem>
                 <FormBox title='Biển số xe: '>{checkOutInfo.plateText}</FormBox>
               </FormItem>
-              <FormItem>
+              <FormItem className='grid-cols-2 gap-1'>
+                <div className='max-h-[50%] flex items-center'>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={handleFixPlate}
+                  >
+                    "Enter": Nhập biển
+                  </Button>
+                </div>
+                <FormInput
+                  placeholder='BIỂN SỐ XE'
+                  value={checkOutInfo.plateText}
+                  name='PlateNumber'
+                  ref={plateRef}
+                  onChange={handleChangePlateTxt}
+                />
+              </FormItem>
+              <FormItem className='col-span-4'>
                 <Button
                   className='min-w-full'
-                  type='button'
+                  type='submit'
                   onClick={handleCheckOutPayment}
                 >
                   "Space": Đồng ý mở cổng

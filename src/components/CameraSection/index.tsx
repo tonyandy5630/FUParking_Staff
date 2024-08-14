@@ -193,6 +193,50 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
     [checkInInfo.plateText, checkInInfo.imageFile, checkInInfo.cardText]
   );
 
+  const handleSendCheckout = async () => {
+    try {
+      const checkInBody = new FormData();
+      checkInBody.append("PlateNumber", checkInInfo.cardText);
+      checkInBody.append(
+        "CardNumber",
+        (cardRef.current?.value as string) ?? checkInInfo.cardText
+      );
+      const file = base64StringToFile(
+        checkInInfo.imageFile,
+        "uploaded_image.png"
+      );
+      checkInBody.append("ImageIn", file);
+      //! HARD CODE FOR TESTING
+      checkInBody.append("GateInId", "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F");
+
+      await customerCheckInMutation.mutateAsync(checkInBody as any, {
+        onSuccess: (res) => {
+          if (res.data.message === GET_INFORMATION_SUCCESSFULLY) {
+            if (res.data.data) {
+              setUpdateVehicleInfo(res.data.data);
+              setOpenDialog(true);
+            }
+          }
+          setMessage("KHÁCH CÓ THỂ VÀO");
+          focusPlateInput();
+        },
+        onError: async (error: any) => {
+          if (error.response.data.message === CUSTOMER_NOT_EXIST_ERROR) {
+            setIsGuest(true);
+            setOpenVehicleTypes(true);
+            setMessage("Chọn loại xe");
+            setCheckInInfo((prev) => ({
+              ...prev,
+              customerType: GUEST,
+            }));
+          }
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const onCheckIn = async (checkInData: CheckIn) => {
     try {
       if (webcamRef.current) {
@@ -278,7 +322,11 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
     }
   };
 
-  const handleOpenGate = (e: React.KeyboardEvent<HTMLFormElement>) => {
+  const handleOpenGate = async (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.code === "Enter") {
+      await handleSendCheckout();
+      return;
+    }
     if (e.code === "Space") {
       reset();
       focusCardInput();
@@ -371,7 +419,13 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
               </FormItem>
               <FormItem className='grid-cols-2 gap-1'>
                 <div className='max-h-[50%]'>
-                  <Button type='submit'>"Enter":nhập biển</Button>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={handleSendCheckout}
+                  >
+                    "Enter": Nhập biển
+                  </Button>
                 </div>
                 <FormInput
                   placeholder='BIỂN SỐ XE'

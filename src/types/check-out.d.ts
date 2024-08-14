@@ -5,6 +5,7 @@ export type CheckOut = {
   GateOutId?: string;
   TimeOut?: Date;
   ImageOut?: any;
+  PlateNumber?: string;
 };
 
 export type CheckOutResponse = {
