@@ -21,6 +21,7 @@ import {
 } from "@components/ui/select";
 import { ChangeEvent, useState } from "react";
 import logo from "../assets/Bai_Logo.png";
+import { LOGGED_IN } from "@channels/index";
 
 const IMG_SIZE = 170;
 const GATE_IN = "in";
@@ -55,6 +56,7 @@ export default function Login(): JSX.Element {
               if (gate === GATE_IN) {
                 // window.ipcRenderer.send(TO_CHECK_IN_CHANNEL);
                 // navigate(PAGE.CHECK_IN);
+                window.ipcRenderer.send(LOGGED_IN, true);
                 navigate(PAGE.CHECK_IN);
               } else {
                 navigate(PAGE.CHECK_OUT);

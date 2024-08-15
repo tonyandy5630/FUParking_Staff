@@ -1,11 +1,12 @@
 import {
   GO_BACK_CHANNEL,
+  LOGGED_IN,
   OPEN_ERROR_DIALOG_CHANNEL,
   TO_CHECK_IN_CHANNEL,
   TO_CHECK_OUT_CHANNEL,
   TO_DEVICE_SETUP_CHANNEL,
 } from "../channel";
-import { app, BrowserWindow, Menu, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, Menu, dialog, ipcMain, MenuItem } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import dotenv from "dotenv";
@@ -88,6 +89,19 @@ ipcMain.on(TO_DEVICE_SETUP_CHANNEL, () => {
 
 ipcMain.on(OPEN_ERROR_DIALOG_CHANNEL, (e) => {
   dialog.showErrorBox("Error", "Something went wrong");
+});
+
+ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
+  console.log(isLoggedIn);
+  if (!isLoggedIn) {
+    return;
+  }
+
+  const loggedInMenu = loginMenuItems(win);
+  (loggedInMenu[1].submenu[0] as Partial<MenuItem>).enabled = true;
+  (loggedInMenu[1].submenu[1] as Partial<MenuItem>).enabled = true;
+  const menu = Menu.buildFromTemplate(loggedInMenu);
+  Menu.setApplicationMenu(menu);
 });
 //#endregion
 

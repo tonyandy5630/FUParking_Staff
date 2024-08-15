@@ -17,6 +17,7 @@ function loginMenuItems(win: BrowserWindow | null) {
       submenu: [
         {
           label: "Update Machine Code",
+          enable: true,
           click: () => {
             if (process.env.NODE_ENV === "development") {
               win.webContents.loadURL(BASE_URL + "#" + PAGE.CODE_SET_UP);
@@ -33,6 +34,7 @@ function loginMenuItems(win: BrowserWindow | null) {
         },
         {
           label: "Device Setup",
+          enable: true,
           click: () => {
             if (process.env.NODE_ENV === "development") {
               win.webContents.loadURL(BASE_URL + "#" + PAGE.DEVICE_SET_UP);
@@ -54,6 +56,7 @@ function loginMenuItems(win: BrowserWindow | null) {
       submenu: [
         {
           label: "Cổng vào",
+          enabled: false,
           click: () => {
             if (process.env.NODE_ENV === "development") {
               win.webContents.loadURL(BASE_URL + "#" + PAGE.CHECK_IN);
@@ -70,6 +73,7 @@ function loginMenuItems(win: BrowserWindow | null) {
         },
         {
           label: "Cổng ra",
+          enabled: false,
           click: () => {
             if (process.env.NODE_ENV === "development") {
               win.webContents.loadURL(BASE_URL + "#" + PAGE.CHECK_OUT);
