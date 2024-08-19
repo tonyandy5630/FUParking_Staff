@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <QueryProviders>
       <HashRouter>
         <Routes>
-          <Route path='/' element={<SelectGateTypePage />} />
+          <Route path='/' element={<Login />} />
           <Route
             path={PAGE.CODE_SET_UP}
             element={

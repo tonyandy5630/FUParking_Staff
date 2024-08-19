@@ -21,11 +21,16 @@ import {
 } from "@components/ui/select";
 import { ChangeEvent, useState } from "react";
 import logo from "../assets/Bai_Logo.png";
-import { LOGGED_IN } from "@channels/index";
+import {
+  GET_GATE_TYPE_CHANNEL,
+  GET_NOT_FIRST_TIME_CHANNEL,
+  LOGGED_IN,
+  SET_NOT_FIRST_TIME_CHANNEL,
+} from "@channels/index";
 
 const IMG_SIZE = 170;
-const GATE_IN = "in";
-const GATE_OUT = "out";
+const GATE_IN = "IN";
+const GATE_OUT = "OUT";
 
 export default function Login(): JSX.Element {
   const methods = useForm({ resolver: yupResolver(UserSchema) });
@@ -48,19 +53,40 @@ export default function Login(): JSX.Element {
   const onSubmitLogin = async (data: UserLogin) => {
     try {
       await loginMutation.mutateAsync(data, {
-        onSuccess: (res) => {
+        onSuccess: async (res) => {
           setTokenToLS(res.data.data?.bearerToken ?? "");
-          toast.success("Login Successfully");
-          toast.onChange((payload) => {
-            if (payload.status === "removed")
-              if (gate === GATE_IN) {
+          toast.success("Login Successfully", {
+            toastId: "LOGIN_TOAST",
+          });
+          window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, false);
+          toast.onChange(async (payload) => {
+            if (payload.status === "removed") {
+              console.log(true);
+              const notFirstTime = await window.ipcRenderer.invoke(
+                GET_NOT_FIRST_TIME_CHANNEL
+              );
+
+              if (notFirstTime) {
+                navigate(PAGE.SELECT_GATE_TYPE);
+                return;
+              }
+              const systemGateType = await window.ipcRenderer.invoke(
+                GET_GATE_TYPE_CHANNEL
+              );
+              if (systemGateType === "" || !systemGateType) {
+                navigate(PAGE.SELECT_GATE_TYPE);
+                return;
+              }
+
+              window.ipcRenderer.send(LOGGED_IN, true);
+              if (systemGateType === GATE_IN) {
                 // window.ipcRenderer.send(TO_CHECK_IN_CHANNEL);
                 // navigate(PAGE.CHECK_IN);
-                window.ipcRenderer.send(LOGGED_IN, true);
                 navigate(PAGE.CHECK_IN);
               } else {
                 navigate(PAGE.CHECK_OUT);
               }
+            }
           });
         },
       });

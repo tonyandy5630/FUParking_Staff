@@ -1,8 +1,14 @@
+import { GET_GATE_IN_ID_CHANNEL, GET_GATE_TYPE_CHANNEL } from "@channels/index";
 import { lazy } from "react";
 const CameraSection = lazy(() => import("@components/CameraSection"));
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PAGE from "../../url";
+import useSelectGate from "../hooks/useSelectGate";
+import { GATE_IN } from "@constants/gate.const";
 
 export default function CheckInPage() {
+  useSelectGate(GATE_IN);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [curLane, setCurLane] = useState("");
 

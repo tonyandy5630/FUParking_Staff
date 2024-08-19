@@ -1,11 +1,12 @@
 import { getAllGateAPI } from "@apis/gate.api";
 import { getAllParkingAreaAPI } from "@apis/parking-area.api";
 import {
-  GET_GATE_ID_CHANNEL,
+  GET_GATE_IN_ID_CHANNEL,
+  GET_GATE_OUT_ID_CHANNEL,
   GET_GATE_TYPE_CHANNEL,
   SET_GATE_CHANNEL,
+  SET_NOT_FIRST_TIME_CHANNEL,
 } from "@channels/index";
-import MyButton from "@components/Button";
 import FormItem from "@components/CameraSection/Form/FormItem";
 import { Button } from "@components/ui/button";
 import {
@@ -17,23 +18,23 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { useQuery } from "@tanstack/react-query";
-import { ipcRenderer } from "electron";
 import React, { useMemo, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PAGE from "../../url";
+import { GATE_IN, GATE_OUT } from "@constants/gate.const";
 
 export default function SelectGateTypePage() {
   const [selectedParkingName, setSelectedParkingName] = useState("");
-  const [selectedGateId, setSelectedGate] = useState("");
+  const [selectedGateId, setSelectedGateId] = useState("");
   const navigate = useNavigate();
   const {
     data: gatesData,
     isLoading: isLoadingGates,
     isSuccess: isSuccessGate,
   } = useQuery({
-    queryKey: ["/gate-all"],
+    queryKey: ["/gate-all", selectedParkingName],
     queryFn: () => getAllGateAPI(selectedParkingName),
     enabled: selectedParkingName !== "",
   });
@@ -59,7 +60,7 @@ export default function SelectGateTypePage() {
         </SelectItem>
       );
     });
-  }, []);
+  }, [gatesData?.data.data]);
 
   const parkingAreaSelects = useMemo(() => {
     const parkingAreas = parkingAreasData?.data.data;
@@ -75,7 +76,7 @@ export default function SelectGateTypePage() {
   }, [parkingAreasData?.data.data]);
 
   const handleGateChange = (value: string) => {
-    setSelectedGate(value);
+    setSelectedGateId(value);
   };
 
   const handleConfirmGate = async () => {
@@ -88,17 +89,43 @@ export default function SelectGateTypePage() {
         id: selectedGateId,
         type: gateType,
       });
-
-      const gateId = await window.ipcRenderer.invoke(GET_GATE_ID_CHANNEL);
       const newGateType = await window.ipcRenderer.invoke(
         GET_GATE_TYPE_CHANNEL
       );
-      if (gateId && newGateType) toast.success("Set gate successfully");
+      let gateId: string | undefined;
+      console.log(gateType);
 
-      if (newGateType === "IN") {
+      switch (gateType) {
+        case GATE_IN:
+          gateId = await window.ipcRenderer.invoke(GET_GATE_IN_ID_CHANNEL);
+          break;
+        case GATE_OUT:
+          gateId = await window.ipcRenderer.invoke(GET_GATE_OUT_ID_CHANNEL);
+          break;
+        default:
+          toast.error("Invalid gate type");
+          return;
+      }
+
+      if (!gateId) {
+        toast.error("Failed to retrieve gate ID");
+        window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, false);
+        return;
+      }
+
+      if (!newGateType) {
+        toast.error("Failed to retrieve new gate type");
+        window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, false);
+        return;
+      }
+
+      window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, true);
+      if (newGateType === GATE_IN) {
         navigate(PAGE.CHECK_IN);
-      } else if (newGateType === "OUT") {
+        return;
+      } else if (newGateType === GATE_OUT) {
         navigate(PAGE.CHECK_OUT);
+        return;
       }
     } catch (error) {
       console.log(error);
@@ -113,7 +140,10 @@ export default function SelectGateTypePage() {
         </div>
         <div className='grid w-1/4 h-full grid-cols-2 gap-y-3 '>
           <FormItem>
-            <Select onValueChange={handleParkingAreaNameChange}>
+            <Select
+              onValueChange={handleParkingAreaNameChange}
+              disabled={isLoadingGates}
+            >
               <SelectTrigger className='min-w-full'>
                 <SelectValue placeholder='Chọn Bãi giữ xe' />
               </SelectTrigger>
@@ -132,9 +162,11 @@ export default function SelectGateTypePage() {
             )}
           </FormItem>
           <FormItem>
-            <Select onValueChange={handleGateChange}>
+            <Select onValueChange={handleGateChange} disabled={isLoadingGates}>
               <SelectTrigger className='min-w-full'>
-                <SelectValue placeholder='Chọn cổng' />
+                <SelectValue
+                  placeholder={isLoadingGates ? "Loading..." : "Chọn cổng"}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>{gateSelects}</SelectGroup>
@@ -143,7 +175,12 @@ export default function SelectGateTypePage() {
           </FormItem>
           <FormItem className='grid-cols-2 gap-1'>
             <Button variant='destructive'>Hủy</Button>
-            <Button onClick={() => handleConfirmGate()}>Xác nhận</Button>
+            <Button
+              disabled={selectedGateId === ""}
+              onClick={async () => await handleConfirmGate()}
+            >
+              Xác nhận
+            </Button>
           </FormItem>
         </div>
       </main>

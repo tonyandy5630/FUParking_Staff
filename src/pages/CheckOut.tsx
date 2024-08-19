@@ -1,8 +1,12 @@
 import CheckOutSection from "@components/CameraSection/CheckOutSection";
+import { GATE_OUT } from "@constants/gate.const";
 import React from "react";
 import { useCallback, useEffect, useState } from "react";
+import useSelectGate from "../hooks/useSelectGate";
 
 export default function CheckOutPage() {
+  useSelectGate(GATE_OUT);
+
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [curLane, setCurLane] = useState("");
 

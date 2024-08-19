@@ -1,10 +1,13 @@
 import {
-  GET_GATE_ID_CHANNEL,
+  GET_GATE_IN_ID_CHANNEL,
+  GET_GATE_OUT_ID_CHANNEL,
   GET_GATE_TYPE_CHANNEL,
+  GET_NOT_FIRST_TIME_CHANNEL,
   GO_BACK_CHANNEL,
   LOGGED_IN,
   OPEN_ERROR_DIALOG_CHANNEL,
   SET_GATE_CHANNEL,
+  SET_NOT_FIRST_TIME_CHANNEL,
   TO_CHECK_IN_CHANNEL,
   TO_CHECK_OUT_CHANNEL,
   TO_DEVICE_SETUP_CHANNEL,
@@ -19,6 +22,7 @@ import PAGE from "../url";
 import { loadURL } from "./utils/electron_utils";
 import Store from "electron-store";
 import ElectronStore from "electron-store";
+import { GATE_IN, GATE_OUT } from "../src/constants/gate.const";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -66,6 +70,7 @@ function createWindow() {
     win?.show();
     win?.maximize();
     store = new Store();
+    console.log(store.path);
   });
   try {
     if (VITE_DEV_SERVER_URL) {
@@ -100,12 +105,35 @@ ipcMain.on(OPEN_ERROR_DIALOG_CHANNEL, (e) => {
   dialog.showErrorBox("Error", "Something went wrong");
 });
 
+ipcMain.on(SET_NOT_FIRST_TIME_CHANNEL, (_, isFirstTime: boolean) => {
+  if (!store) return;
+  store.set("notFirstTime", isFirstTime);
+});
+
+ipcMain.handle(GET_NOT_FIRST_TIME_CHANNEL, () => {
+  if (!store) return;
+  return store.get("notFirstTime", false);
+});
+
 ipcMain.on(SET_GATE_CHANNEL, (e, gate: { id: string; type: string }) => {
   if (!store) return;
-  store.set({
-    gateId: gate.id,
-    gateType: gate.type,
-  });
+  if (!gate.id || !gate.type) {
+    dialog.showErrorBox("Select Gate", "Gate is not selected");
+    return;
+  }
+  if (gate.type === GATE_IN)
+    store.set({
+      gateInId: gate.id,
+      gateType: gate.type,
+    });
+  else if (gate.type === GATE_OUT) {
+    store.set({
+      gateOutId: gate.id,
+      gateType: gate.type,
+    });
+  } else {
+    dialog.showErrorBox("Gate is invalid", "Gate cannot be set");
+  }
 });
 
 ipcMain.handle(GET_GATE_TYPE_CHANNEL, (e) => {
@@ -113,9 +141,14 @@ ipcMain.handle(GET_GATE_TYPE_CHANNEL, (e) => {
   return store.get("gateType");
 });
 
-ipcMain.handle(GET_GATE_ID_CHANNEL, (event: any) => {
+ipcMain.handle(GET_GATE_IN_ID_CHANNEL, (event: any) => {
   if (!store) return;
-  return store.get("gateId");
+  return store.get("gateInId");
+});
+
+ipcMain.handle(GET_GATE_OUT_ID_CHANNEL, (event: any) => {
+  if (!store) return;
+  return store.get("gateOutId");
 });
 
 ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
