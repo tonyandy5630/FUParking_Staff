@@ -70,7 +70,6 @@ function createWindow() {
     win?.show();
     win?.maximize();
     store = new Store();
-    console.log(store.path);
   });
   try {
     if (VITE_DEV_SERVER_URL) {
