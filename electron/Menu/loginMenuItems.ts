@@ -4,10 +4,15 @@ import path from "node:path";
 import { BrowserWindow } from "electron";
 import { BASE_URL } from "../main";
 import PAGE from "../../url";
+import ElectronStore from "electron-store";
+import { GATE_IN, GATE_OUT } from "../../src/constants/gate.const";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config();
 
-function loginMenuItems(win: BrowserWindow | null) {
+function loginMenuItems(
+  win: BrowserWindow | null,
+  store: ElectronStore | null
+) {
   if (win === null) {
     return [];
   }
@@ -58,6 +63,7 @@ function loginMenuItems(win: BrowserWindow | null) {
           label: "Cổng vào",
           enabled: false,
           click: () => {
+            if (store) store.set("gateType", GATE_IN);
             if (process.env.NODE_ENV === "development") {
               win.webContents.loadURL(BASE_URL + "#" + PAGE.CHECK_IN);
             } else {
@@ -75,6 +81,7 @@ function loginMenuItems(win: BrowserWindow | null) {
           label: "Cổng ra",
           enabled: false,
           click: () => {
+            if (store) store.set("gateType", GATE_OUT);
             if (process.env.NODE_ENV === "development") {
               win.webContents.loadURL(BASE_URL + "#" + PAGE.CHECK_OUT);
             } else {
@@ -84,6 +91,8 @@ function loginMenuItems(win: BrowserWindow | null) {
                 protocol: "file:",
                 slashes: true,
               });
+              if (store) store.set("gateType", GATE_OUT);
+
               win.webContents.loadURL(redirectURL);
             }
           },

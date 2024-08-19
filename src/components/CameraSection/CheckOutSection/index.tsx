@@ -24,6 +24,8 @@ import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
 import { DEFAULT_GUEST } from "@constants/customer.const";
 import Image from "@components/Image";
+import useSelectGate from "../../../hooks/useSelectGate";
+import { GATE_OUT } from "@constants/gate.const";
 
 const initCheckOutInfo = {
   plateImg: "",
@@ -38,6 +40,7 @@ const initCheckOutInfo = {
 };
 
 function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
+  const { gateId } = useSelectGate(GATE_OUT);
   const webcamRef = useRef(null);
   const [checkOutInfo, setCheckOutInfo] = useState(initCheckOutInfo);
   const [message, setMessage] = useState("");
@@ -46,12 +49,10 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const methods = useForm({
     resolver: yupResolver(CheckOutSchema),
     defaultValues: {
-      //! HARD CODE FOR TESTING
-      GateOutId: "E74F3F1F-BA7B-4989-EC20-08DD7D140E5F",
+      GateOutId: gateId,
     },
     values: {
-      GateOutId: "E74F3F1F-BA7B-4989-EC20-08DD7D140E5F",
-      PlateNumber: "29B139393",
+      GateOutId: gateId,
     },
   });
 
@@ -138,7 +139,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
       checkOutBody.append("PlateNumber", checkOutInfo.plateText);
       checkOutBody.append("ImageOut", file);
       checkOutBody.append("TimeOut", getLocalISOString(new Date()));
-      checkOutBody.append("GateOutId", "E74F3F1F-BA7B-4989-EC20-08DD7D140E5F");
+      checkOutBody.append("GateOutId", gateId);
 
       await checkOutMutation.mutateAsync(checkOutBody as any, {
         onSuccess: (res) => {

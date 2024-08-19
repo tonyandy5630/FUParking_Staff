@@ -156,7 +156,7 @@ ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
     return;
   }
 
-  const loggedInMenu = loginMenuItems(win);
+  const loggedInMenu = loginMenuItems(win, store);
   (loggedInMenu[1].submenu[0] as Partial<MenuItem>).enabled = true;
   (loggedInMenu[1].submenu[1] as Partial<MenuItem>).enabled = true;
   const menu = Menu.buildFromTemplate(loggedInMenu);
@@ -187,7 +187,7 @@ app
   .then(() => {
     createWindow();
 
-    const loginMenu = loginMenuItems(win);
+    const loginMenu = loginMenuItems(win, store);
     if (loginMenu.length === 0) {
       Promise.reject();
     }

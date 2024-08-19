@@ -41,6 +41,9 @@ import {
   SYSTEM_CUSTOMER,
 } from "@constants/customer.const";
 import Image from "@components/Image";
+import { GET_GATE_IN_ID_CHANNEL } from "@channels/index";
+import useSelectGate from "../../hooks/useSelectGate";
+import { GATE_IN } from "@constants/gate.const";
 
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
@@ -60,6 +63,7 @@ const initCheckInInfo = {
 
 function CameraSection({ cameraSize = "sm", ...props }: Props) {
   const webcamRef = useRef(null);
+  const { gateId } = useSelectGate(GATE_IN);
   const [checkInInfo, setCheckInInfo] = useState(initCheckInInfo);
   const [isGuest, setIsGuest] = useState(false);
   const cardRef = useRef<HTMLInputElement>(null);
@@ -73,8 +77,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
   const methods = useForm({
     resolver: yupResolver(CheckInSchema),
     defaultValues: {
-      //! HARD CODE FOR TESTING
-      GateInId: "E74F3F1F-BA7B-4989-EC20-08DC7D140E4F",
+      GateInId: gateId,
     },
   });
 
@@ -164,7 +167,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
         const { imageFile, cardText, plateText, time, plateImg } = checkInInfo;
         const checkInBody = new FormData();
         const file = base64StringToFile(imageFile, "uploaded_image.png");
-        checkInBody.append("GateInId", "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F");
+        checkInBody.append("GateInId", gateId);
         checkInBody.append("PlateNumber", plateText);
         checkInBody.append(
           "CardNumber",
@@ -206,8 +209,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
         "uploaded_image.png"
       );
       checkInBody.append("ImageIn", file);
-      //! HARD CODE FOR TESTING
-      checkInBody.append("GateInId", "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F");
+      checkInBody.append("GateInId", gateId);
 
       await customerCheckInMutation.mutateAsync(checkInBody as any, {
         onSuccess: (res) => {
@@ -265,11 +267,10 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
               (cardRef.current?.value as string) ?? checkInInfo.cardText
             );
             checkInBody.append("ImageIn", file);
-            //! HARD CODE FOR TESTING
-            checkInBody.append(
-              "GateInId",
-              "E74F3F1F-BA7B-4989-EC20-08DC7D140E5F"
+            const gateInID = await window.ipcRenderer.invoke(
+              GET_GATE_IN_ID_CHANNEL
             );
+            checkInBody.append("GateInId", gateInID);
 
             setValue("PlateNumber", checkInData.PlateNumber);
             setCheckInInfo((prev) => ({
@@ -371,7 +372,7 @@ function CameraSection({ cameraSize = "sm", ...props }: Props) {
             <div className='flex items-center justify-center min-w-full font-bold text-white bg-primary'>
               <h5>THÔNG TIN THẺ</h5>
             </div>
-            <div className='grid h-full min-w-full grid-cols-4 '>
+            <div className='grid h-full min-w-full grid-cols-4'>
               <FormItem>
                 <FormInput
                   autoFocus={true}

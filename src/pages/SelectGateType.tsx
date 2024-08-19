@@ -4,6 +4,7 @@ import {
   GET_GATE_IN_ID_CHANNEL,
   GET_GATE_OUT_ID_CHANNEL,
   GET_GATE_TYPE_CHANNEL,
+  LOGGED_IN,
   SET_GATE_CHANNEL,
   SET_NOT_FIRST_TIME_CHANNEL,
 } from "@channels/index";
@@ -93,7 +94,6 @@ export default function SelectGateTypePage() {
         GET_GATE_TYPE_CHANNEL
       );
       let gateId: string | undefined;
-      console.log(gateType);
 
       switch (gateType) {
         case GATE_IN:
@@ -121,9 +121,11 @@ export default function SelectGateTypePage() {
 
       window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, true);
       if (newGateType === GATE_IN) {
+        window.ipcRenderer.send(LOGGED_IN, true);
         navigate(PAGE.CHECK_IN);
         return;
       } else if (newGateType === GATE_OUT) {
+        window.ipcRenderer.send(LOGGED_IN, true);
         navigate(PAGE.CHECK_OUT);
         return;
       }

@@ -8,7 +8,6 @@ import useSelectGate from "../hooks/useSelectGate";
 import { GATE_IN } from "@constants/gate.const";
 
 export default function CheckInPage() {
-  useSelectGate(GATE_IN);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [curLane, setCurLane] = useState("");
 
