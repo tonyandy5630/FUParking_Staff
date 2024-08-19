@@ -1,7 +1,10 @@
 import {
+  GET_GATE_ID_CHANNEL,
+  GET_GATE_TYPE_CHANNEL,
   GO_BACK_CHANNEL,
   LOGGED_IN,
   OPEN_ERROR_DIALOG_CHANNEL,
+  SET_GATE_CHANNEL,
   TO_CHECK_IN_CHANNEL,
   TO_CHECK_OUT_CHANNEL,
   TO_DEVICE_SETUP_CHANNEL,
@@ -14,6 +17,9 @@ import loginMenuItems from "./menu/loginMenuItems";
 import dotenvExpand from "dotenv-expand";
 import PAGE from "../url";
 import { loadURL } from "./utils/electron_utils";
+import Store from "electron-store";
+import ElectronStore from "electron-store";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 if (process.resourcesPath) {
@@ -43,6 +49,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   : RENDERER_DIST;
 
 let win: BrowserWindow | null;
+let store: ElectronStore | null;
 
 function createWindow() {
   const logoURL = path.join(__dirname, "../src/assets/Bai_Logo.png");
@@ -50,6 +57,7 @@ function createWindow() {
     icon: path.join(logoURL),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
+      nodeIntegration: true,
     },
     title: "Bai Parking System",
   });
@@ -57,6 +65,7 @@ function createWindow() {
   win.once("ready-to-show", () => {
     win?.show();
     win?.maximize();
+    store = new Store();
   });
   try {
     if (VITE_DEV_SERVER_URL) {
@@ -91,8 +100,25 @@ ipcMain.on(OPEN_ERROR_DIALOG_CHANNEL, (e) => {
   dialog.showErrorBox("Error", "Something went wrong");
 });
 
+ipcMain.on(SET_GATE_CHANNEL, (e, gate: { id: string; type: string }) => {
+  if (!store) return;
+  store.set({
+    gateId: gate.id,
+    gateType: gate.type,
+  });
+});
+
+ipcMain.handle(GET_GATE_TYPE_CHANNEL, (e) => {
+  if (!store) return;
+  return store.get("gateType");
+});
+
+ipcMain.handle(GET_GATE_ID_CHANNEL, (event: any) => {
+  if (!store) return;
+  return store.get("gateId");
+});
+
 ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
-  console.log(isLoggedIn);
   if (!isLoggedIn) {
     return;
   }

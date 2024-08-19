@@ -11,6 +11,7 @@ const MachineSetupPage = lazy(() => import("./pages/MachineSetup"));
 import Login from "./pages/Login";
 import PAGE from "../url";
 const CheckOutPage = lazy(() => import("./pages/CheckOut"));
+const SelectGateTypePage = lazy(() => import("./pages/SelectGateType"));
 const DeviceSetupPage = lazy(() => import("./pages/DeviceSetup"));
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -18,12 +19,20 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <QueryProviders>
       <HashRouter>
         <Routes>
-          <Route path='/' element={<Login />} />
+          <Route path='/' element={<SelectGateTypePage />} />
           <Route
             path={PAGE.CODE_SET_UP}
             element={
               <Suspense fallback={<p>Loading...</p>}>
                 <MachineSetupPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path={PAGE.SELECT_GATE_TYPE}
+            element={
+              <Suspense>
+                <SelectGateTypePage />
               </Suspense>
             }
           />
