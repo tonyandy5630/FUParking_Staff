@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 import logo from "../assets/Bai_Logo.png";
 import {
   GET_GATE_TYPE_CHANNEL,
@@ -37,6 +37,8 @@ export default function Login(): JSX.Element {
   const { handleSubmit, reset } = methods;
   const [gate, setGate] = useState(GATE_IN);
   const navigate = useNavigate();
+  const userNameFef = useRef<HTMLInputElement>(null);
+  const pwdRef = useRef<HTMLInputElement>(null);
 
   const handleGateChange = (value: string) => {
     setGate(value);
@@ -134,10 +136,12 @@ export default function Login(): JSX.Element {
               name='email'
               placeholder='Nhập email'
               autoFocus={true}
+              ref={userNameFef}
               className='h-10 min-w-full'
             />
             <FormInput
               name='password'
+              ref={pwdRef}
               type='password'
               placeholder='Nhập mật khẩu'
               className='h-10 min-w-full'

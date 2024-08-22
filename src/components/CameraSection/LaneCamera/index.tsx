@@ -14,7 +14,7 @@ export type Props = {
   webcamRef: any;
 };
 
-function CameraSection({
+function LaneCamera({
   cameraSize = "sm",
   frontImage,
   backImage,
@@ -23,12 +23,13 @@ function CameraSection({
   ...props
 }: Props) {
   return (
-    <div className='flex flex-col items-start justify-between gap-3'>
+    <div className='flex flex-col flex-grow gap-1'>
       <Frame>
         <Webcam
           audio={false}
           ref={webcamRef}
           className='w-full h-full'
+          key={Math.floor(Math.random() * 1000)}
           videoConstraints={{
             deviceId: props.deviceId,
           }}
@@ -42,4 +43,4 @@ function CameraSection({
   );
 }
 
-export default memo(CameraSection);
+export default memo(LaneCamera);

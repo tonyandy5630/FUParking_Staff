@@ -1,19 +1,27 @@
 import { SizeTypes } from "@my_types/my-camera";
 import Webcam from "react-webcam";
 import Lane from "./Lane";
-import { memo, useCallback, useMemo, useRef, useState, lazy } from "react";
+import {
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  lazy,
+  HTMLAttributes,
+} from "react";
 import { Button } from "@components/ui/button";
 import Frame from "./Frame";
-import CameraLane from "./CameraLane";
+import CameraLane from "./LaneCamera";
 
-export type Props = {
+interface Props extends HTMLAttributes<HTMLDivElement> {
   deviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
   frontImage: string;
   backImage: string;
   isLoading?: boolean;
   webcamRef: any;
-};
+}
 
 function CameraSection({
   cameraSize = "sm",
@@ -24,7 +32,7 @@ function CameraSection({
   ...props
 }: Props) {
   return (
-    <div className='flex min-w-full gap-2 h-[50%]'>
+    <div className='flex justify-stretch h-fit gap-x-1'>
       <CameraLane
         frontImage={frontImage}
         backImage={frontImage}
@@ -32,13 +40,13 @@ function CameraSection({
         isLoading={isLoading}
         deviceId={props.deviceId}
       />
-      <CameraLane
+      {/* <CameraLane
         frontImage={frontImage}
         backImage={frontImage}
         webcamRef={webcamRef}
         isLoading={isLoading}
         deviceId={props.deviceId}
-      />
+      /> */}
     </div>
   );
 }

@@ -8,7 +8,7 @@ type Props = {
 function FormItem({ children, className }: Props) {
   return (
     <div
-      className={`grid items-center px-2 col-span-2 justify-stretch ${className}`}
+      className={`grid grid-rows-5 row-span-1 p-1 border border-gray-400 border-solid ${className}`}
     >
       {children}
     </div>
