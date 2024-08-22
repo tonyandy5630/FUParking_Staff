@@ -17,7 +17,7 @@ module.exports = {
     },
     extend: {
       width: {
-        "camera-md": "500px",
+        "camera-md": "350px",
         "camera-sm": "480px",
       },
       colors: {

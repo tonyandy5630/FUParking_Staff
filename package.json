@@ -2,7 +2,7 @@
   "name": "fptparkingstaff",
   "productName": "FPTParkingStaff",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development && vite",
@@ -35,8 +35,7 @@
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "url": "^0.11.4",
-    "yup": "^1.4.0",
-    "zod": "^3.23.8"
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.64",

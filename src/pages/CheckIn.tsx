@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import PAGE from "../../url";
 import useSelectGate from "../hooks/useSelectGate";
 import { GATE_IN } from "@constants/gate.const";
+import CheckInSection from "@components/CheckInSection";
 
 export default function CheckInPage() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -56,16 +57,26 @@ export default function CheckInPage() {
   return (
     <>
       {devices.length !== 0 && (
-        <div className='flex justify-between w-full min-h-full gap-x-2'>
+        <div className='flex w-full min-h-full'>
           {devices[0] !== undefined && (
-            <CameraSection
-              key={devices[0].deviceId}
-              deviceId={devices[0].deviceId}
-              currentDevice={curLane}
-              cameraSize='md'
-            >
-              Lane 1
-            </CameraSection>
+            <div className='grid min-w-full grid-cols-2 p-3 space-x-3'>
+              <CheckInSection
+                key={devices[0].deviceId}
+                deviceId={devices[0].deviceId}
+                currentDevice={curLane}
+                cameraSize='md'
+              >
+                Lane 1
+              </CheckInSection>
+              <CheckInSection
+                key={devices[0].deviceId}
+                deviceId={devices[0].deviceId}
+                currentDevice={curLane}
+                cameraSize='md'
+              >
+                Lane 1
+              </CheckInSection>
+            </div>
           )}
         </div>
       )}

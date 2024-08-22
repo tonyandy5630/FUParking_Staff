@@ -8,7 +8,7 @@ export default function Container({ children }: Props) {
   return (
     <div className='flex flex-col items-center justify-center w-full h-full min-h-full'>
       <Header />
-      <main className='flex flex-col items-center justify-center h-full min-w-full px-4'>
+      <main className='flex flex-col items-center justify-center h-full min-w-full px-2'>
         {children}
       </main>
     </div>
