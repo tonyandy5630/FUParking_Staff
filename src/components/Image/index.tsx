@@ -11,9 +11,11 @@ export default function Image({ src, isLoading = false }: Props) {
   return (
     <img
       src={isLoading ? loading : src === "" ? logo : src}
-      className={`aspect-video ${src === "" ? "object-contain" : ""}`}
-      width='100%'
-      height='100%'
+      className={`aspect-auto min-w-full h-full ${
+        src === "" ? "object-contain" : "object-cover"
+      }`}
+      // width='100%'
+      // height='100%'
     />
   );
 }

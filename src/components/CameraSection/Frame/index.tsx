@@ -3,11 +3,11 @@ import { cn } from "@utils/utils";
 import * as React from "react";
 
 const frameVariants = cva(
-  "border-4 outline-offset-2 border-solid border-black aspect-video",
+  "border-4 outline-offset-2 border-solid border-black aspect-auto",
   {
     variants: {
       size: {
-        md: "w-camera-md",
+        md: "w-full h-[260px]",
         sm: "w-camera-sm",
       },
       type: {
@@ -38,7 +38,7 @@ export default function Frame({
   type = "regular",
 }: FrameProps) {
   return (
-    <div>
+    <div className='w-full'>
       <p className='min-w-full text-center'>{title}</p>
       <div className={cn(frameVariants({ size, className, type }))}>
         {children}

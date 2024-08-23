@@ -28,6 +28,11 @@ import UpdateVehicleSchema, {
   UpdateVehicleSchemaType,
 } from "@utils/schema/updateVehicleSchema";
 import { toast } from "react-toastify";
+import { FormInfoRow } from "@components/CameraSection/Form";
+import InfoSection, {
+  InfoVehicle,
+} from "@components/CameraSection/Form/InfoSection";
+import Message from "@components/Message";
 
 const initalInfo: UpdateVehicleTypeInfo = {
   vehicleType: "",
@@ -120,7 +125,7 @@ function UpdateVehicleTypeDialog({
         },
       });
     } catch (error) {
-      setMessage("THAY ĐỔI THÂT BẠI");
+      setMessage("THAY ĐỔI THẤT BẠI");
       console.log(error);
     }
   };
@@ -131,67 +136,69 @@ function UpdateVehicleTypeDialog({
         <DialogHeader>
           <DialogTitle>Xác nhận xe khách hàng</DialogTitle>
         </DialogHeader>
-        <div className='grid gap-4 py-4'>
+        <div className='flex justify-center gap-4 py-4'>
           <FormProvider {...methods}>
             <form
-              className='grid items-center grid-cols-[repeat(2,1fr_400px)] gap-2'
+              className='grid items-center justify-center gap-2'
               onSubmit={handleSubmit(handleUpdateVehicle)}
             >
-              <FormItem>
-                <FormBox title='Thời gian đăng kí'>
-                  {toLocaleDate(new Date(timeRegister))}
-                </FormBox>
-              </FormItem>
-              <FormItem className='row-span-4'>
-                <img src={plateImg} className={`aspect-video`} />
-              </FormItem>
-              <FormItem>
-                <Controller
-                  name='vehicleType'
-                  control={control}
-                  render={(fields) => (
-                    <Select
-                      onValueChange={handleVehicleTypeChange}
-                      defaultValue={vehicleType}
-                      {...fields}
+              <FormInfoRow>
+                <InfoSection numberOfRow={5}>
+                  <InfoVehicle label='Thời gian đăng kí'>
+                    {toLocaleDate(new Date(timeRegister))}
+                  </InfoVehicle>
+                  <InfoVehicle label='Loại xe'>
+                    <Controller
+                      name='vehicleType'
+                      control={control}
+                      render={(fields) => (
+                        <Select
+                          onValueChange={handleVehicleTypeChange}
+                          defaultValue={vehicleType}
+                          {...fields}
+                        >
+                          <SelectTrigger className='min-w-full'>
+                            <SelectValue placeholder='Chọn loại xe' />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>{vehicleTypesSelects}</SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </InfoVehicle>
+                  <InfoVehicle label='Trạng thái'>{status}</InfoVehicle>
+                  <div className='grid items-center justify-center border border-solid border-gray-50000'>
+                    <DialogFooter className='flex justify-center w-full'>
+                      <Message
+                        error={updateVehicleTypeMutation.isError}
+                        success={updateVehicleTypeMutation.isSuccess}
+                        pending={updateVehicleTypeMutation.isPending}
+                      >
+                        {updateVehicleTypeMutation.isPending
+                          ? "Đang xác nhận"
+                          : message}
+                      </Message>
+                    </DialogFooter>
+                  </div>
+                  <div className='grid grid-cols-2 gap-2'>
+                    <Button
+                      type='submit'
+                      variant='destructive'
+                      onClick={(e) => setValue("isAccept", false)}
                     >
-                      <SelectTrigger className='min-w-full'>
-                        <SelectValue placeholder='Chọn loại xe' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>{vehicleTypesSelects}</SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </FormItem>
-              <FormItem>
-                <FormBox title='Trạng thái'>{status}</FormBox>
-              </FormItem>
-              <FormItem className='grid-cols-2 gap-4'>
-                <Button
-                  type='submit'
-                  variant='destructive'
-                  onClick={(e) => setValue("isAccept", false)}
-                >
-                  Từ chối
-                </Button>
-                <Button
-                  type='submit'
-                  onClick={(e) => setValue("isAccept", true)}
-                >
-                  Đồng ý
-                </Button>
-              </FormItem>
-              <FormItem>
-                <DialogFooter>
-                  <p>
-                    {updateVehicleTypeMutation.isPending
-                      ? "Đang xác nhận"
-                      : message}
-                  </p>
-                </DialogFooter>
-              </FormItem>
+                      Từ chối
+                    </Button>
+                    <Button
+                      type='submit'
+                      onClick={(e) => setValue("isAccept", true)}
+                    >
+                      Đồng ý
+                    </Button>
+                  </div>
+                </InfoSection>
+                <img src={plateImg} className={`aspect-video`} />
+              </FormInfoRow>
             </form>
           </FormProvider>
         </div>

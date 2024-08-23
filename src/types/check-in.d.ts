@@ -1,8 +1,9 @@
 export type CheckIn = {
-  CardId?: string;
-  GateInId?: string;
-  PlateNumber?: string;
-  ImageIn?: any;
+  CardId: string;
+  GateInId: string;
+  PlateNumber: string;
+  ImageIn: any;
+  ImageBodyIn: any;
   VehicleTypeId?: string;
 };
 

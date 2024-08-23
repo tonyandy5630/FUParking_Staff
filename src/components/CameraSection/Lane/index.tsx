@@ -5,7 +5,7 @@ type Props = {
 
 export default function Lane({ children, focus }: Props) {
   return (
-    <div className='flex flex-col items-start justify-between flex-grow w-1/2 max-w-full p-3'>
+    <div className='grid justify-between flex-grow grid-cols-2 p-3 bg-red-300'>
       {children}
     </div>
   );
