@@ -16,11 +16,11 @@ export default function InfoSection({
 }: InfoSectionProps) {
   return (
     <div
-      className={`grid content-between col-span-1 ${
+      className={`grid content-between ${className} col-span-1 ${
         numberOfRow === 3 || !numberOfRow
           ? "grid-rows-[repeat(3,35px)]"
           : numberOfRow === 2
-          ? `grid-rows-[repeat(2,60px)]`
+          ? `grid-rows-[repeat(2,70px)]`
           : numberOfRow === 5
           ? `grid-rows-[repeat(5,45px)]`
           : ""
@@ -34,6 +34,7 @@ export default function InfoSection({
 interface InfoVehicleProps extends HTMLAttributes<HTMLDivElement> {
   infoValue?: string;
   label?: string;
+  col?: boolean;
 }
 
 export function InfoVehicle({
@@ -41,13 +42,18 @@ export function InfoVehicle({
   className,
   infoValue = "",
   label,
+  col,
 }: InfoVehicleProps) {
   return (
     <div
-      className={` ${className} grid items-center grid-cols-2 row-span-1 px-2 border border-solid justify-stretch border-grey-400`}
+      className={`grid items-center ${className} ${
+        !col
+          ? " grid-cols-2 row-span-1 justify-stretch"
+          : "grid-flow-col grid-rows-2"
+      } px-2 border border-solid  border-grey-400`}
     >
-      <span>{label}</span>
-      <span className='font-bold'>{children}</span>
+      <div className='grid col-span-1 w-fit'>{label}</div>
+      <div className='font-bold text-center'>{children}</div>
     </div>
   );
 }

@@ -26,7 +26,7 @@ import { GET_GATE_IN_ID_CHANNEL } from "@channels/index";
 import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_IN } from "@constants/gate.const";
 import CameraSection from "@components/CameraSection";
-import VehicleForm from "@components/VehicleForm";
+import CheckInVehicleForm from "@components/CheckInVehicleForm";
 
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
@@ -340,7 +340,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
         }
         deviceId={props.deviceId}
       />
-      <VehicleForm
+      <CheckInVehicleForm
         methods={methods}
         isLoading={
           plateDetectionMutation.isPending ||

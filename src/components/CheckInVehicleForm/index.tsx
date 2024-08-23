@@ -28,7 +28,7 @@ type Props = {
   isLoading?: boolean;
 };
 
-export default function VehicleForm({
+export default function CheckInVehicleForm({
   onCheckIn,
   onVehicleTypeChange,
   checkInInfo,
@@ -115,7 +115,7 @@ export default function VehicleForm({
             message={checkInInfo.message}
             error={false}
           >
-            Làn ra
+            Làn vào
           </FormNameRow>
           <button type='submit' hidden>
             submit

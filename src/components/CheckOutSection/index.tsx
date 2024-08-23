@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useRef, useState } from "react";
-import { Props } from "..";
-import Lane from "../Lane";
-import Frame from "../Frame";
+import CameraSection from "../CameraSection";
+import Lane from "../CameraSection/Lane";
+import Frame from "../CameraSection/Frame";
 import Webcam from "react-webcam";
 import { FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -17,18 +17,42 @@ import {
   NEED_TO_PAY,
   PLATE_NUMBER_NOT_MATCHED,
 } from "@constants/error-message.const";
-import FormItem from "../Form/FormItem";
-import FormBox from "../Form/FormBox";
+import FormItem from "../CameraSection/Form/FormItem";
+import FormBox from "../CameraSection/Form/FormBox";
 import toLocaleDate, { getLocalISOString } from "@utils/date";
 import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
-import { DEFAULT_GUEST } from "@constants/customer.const";
+import { DEFAULT_GUEST, GuestType } from "@constants/customer.const";
 import Image from "@components/Image";
-import useSelectGate from "../../../hooks/useSelectGate";
+import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_OUT } from "@constants/gate.const";
+import CheckOutVehicleForm from "@components/CheckOutVehicleForm";
+import { SizeTypes } from "@my_types/my-camera";
 
-const initCheckOutInfo = {
+export type Props = {
+  deviceId: ConstrainDOMString | undefined;
+  cameraSize?: SizeTypes;
+  children: any;
+  currentDevice: ConstrainDOMString | undefined;
+  cardRef: React.RefObject<HTMLInputElement>;
+};
+
+export type CheckOutInfo = {
+  plateImg: string;
+  bodyImg: string;
+  imgOut: string;
+  plateText: string;
+  cashToPay?: number;
+  checkOutCardText: string;
+  customerType: GuestType;
+  needPay: boolean;
+  timeIn: string;
+  timeOut: string;
+};
+
+const initCheckOutInfo: CheckOutInfo = {
   plateImg: "",
+  bodyImg: "",
   imgOut: "",
   plateText: "",
   cashToPay: 0,
@@ -41,8 +65,10 @@ const initCheckOutInfo = {
 
 function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const { gateId } = useSelectGate(GATE_OUT);
-  const webcamRef = useRef(null);
-  const [checkOutInfo, setCheckOutInfo] = useState(initCheckOutInfo);
+  const plateCamRef = useRef(null);
+  const bodyCamRef = useRef(null);
+  const [checkOutInfo, setCheckOutInfo] =
+    useState<CheckOutInfo>(initCheckOutInfo);
   const [message, setMessage] = useState("");
   const checkOutCardRef = useRef<HTMLInputElement>(null);
   const plateRef = useRef<HTMLInputElement>(null);
@@ -55,10 +81,6 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
       GateOutId: gateId,
     },
   });
-
-  const onCheckOutCardTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCheckOutInfo((prev) => ({ ...prev, checkOutCardText: e.target.value }));
-  };
 
   const {
     formState: { errors },
@@ -185,14 +207,16 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const onCheckOut = async (checkOutData: CheckOut) => {
     try {
       console.log(checkOutData);
-      if (!webcamRef.current as any) {
+      if (!plateCamRef.current || !bodyCamRef.current) {
         setMessage("KHÔNG TÌM THẤY CAMERA");
       }
       const plateNumberBody = new FormData();
-      const imageSrc = (webcamRef.current as any).getScreenshot();
-      const file = base64StringToFile(imageSrc, "uploaded_image.png");
+      const plateImageSrc = (plateCamRef.current as any).getScreenshot();
+      const bodyImageSrc = (plateCamRef.current as any).getScreenshot();
+      const plateFile = base64StringToFile(plateImageSrc, "uploaded_image.png");
+      const bodyFile = base64StringToFile(bodyImageSrc, "uploaded_image.png");
 
-      plateNumberBody.append("upload", file);
+      plateNumberBody.append("upload", plateFile);
       plateNumberBody.append("regions", "vn");
       const current = getLocalISOString(new Date());
 
@@ -200,7 +224,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
 
       await plateDetectionMutation.mutateAsync(plateNumberBody, {
         onSuccess: (plateDetectionRes: SuccessResponse<LicenseResponse>) => {
-          setCheckOutInfo((prev) => ({ ...prev, imgOut: imageSrc }));
+          setCheckOutInfo((prev) => ({ ...prev, imgOut: plateImageSrc }));
           plateRead = plateDetectionRes.data.results[0].plate.toUpperCase();
         },
       });
@@ -212,8 +236,9 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
           checkOutInfo.checkOutCardText
       );
       checkOutBody.append("PlateNumber", plateRead);
-      checkOutBody.append("ImageOut", file);
+      checkOutBody.append("ImageOut", plateFile);
       checkOutBody.append("TimeOut", current);
+      checkOutBody.append("ImageBody", bodyFile);
       checkOutBody.append("GateOutId", checkOutData.GateOutId ?? "");
       await checkOutMutation.mutateAsync(checkOutBody as any, {
         onSuccess: (res: ErrorResponse<CheckOutResponse>) => {
@@ -230,10 +255,11 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
             setCheckOutInfo((prev) => ({
               ...prev,
               plateImg: imageIn,
+              bodyImg: bodyImageSrc,
               cashToPay: amount,
               plateText: plateNumber,
               timeIn: toLocaleDate(new Date(timeIn)),
-              customerType: typeOfCustomer,
+              customerType: typeOfCustomer as GuestType,
               timeOut: toLocaleDate(new Date()),
             }));
             if (plateNumber === plateRead) {
@@ -281,115 +307,30 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   );
 
   return (
-    <Lane focus={props.deviceId === props.currentDevice}>
-      <div className='flex items-start justify-between min-w-full'>
-        <Frame size={cameraSize} title='Camera'>
-          <Webcam
-            audio={false}
-            ref={webcamRef}
-            className='w-full h-full'
-            videoConstraints={{
-              deviceId: props.deviceId,
-            }}
-            style={{ objectFit: "cover" }}
-          />
-        </Frame>
-        <Frame size={cameraSize} title='Ảnh xe ra'>
-          <Image
-            src={checkOutInfo.imgOut}
-            isLoading={isCheckingOut || checkOutMutation.isPending}
-          />
-        </Frame>
-        <Frame size={cameraSize} title='Ảnh xe vào'>
-          <Image
-            src={checkOutInfo.plateImg}
-            isLoading={isCheckingOut || checkOutMutation.isPending}
-          />
-        </Frame>
-      </div>
-      <div className='flex items-center justify-between min-w-full'>
-        <FormProvider {...methods}>
-          <form
-            className='flex flex-col items-center border border-solid w-fit gap-x-1 min-h-[400px] h-[375px]'
-            onKeyDown={handleFinishCheckOut}
-            onSubmit={handleSubmit(onCheckOut)}
-          >
-            <div className='flex items-center justify-center min-w-full font-bold text-white bg-primary'>
-              <h5>THÔNG TIN THẺ</h5>
-            </div>
-            <div className='grid h-full min-w-full grid-cols-[repeat(2,1fr_400px)]'>
-              <FormItem>
-                <FormInput
-                  autoFocus={true}
-                  placeholder='SỔ THẺ'
-                  name='CardId'
-                  ref={checkOutCardRef}
-                  value={checkOutInfo.checkOutCardText}
-                  onChange={onCheckOutCardTextChange}
-                />
-              </FormItem>
-              <FormItem>
-                <div className='min-w-full border border-black'>
-                  <div className='min-w-full text-center bg-green-300'>
-                    THÔNG TIN KHÁCH HÀNG
-                  </div>
-                  <div className='text-center uppercase'>
-                    {checkOutInfo.customerType === ""
-                      ? "KHÁCH HÀNG TIẾP THEO"
-                      : checkOutInfo.customerType}
-                  </div>
-                </div>
-              </FormItem>
-              <FormItem>
-                <FormBox title='T/G xe vào: '>{checkOutInfo.timeIn}</FormBox>
-              </FormItem>
-              <FormItem>
-                <FormBox title='Phí giữ xe: '>{checkOutInfo.cashToPay}</FormBox>
-              </FormItem>
-              <FormItem>
-                <FormBox title='T/G xe ra: '>{checkOutInfo.timeOut}</FormBox>
-              </FormItem>
-              <FormItem>
-                <FormBox>{message}</FormBox>
-              </FormItem>
-              <FormItem>
-                <FormBox title='Biển số xe: '>{checkOutInfo.plateText}</FormBox>
-              </FormItem>
-              <FormItem className='grid-cols-2 gap-1'>
-                <div className='max-h-[50%] flex items-center'>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    onClick={handleFixPlate}
-                  >
-                    "Enter": Nhập biển
-                  </Button>
-                </div>
-                <FormInput
-                  placeholder='BIỂN SỐ XE'
-                  value={checkOutInfo.plateText}
-                  name='PlateNumber'
-                  ref={plateRef}
-                  onChange={handleChangePlateTxt}
-                />
-              </FormItem>
-              <FormItem className='col-span-4'>
-                <Button
-                  className='min-w-full'
-                  type='submit'
-                  onClick={handleCheckOutPayment}
-                >
-                  "Space": Đồng ý mở cổng
-                </Button>
-              </FormItem>
-            </div>
-          </form>
-        </FormProvider>
-        <Frame size={cameraSize}>
-          <Image src={checkOutInfo.plateImg} isLoading={isCheckingOut} />
-        </Frame>
-      </div>
-    </Lane>
+    <div className='grid w-full h-full col-span-1 p-1 border border-gray-500 border-solid justify-items-stretch'>
+      <CameraSection
+        frontImage={checkOutInfo.plateImg}
+        backImage={checkOutInfo.plateImg}
+        plateCameRef={plateCamRef}
+        bodyCameRef={bodyCamRef}
+        isLoading={
+          plateDetectionMutation.isPending ||
+          checkOutMutation.isPending ||
+          paymentMutation.isPending
+        }
+        deviceId={props.deviceId}
+      />
+      <CheckOutVehicleForm
+        methods={methods}
+        isLoading={
+          plateDetectionMutation.isPending ||
+          checkOutMutation.isPending ||
+          paymentMutation.isPending
+        }
+        onCheckOut={onCheckOut}
+        checkOutInfo={checkOutInfo}
+      />
+    </div>
   );
 }
 
