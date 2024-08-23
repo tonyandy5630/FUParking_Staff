@@ -71,7 +71,6 @@ export default function CheckInVehicleForm({
     e.stopPropagation();
     setFocus("CardId");
   };
-  console.log(watch("CardId"));
 
   return (
     <>
@@ -110,12 +109,8 @@ export default function CheckInVehicleForm({
               </InfoVehicle>
             </InfoSection>
           </FormInfoRow>
-          <FormNameRow
-            isLoading={isLoading}
-            message={checkInInfo.message}
-            error={false}
-          >
-            Làn vào
+          <FormNameRow isLoading={isLoading} label='Làn vào' error={false}>
+            {checkInInfo.message}
           </FormNameRow>
           <button type='submit' hidden>
             submit

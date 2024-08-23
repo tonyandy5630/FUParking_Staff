@@ -21,12 +21,15 @@ import FormSelect, { SelectOptions } from "@components/Form/FormSelect";
 import { CheckInInfo } from "@components/CheckInSection";
 import { CheckOutSchemaType } from "@utils/schema/checkoutSchema";
 import { CheckOutInfo } from "@components/CheckOutSection";
+import { Button } from "@components/ui/button";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
   onCheckOut: any;
   checkOutInfo: CheckOutInfo;
   isLoading?: boolean;
+  onCashCheckOut: () => void;
+  isError?: boolean;
 };
 
 export default function CheckOutVehicleForm({
@@ -34,6 +37,8 @@ export default function CheckOutVehicleForm({
   checkOutInfo,
   methods,
   isLoading,
+  onCashCheckOut,
+  isError,
 }: Props) {
   const cardRef = useRef<HTMLInputElement>(null);
   const {
@@ -71,7 +76,6 @@ export default function CheckOutVehicleForm({
     e.stopPropagation();
     setFocus("CardNumber");
   };
-
   return (
     <>
       <FormProvider {...methods}>
@@ -79,49 +83,56 @@ export default function CheckOutVehicleForm({
           onSubmit={handleSubmit(onCheckOut)}
           onClick={handleFocusPlateNumber}
         >
-          <div className='absolute bottom-0 right-0 opacity-0'>
+          <div className='absolute bottom-0 right-0 opacity-1'>
             <FormInput name='CardNumber' />
           </div>
           <FormInfoRow>
             <InfoSection className='grid-cols-2 grid-rows-[repeat(4,30px)]'>
               <InfoVehicle label='Ngày vào'>
-                {getDayFromString(new Date())}
+                {getDayFromString(checkOutInfo.timeIn)}
+              </InfoVehicle>
+              <InfoVehicle label='Ngày ra'>
+                {getDayFromString(checkOutInfo.timeOut)}
               </InfoVehicle>
               <InfoVehicle label='Giờ vào'>
-                {getHourMinuteFromString(new Date())}
+                {getHourMinuteFromString(checkOutInfo.timeIn)}
               </InfoVehicle>
-              <InfoVehicle label='Ngày vào'>
-                {getDayFromString(new Date())}
-              </InfoVehicle>
+
               <InfoVehicle label='Giờ ra'>
-                {getHourMinuteFromString(new Date())}
-              </InfoVehicle>
-              <InfoVehicle
-                className='row-span-2'
-                label='Biển số xe vào'
-                col={true}
-              >
-                {checkOutInfo.plateText}
+                {getHourMinuteFromString(checkOutInfo.timeOut)}
               </InfoVehicle>
               <InfoVehicle
                 className='row-span-2'
                 label='Biển số xe ra'
                 col={true}
               >
-                {checkOutInfo.plateText}
+                {checkOutInfo.plateTextOut}
+              </InfoVehicle>
+              <InfoVehicle
+                className='row-span-2'
+                label='Biển số xe vào'
+                col={true}
+              >
+                {checkOutInfo.plateTextIn}
               </InfoVehicle>
             </InfoSection>
             <InfoSection numberOfRow={2}>
-              <InfoVehicle label='Giá vé'>
-                {checkOutInfo.customerType}
+              <InfoVehicle label='Giá vé' col={true}>
+                {checkOutInfo.cashToPay} VND
               </InfoVehicle>
-              <InfoVehicle label='Loại vé'>
+              <InfoVehicle label='Loại vé' col={true}>
                 {checkOutInfo.customerType}
               </InfoVehicle>
             </InfoSection>
           </FormInfoRow>
-          <FormNameRow isLoading={isLoading} message={""} error={false}>
-            Làn ra
+          <FormNameRow isLoading={isLoading} label='Làn ra' error={isError}>
+            {checkOutInfo.needPay ? (
+              <Button variant='default' type='button' onClick={onCashCheckOut}>
+                Thanh toán tiền mặt
+              </Button>
+            ) : (
+              checkOutInfo.message
+            )}
           </FormNameRow>
           <button type='submit' hidden>
             submit

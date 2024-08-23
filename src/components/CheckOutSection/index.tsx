@@ -1,33 +1,34 @@
-import React, { memo, useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import CameraSection from "../CameraSection";
-import Lane from "../CameraSection/Lane";
-import Frame from "../CameraSection/Frame";
-import Webcam from "react-webcam";
-import { FormProvider, useForm } from "react-hook-form";
+
+import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CheckOutSchema from "@utils/schema/checkoutSchema";
 import { useMutation } from "@tanstack/react-query";
 import { checkOutAPI, checkOutPaymentAPI } from "@apis/check-out.api";
-import FormInput from "@components/Form/Input";
-import { Button } from "@components/ui/button";
 import { CheckOut, CheckOutResponse } from "@my_types/check-out";
 import { base64StringToFile } from "@utils/file";
 import { ErrorResponse, SuccessResponse } from "@my_types/index";
 import {
+  EMPTY_INFO_CARD,
   NEED_TO_PAY,
   PLATE_NUMBER_NOT_MATCHED,
 } from "@constants/error-message.const";
-import FormItem from "../CameraSection/Form/FormItem";
-import FormBox from "../CameraSection/Form/FormBox";
-import toLocaleDate, { getLocalISOString } from "@utils/date";
 import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
 import { DEFAULT_GUEST, GuestType } from "@constants/customer.const";
-import Image from "@components/Image";
 import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_OUT } from "@constants/gate.const";
 import CheckOutVehicleForm from "@components/CheckOutVehicleForm";
 import { SizeTypes } from "@my_types/my-camera";
+import {
+  CARD_NOT_INFO,
+  GUEST_EXIT_SUCCESSFULLY,
+  PLATE_MATCH,
+  PLATE_NOT_MATCH,
+  PLATE_NOT_READ,
+} from "@constants/message.const";
+import { getLocalISOString } from "@utils/date";
 
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
@@ -38,29 +39,35 @@ export type Props = {
 };
 
 export type CheckOutInfo = {
-  plateImg: string;
+  plateImgIn: string;
+  plateImgOut: string;
   bodyImg: string;
-  imgOut: string;
-  plateText: string;
+  plateTextIn: string;
+  plateTextOut: string;
   cashToPay?: number;
   checkOutCardText: string;
   customerType: GuestType;
   needPay: boolean;
-  timeIn: string;
-  timeOut: string;
+  timeIn?: Date;
+  timeOut?: Date;
+  message: string;
+  isError?: boolean;
 };
 
 const initCheckOutInfo: CheckOutInfo = {
-  plateImg: "",
+  plateImgIn: "",
+  plateImgOut: "",
   bodyImg: "",
-  imgOut: "",
-  plateText: "",
+  plateTextIn: "",
+  plateTextOut: "",
   cashToPay: 0,
   checkOutCardText: "",
   customerType: DEFAULT_GUEST,
   needPay: false,
-  timeIn: "",
-  timeOut: "",
+  timeIn: undefined,
+  timeOut: undefined,
+  message: "",
+  isError: false,
 };
 
 function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
@@ -69,13 +76,12 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   const bodyCamRef = useRef(null);
   const [checkOutInfo, setCheckOutInfo] =
     useState<CheckOutInfo>(initCheckOutInfo);
-  const [message, setMessage] = useState("");
   const checkOutCardRef = useRef<HTMLInputElement>(null);
-  const plateRef = useRef<HTMLInputElement>(null);
   const methods = useForm({
     resolver: yupResolver(CheckOutSchema),
     defaultValues: {
       GateOutId: gateId,
+      CardNumber: "",
     },
     values: {
       GateOutId: gateId,
@@ -102,7 +108,7 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
 
   const handleChangePlateTxt = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
-    setCheckOutInfo((prev) => ({ ...prev, plateText: e.target.value }));
+    setCheckOutInfo((prev) => ({ ...prev, plateTextIn: e.target.value }));
   };
 
   const {
@@ -125,15 +131,24 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
           onSuccess: (res) => {
             reset({ CardNumber: "" });
             resetInfo();
-            setCheckOutInfo((prev) => ({ ...prev, cashToPay: 0 }));
+            setCheckOutInfo((prev) => ({
+              ...prev,
+              cashToPay: 0,
+              message: GUEST_EXIT_SUCCESSFULLY,
+              isError: false,
+            }));
           },
         });
       }
     } catch (error) {
       reset({ CardNumber: "" });
-      setMessage("LỖI HỆ THỐNG");
+      setCheckOutInfo((prev) => ({
+        ...prev,
+        message: "Lỗi hệ thống",
+        isError: true,
+      }));
     } finally {
-      setCheckOutInfo((prev) => ({ ...prev, needPay: false }));
+      setCheckOutInfo((prev) => ({ ...prev, needPay: false, isError: true }));
     }
   }, [
     paymentMutation.isPending,
@@ -155,10 +170,10 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         (checkOutCardRef.current?.value as string) ??
           checkOutInfo.checkOutCardText
       );
-      const imageSrc = checkOutInfo.imgOut;
+      const imageSrc = checkOutInfo.plateImgOut;
       const file = base64StringToFile(imageSrc, "uploaded_image.png");
 
-      checkOutBody.append("PlateNumber", checkOutInfo.plateText);
+      checkOutBody.append("PlateNumber", checkOutInfo.plateTextIn);
       checkOutBody.append("ImageOut", file);
       checkOutBody.append("TimeOut", getLocalISOString(new Date()));
       checkOutBody.append("GateOutId", gateId);
@@ -177,17 +192,20 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
             } = res.data.data;
             setCheckOutInfo((prev) => ({
               ...prev,
-              plateImg: imageIn,
+              plateImgIn: imageIn,
               cashToPay: amount,
-              plateText: plateNumber,
-              timeIn: toLocaleDate(new Date(timeIn)),
+              plateTextIn: plateNumber,
+              timeIn: new Date(timeIn),
               customerType: typeOfCustomer,
-              timeOut: toLocaleDate(new Date()),
+              timeOut: new Date(),
             }));
-            if (plateNumber === checkOutInfo.plateText) {
-              setMessage("BIỂN SỐ TRÙNG KHỚP");
+            if (plateNumber === checkOutInfo.plateTextIn) {
+              setCheckOutInfo((prev) => ({ ...prev, message: PLATE_MATCH }));
             } else {
-              setMessage("BIỂN SỐ KHÔNG TRÙNG KHỚP");
+              setCheckOutInfo((prev) => ({
+                ...prev,
+                message: PLATE_NOT_MATCH,
+              }));
             }
           }
 
@@ -199,47 +217,101 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
           }
         },
       });
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response.data.message === EMPTY_INFO_CARD) {
+        setCheckOutInfo((prev) => ({
+          ...initCheckOutInfo,
+          message: CARD_NOT_INFO,
+        }));
+      }
       console.log(error);
+    }
+  };
+
+  const handlePlateDetection = () => {
+    try {
+      if (!plateCamRef.current || !bodyCamRef.current) {
+        setCheckOutInfo((prev) => ({
+          ...prev,
+          message: "KHÔNG TÌM THẤY CAMERA",
+        }));
+      }
+      const plateNumberBody = new FormData();
+      const plateImageSrc = (plateCamRef.current as any).getScreenshot();
+      const plateFile = base64StringToFile(plateImageSrc, "uploaded_image.png");
+
+      plateNumberBody.append("upload", plateFile);
+      plateNumberBody.append("regions", "vn");
+      let plateRead = "";
+
+      plateDetectionMutation.mutate(plateNumberBody, {
+        onSuccess: (plateDetectionRes: SuccessResponse<LicenseResponse>) => {
+          const plateData = plateDetectionRes.data.results[0];
+          if (!plateData) {
+            reset();
+            throw new Error();
+          }
+          plateRead = plateData.plate.toUpperCase();
+          setCheckOutInfo((prev) => ({
+            ...prev,
+            timeOut: new Date(),
+            plateImgOut: plateImageSrc,
+            plateTextOut: plateRead,
+          }));
+        },
+      });
+      return true;
+    } catch (error) {
+      setCheckOutInfo((prev) => ({
+        ...initCheckOutInfo,
+        message: PLATE_NOT_READ,
+        isError: true,
+      }));
+      return false;
     }
   };
 
   const onCheckOut = async (checkOutData: CheckOut) => {
     try {
-      console.log(checkOutData);
-      if (!plateCamRef.current || !bodyCamRef.current) {
-        setMessage("KHÔNG TÌM THẤY CAMERA");
+      if (!bodyCamRef.current) {
+        setCheckOutInfo((prev) => ({
+          ...initCheckOutInfo,
+          message: "KHÔNG TÌM THẤY CAMERA",
+          isError: true,
+        }));
       }
-      const plateNumberBody = new FormData();
-      const plateImageSrc = (plateCamRef.current as any).getScreenshot();
-      const bodyImageSrc = (plateCamRef.current as any).getScreenshot();
-      const plateFile = base64StringToFile(plateImageSrc, "uploaded_image.png");
+
+      const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
       const bodyFile = base64StringToFile(bodyImageSrc, "uploaded_image.png");
 
-      plateNumberBody.append("upload", plateFile);
-      plateNumberBody.append("regions", "vn");
       const current = getLocalISOString(new Date());
 
-      let plateRead = "";
+      const isPlateReadSuccess = handlePlateDetection();
 
-      await plateDetectionMutation.mutateAsync(plateNumberBody, {
-        onSuccess: (plateDetectionRes: SuccessResponse<LicenseResponse>) => {
-          setCheckOutInfo((prev) => ({ ...prev, imgOut: plateImageSrc }));
-          plateRead = plateDetectionRes.data.results[0].plate.toUpperCase();
-        },
-      });
+      if (!isPlateReadSuccess) {
+        return;
+      }
+
+      if (checkOutInfo.plateImgOut === "") {
+        setCheckOutInfo(() => ({
+          ...initCheckOutInfo,
+          message: PLATE_NOT_READ,
+          isError: true,
+        }));
+      }
+
+      const plateFileOut = base64StringToFile(
+        checkOutInfo.plateImgOut,
+        "uploaded_image.png"
+      );
 
       const checkOutBody = new FormData();
-      checkOutBody.append(
-        "CardNumber",
-        (checkOutCardRef.current?.value as string) ??
-          checkOutInfo.checkOutCardText
-      );
-      checkOutBody.append("PlateNumber", plateRead);
-      checkOutBody.append("ImageOut", plateFile);
+      checkOutBody.append("CardNumber", checkOutData.CardNumber);
+      checkOutBody.append("PlateNumber", checkOutInfo.plateTextOut);
+      checkOutBody.append("ImageOut", plateFileOut);
       checkOutBody.append("TimeOut", current);
       checkOutBody.append("ImageBody", bodyFile);
-      checkOutBody.append("GateOutId", checkOutData.GateOutId ?? "");
+      checkOutBody.append("GateOutId", gateId);
       await checkOutMutation.mutateAsync(checkOutBody as any, {
         onSuccess: (res: ErrorResponse<CheckOutResponse>) => {
           const isNeedToPay = res.data?.data.message === NEED_TO_PAY;
@@ -254,47 +326,81 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
             } = res.data.data;
             setCheckOutInfo((prev) => ({
               ...prev,
-              plateImg: imageIn,
+              plateImgIn: imageIn,
               bodyImg: bodyImageSrc,
+              plateImgOut: checkOutInfo.plateImgOut,
               cashToPay: amount,
-              plateText: plateNumber,
-              timeIn: toLocaleDate(new Date(timeIn)),
+              plateTextIn: plateNumber,
+              plateTextOut: checkOutInfo.plateTextOut,
+              timeIn: new Date(timeIn),
               customerType: typeOfCustomer as GuestType,
-              timeOut: toLocaleDate(new Date()),
+              timeOut: new Date(),
+              isError: false,
             }));
-            if (plateNumber === plateRead) {
-              setMessage("BIỂN SỐ TRÙNG KHỚP");
+            if (plateNumber === checkOutInfo.plateTextOut) {
+              setCheckOutInfo((prev) => ({
+                ...prev,
+                message: PLATE_MATCH,
+                isError: false,
+              }));
             } else {
-              setMessage("BIỂN SỐ KHÔNG TRÙNG KHỚP");
+              reset();
+              setCheckOutInfo((prev) => ({
+                ...initCheckOutInfo,
+                message: PLATE_NOT_MATCH,
+                isError: true,
+              }));
             }
           }
 
           if (isNeedToPay) {
             setCheckOutInfo((prev) => ({ ...prev, needPay: true }));
           } else {
-            reset({ CardNumber: "" });
+            reset();
           }
         },
         onError: (error: any) => {
-          if (error.response.data.message === PLATE_NUMBER_NOT_MATCHED) {
+          reset();
+          if (!error.response.data) {
             setCheckOutInfo((prev) => ({
-              ...prev,
-              plateText: plateRead,
+              ...initCheckOutInfo,
+              message: "Lỗi hệ thống",
+              isError: true,
             }));
-            if (plateRef.current) plateRef.current.focus();
-            setMessage("BIỂN SỐ KHÔNG TRÙNG KHỚP");
+          }
+
+          if (error.response.data.message === PLATE_NUMBER_NOT_MATCHED) {
+            setCheckOutInfo(() => ({
+              ...initCheckOutInfo,
+              message: PLATE_NOT_MATCH,
+              isError: true,
+            }));
           }
         },
       });
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      if (!error.response.data) {
+        setCheckOutInfo((prev) => ({
+          ...initCheckOutInfo,
+          message: "Lỗi hệ thống",
+          isError: true,
+        }));
+      }
+      const message = error.response.data.message;
+      if (message === EMPTY_INFO_CARD) {
+        setCheckOutInfo((prev) => ({
+          ...initCheckOutInfo,
+          message: CARD_NOT_INFO,
+          isError: true,
+        }));
+      }
     }
   };
   const resetInfo = () => {
-    setMessage("");
     setCheckOutInfo(initCheckOutInfo);
     focusCardCheckOutInput();
   };
+
   const handleFinishCheckOut = useCallback(
     async (e: React.KeyboardEvent<HTMLFormElement>) => {
       if (e.code === "Space" && checkOutInfo.needPay) {
@@ -309,8 +415,8 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
   return (
     <div className='grid w-full h-full col-span-1 p-1 border border-gray-500 border-solid justify-items-stretch'>
       <CameraSection
-        frontImage={checkOutInfo.plateImg}
-        backImage={checkOutInfo.plateImg}
+        frontImage={checkOutInfo.plateImgIn}
+        backImage={checkOutInfo.plateImgIn}
         plateCameRef={plateCamRef}
         bodyCameRef={bodyCamRef}
         isLoading={
@@ -329,9 +435,11 @@ function CheckoutSection({ cameraSize = "sm", ...props }: Props) {
         }
         onCheckOut={onCheckOut}
         checkOutInfo={checkOutInfo}
+        onCashCheckOut={handleCheckOutPayment}
+        isError={checkOutInfo.isError}
       />
     </div>
   );
 }
 
-export default memo(CheckoutSection);
+export default CheckoutSection;
