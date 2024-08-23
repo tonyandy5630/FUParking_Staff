@@ -42,7 +42,6 @@ export default function Login(): JSX.Element {
 
   const handleGateChange = (value: string) => {
     setGate(value);
-    console.log(value);
   };
 
   const loginMutation = useMutation({
@@ -63,7 +62,6 @@ export default function Login(): JSX.Element {
           window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, false);
           toast.onChange(async (payload) => {
             if (payload.status === "removed") {
-              console.log(true);
               const notFirstTime = await window.ipcRenderer.invoke(
                 GET_NOT_FIRST_TIME_CHANNEL
               );
@@ -136,12 +134,10 @@ export default function Login(): JSX.Element {
               name='email'
               placeholder='Nhập email'
               autoFocus={true}
-              ref={userNameFef}
               className='h-10 min-w-full'
             />
             <FormInput
               name='password'
-              ref={pwdRef}
               type='password'
               placeholder='Nhập mật khẩu'
               className='h-10 min-w-full'

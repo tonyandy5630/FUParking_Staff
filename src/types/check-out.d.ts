@@ -1,7 +1,7 @@
 import { ErrorResponse } from ".";
 
 export type CheckOut = {
-  CardNumber?: string;
+  CardNumber: string;
   GateOutId?: string;
   TimeOut?: Date;
   ImageOut?: any;

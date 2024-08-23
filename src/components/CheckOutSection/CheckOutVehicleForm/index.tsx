@@ -19,21 +19,26 @@ import InfoSection, {
 } from "@components/CameraSection/Form/InfoSection";
 import FormSelect, { SelectOptions } from "@components/Form/FormSelect";
 import { CheckInInfo } from "@components/CheckInSection";
+import { CheckOutSchemaType } from "@utils/schema/checkoutSchema";
+import { CheckOutInfo } from "@components/CheckOutSection";
+import { Button } from "@components/ui/button";
 
 type Props = {
-  methods: UseFormReturn<CheckInSchemaType>;
-  onCheckIn: any;
-  onVehicleTypeChange: any;
-  checkInInfo: CheckInInfo;
+  methods: UseFormReturn<CheckOutSchemaType>;
+  onCheckOut: any;
+  checkOutInfo: CheckOutInfo;
   isLoading?: boolean;
+  onCashCheckOut: () => void;
+  isError?: boolean;
 };
 
-export default function VehicleForm({
-  onCheckIn,
-  onVehicleTypeChange,
-  checkInInfo,
+export default function CheckOutVehicleForm({
+  onCheckOut,
+  checkOutInfo,
   methods,
   isLoading,
+  onCashCheckOut,
+  isError,
 }: Props) {
   const cardRef = useRef<HTMLInputElement>(null);
   const {
@@ -54,7 +59,7 @@ export default function VehicleForm({
     queryKey: ["get-vehicle-types"],
     queryFn: getVehicleTypesAPI,
     retry: 2,
-    enabled: checkInInfo.customerType === GUEST,
+    enabled: checkOutInfo.customerType === GUEST,
   });
 
   const vehicleTypesSelects: SelectOptions[] = useMemo(() => {
@@ -69,53 +74,65 @@ export default function VehicleForm({
   }, [isSuccessVehicleTypes, vehicleTypesData?.data.data]);
   const handleFocusPlateNumber = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
-    setFocus("CardId");
+    setFocus("CardNumber");
   };
-  console.log(watch("CardId"));
-
   return (
     <>
       <FormProvider {...methods}>
         <FormContainer
-          onSubmit={handleSubmit(onCheckIn)}
+          onSubmit={handleSubmit(onCheckOut)}
           onClick={handleFocusPlateNumber}
         >
-          <div className='absolute bottom-0 right-0 opacity-0'>
-            <FormInput name='CardId' />
+          <div className='absolute bottom-0 right-0 opacity-1'>
+            <FormInput name='CardNumber' />
           </div>
           <FormInfoRow>
-            <InfoSection>
+            <InfoSection className='grid-cols-2 grid-rows-[repeat(4,30px)]'>
               <InfoVehicle label='Ngày vào'>
-                {getDayFromString(checkInInfo.time)}
+                {getDayFromString(checkOutInfo.timeIn)}
+              </InfoVehicle>
+              <InfoVehicle label='Ngày ra'>
+                {getDayFromString(checkOutInfo.timeOut)}
               </InfoVehicle>
               <InfoVehicle label='Giờ vào'>
-                {getHourMinuteFromString(checkInInfo.time)}
+                {getHourMinuteFromString(checkOutInfo.timeIn)}
               </InfoVehicle>
-              <InfoVehicle label='Biển số xe'>
-                {checkInInfo.plateText}
+
+              <InfoVehicle label='Giờ ra'>
+                {getHourMinuteFromString(checkOutInfo.timeOut)}
+              </InfoVehicle>
+              <InfoVehicle
+                className='row-span-2'
+                label='Biển số xe ra'
+                col={true}
+              >
+                {checkOutInfo.plateTextOut}
+              </InfoVehicle>
+              <InfoVehicle
+                className='row-span-2'
+                label='Biển số xe vào'
+                col={true}
+              >
+                {checkOutInfo.plateTextIn}
               </InfoVehicle>
             </InfoSection>
             <InfoSection numberOfRow={2}>
-              <InfoVehicle label='Loại xe'>
-                {checkInInfo.customerType === GUEST && (
-                  <FormSelect
-                    name='vehicleType'
-                    onValueChange={onVehicleTypeChange}
-                    options={vehicleTypesSelects}
-                  />
-                )}
+              <InfoVehicle label='Giá vé' col={true}>
+                {checkOutInfo.cashToPay} VND
               </InfoVehicle>
-              <InfoVehicle label='Khách hàng'>
-                {checkInInfo.customerType}
+              <InfoVehicle label='Loại vé' col={true}>
+                {checkOutInfo.customerType}
               </InfoVehicle>
             </InfoSection>
           </FormInfoRow>
-          <FormNameRow
-            isLoading={isLoading}
-            message={checkInInfo.message}
-            error={false}
-          >
-            Làn ra
+          <FormNameRow isLoading={isLoading} label='Làn ra' error={isError}>
+            {checkOutInfo.needPay ? (
+              <Button variant='default' type='button' onClick={onCashCheckOut}>
+                Thanh toán tiền mặt
+              </Button>
+            ) : (
+              checkOutInfo.message
+            )}
           </FormNameRow>
           <button type='submit' hidden>
             submit

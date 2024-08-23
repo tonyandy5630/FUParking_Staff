@@ -12,7 +12,6 @@ export default function CheckInPage() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [curLane, setCurLane] = useState("");
   const leftCardRef = useRef<HTMLInputElement>(null);
-  const rightCardRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (leftCardRef.current) {

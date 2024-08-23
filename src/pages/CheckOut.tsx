@@ -1,6 +1,6 @@
-import CheckOutSection from "@components/CameraSection/CheckOutSection";
+import CheckOutSection from "@components/CheckOutSection";
 import { GATE_OUT } from "@constants/gate.const";
-import React from "react";
+import React, { useRef } from "react";
 import { useCallback, useEffect, useState } from "react";
 import useSelectGate from "../hooks/useSelectGate";
 
@@ -9,6 +9,7 @@ export default function CheckOutPage() {
 
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [curLane, setCurLane] = useState("");
+  const leftCardRef = useRef<HTMLInputElement>(null);
 
   const handleDevices = useCallback(
     (mediaDevices: MediaDeviceInfo[]) => {
@@ -55,16 +56,19 @@ export default function CheckOutPage() {
   return (
     <>
       {devices.length !== 0 && (
-        <div className='flex justify-between w-full min-h-full gap-x-2'>
+        <div className='flex w-full min-h-full'>
           {devices[0] !== undefined && (
-            <CheckOutSection
-              key={devices[0].deviceId}
-              deviceId={devices[0].deviceId}
-              currentDevice={curLane}
-              cameraSize='sm'
-            >
-              Lane 1
-            </CheckOutSection>
+            <div className='grid min-w-full grid-cols-2 pt-1 space-x-1 justify-items-stretch'>
+              <CheckOutSection
+                key={devices[0].deviceId}
+                deviceId={devices[0].deviceId}
+                currentDevice={curLane}
+                cameraSize='sm'
+                cardRef={leftCardRef}
+              >
+                Lane 1
+              </CheckOutSection>
+            </div>
           )}
         </div>
       )}
