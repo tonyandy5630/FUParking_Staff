@@ -6,7 +6,6 @@ import { GUEST } from "@constants/customer.const";
 
 import { getDayFromString, getHourMinuteFromString } from "@utils/date";
 
-import { CheckInSchemaType } from "@utils/schema/checkinSchema";
 import { getVehicleTypesAPI } from "@apis/vehicle.api";
 import { useQuery } from "@tanstack/react-query";
 
@@ -17,8 +16,7 @@ import FormContainer, {
 import InfoSection, {
   InfoVehicle,
 } from "@components/CameraSection/Form/InfoSection";
-import FormSelect, { SelectOptions } from "@components/Form/FormSelect";
-import { CheckInInfo } from "@components/CheckInSection";
+import { SelectOptions } from "@components/Form/FormSelect";
 import { CheckOutSchemaType } from "@utils/schema/checkoutSchema";
 import { CheckOutInfo } from "@components/CheckOutSection";
 import { Button } from "@components/ui/button";

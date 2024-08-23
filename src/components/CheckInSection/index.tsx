@@ -1,6 +1,6 @@
 import { SizeTypes } from "@my_types/my-camera";
-import { memo, useCallback, useRef, useState, lazy } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { memo, useRef, useState, lazy } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { licensePlateAPI } from "@apis/license.api";
 import { SuccessResponse } from "@my_types/index";
 import { LicenseResponse } from "@my_types/license";
@@ -11,7 +11,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import CheckInSchema, { CheckInSchemaType } from "@utils/schema/checkinSchema";
 import { CheckIn, UpdateVehicleTypeInfo } from "@my_types/check-in";
 import { CUSTOMER_NOT_EXIST_ERROR } from "@constants/error-message.const";
-import toLocaleDate from "@utils/date";
 const UpdateVehicleTypeDialog = lazy(
   () => import("@components/UpdateVehicleTypeDialog")
 );
@@ -145,7 +144,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
       checkInBody.append("ImageBody", bodyFile);
       console.log(checkInBody);
       await guestCheckInMutation.mutateAsync(checkInBody as any, {
-        onSuccess: (res) => {
+        onSuccess: () => {
           setIsGuest(false);
           setCheckInInfo((prev) => ({
             ...prev,

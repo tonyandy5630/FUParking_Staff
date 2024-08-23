@@ -1,5 +1,3 @@
-import dayjs from "dayjs";
-
 const localDateOption: Intl.DateTimeFormatOptions = {
   hour: "numeric",
   minute: "numeric",

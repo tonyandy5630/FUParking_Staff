@@ -1,17 +1,5 @@
 import { SizeTypes } from "@my_types/my-camera";
-import Webcam from "react-webcam";
-import Lane from "./Lane";
-import {
-  memo,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  lazy,
-  HTMLAttributes,
-} from "react";
-import { Button } from "@components/ui/button";
-import Frame from "./Frame";
+import { memo, HTMLAttributes } from "react";
 import CameraLane from "./LaneCamera";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {

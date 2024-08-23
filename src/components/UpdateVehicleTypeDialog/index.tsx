@@ -6,11 +6,9 @@ import {
   DialogTitle,
 } from "@components/ui/dialog";
 import React, { useMemo, useState } from "react";
-import FormInput from "@components/Form/Input";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { Button } from "@components/ui/button";
-import FormItem from "@components/CameraSection/Form/FormItem";
-import FormBox from "@components/CameraSection/Form/FormBox";
+
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getVehicleTypesAPI, updateVehicleTypeAPI } from "@apis/vehicle.api";
 import {
