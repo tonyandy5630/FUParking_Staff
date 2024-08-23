@@ -19,6 +19,7 @@ import { GET_INFORMATION_SUCCESSFULLY } from "@constants/message.const";
 import {
   DEFAULT_GUEST,
   GUEST,
+  GuestType,
   SYSTEM_CUSTOMER,
 } from "@constants/customer.const";
 import { GET_GATE_IN_ID_CHANNEL } from "@channels/index";
@@ -35,21 +36,32 @@ export type Props = {
   cardRef: React.RefObject<HTMLInputElement>;
 };
 
-const initCheckInInfo = {
-  plateImg: "",
+export type CheckInInfo = {
+  plateText: string;
+  cardText: string;
+  plateImgSrc: string;
+  imageBodyInSrc: string;
+  time: Date;
+  customerType: GuestType;
+  message: string;
+};
+
+const initCheckInInfo: CheckInInfo = {
   plateText: "",
   cardText: "",
-  imageFile: "",
-  time: "",
+  plateImgSrc: "",
+  imageBodyInSrc: "",
+  time: new Date(),
   customerType: DEFAULT_GUEST,
   message: "",
 };
 
 function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
-  const webcamRef = useRef(null);
+  const plateCamRef = useRef(null);
+  const bodyCamRef = useRef(null);
   const { gateId } = useSelectGate(GATE_IN);
   const [isGuest, setIsGuest] = useState(false);
-  const [checkInInfo, setCheckInInfo] = useState(initCheckInInfo);
+  const [checkInInfo, setCheckInInfo] = useState<CheckInInfo>(initCheckInInfo);
   const [openVehicleTypes, setOpenVehicleTypes] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [updateVehicleInfo, setUpdateVehicleInfo] = useState<
@@ -113,46 +125,45 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
     setOpenDialog((prev) => !prev);
   };
 
-  const handleVehicleTypeChange = useCallback(
-    async (e: string) => {
-      try {
-        const { imageFile, cardText, plateText, time, plateImg } = checkInInfo;
-        const checkInBody = new FormData();
-        const file = base64StringToFile(imageFile, "uploaded_image.png");
-        checkInBody.append("GateInId", gateId);
-        checkInBody.append("PlateNumber", plateText);
-        checkInBody.append(
-          "CardNumber",
-          (cardRef.current?.value as string) ?? cardText
-        );
-        checkInBody.append("ImageIn", file);
-        checkInBody.append("VehicleTypeId", e);
-        setOpenVehicleTypes(false);
-
-        await guestCheckInMutation.mutateAsync(checkInBody as any, {
-          onSuccess: (res) => {
-            setIsGuest(false);
-            setCheckInInfo((prev) => ({
-              ...prev,
-              message: "KHÁCH CÓ THỂ VÀO",
-            }));
-            setCheckInInfo((prev) => ({
-              ...prev,
-              plateImg: imageFile,
-              time: toLocaleDate(new Date()),
-            }));
-          },
-        });
-      } catch (error) {
-        reset();
-        focusCardInput();
-      }
-    },
-    [checkInInfo.plateText, checkInInfo.imageFile, checkInInfo.cardText]
-  );
-
-  const handleCardTextChange = (e: any) => {
-    setCheckInInfo((prev) => ({ ...prev, cardText: e.target.value }));
+  const handleVehicleTypeChange = async (e: string) => {
+    try {
+      const {
+        plateImgSrc: imageFile,
+        cardText,
+        plateText,
+        imageBodyInSrc,
+        time,
+      } = checkInInfo;
+      const checkInBody = new FormData();
+      const file = base64StringToFile(imageFile, "uploaded_image.png");
+      const bodyFile = base64StringToFile(imageBodyInSrc, "uploaded_image.png");
+      checkInBody.append("GateInId", gateId);
+      checkInBody.append("PlateNumber", plateText);
+      checkInBody.append("CardNumber", checkInInfo.cardText);
+      checkInBody.append("ImageIn", file);
+      checkInBody.append("VehicleTypeId", e);
+      checkInBody.append("ImageBody", bodyFile);
+      console.log(checkInBody);
+      await guestCheckInMutation.mutateAsync(checkInBody as any, {
+        onSuccess: (res) => {
+          setIsGuest(false);
+          setCheckInInfo((prev) => ({
+            ...prev,
+            message: "KHÁCH CÓ THỂ VÀO",
+          }));
+          reset();
+          setCheckInInfo((prev) => ({
+            ...prev,
+            plateImg: imageFile,
+            time: new Date(),
+          }));
+        },
+      });
+    } catch (error) {
+      reset();
+      setCheckInInfo((prev) => ({ ...prev, message: "Lỗi hệ thống" }));
+      focusCardInput();
+    }
   };
 
   const handleSendCheckout = async () => {
@@ -164,7 +175,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
         (cardRef.current?.value as string) ?? checkInInfo.cardText
       );
       const file = base64StringToFile(
-        checkInInfo.imageFile,
+        checkInInfo.plateImgSrc,
         "uploaded_image.png"
       );
       checkInBody.append("ImageIn", file);
@@ -178,13 +189,14 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
               setOpenDialog(true);
             }
           }
-          setMessage("KHÁCH CÓ THỂ VÀO");
+          setCheckInInfo((prev) => ({ ...prev, message: "KHÁCH CÓ THỂ VÀO" }));
         },
         onError: async (error: any) => {
           if (error.response.data.message === CUSTOMER_NOT_EXIST_ERROR) {
             setIsGuest(true);
             setOpenVehicleTypes(true);
-            setMessage("Chọn loại xe");
+            setCheckInInfo((prev) => ({ ...prev, message: "Chọn loại xe" }));
+
             setCheckInInfo((prev) => ({
               ...prev,
               customerType: GUEST,
@@ -193,33 +205,53 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
         },
       });
     } catch (error) {
+      reset();
       console.log(error);
     }
   };
   const onCheckIn = async (checkInData: CheckIn) => {
     try {
-      if (webcamRef.current) {
+      setCheckInInfo((prev) => initCheckInInfo);
+      if (plateCamRef.current && bodyCamRef.current) {
         const plateNumberBody = new FormData();
-        const imageSrc = (webcamRef.current as any).getScreenshot();
-        setCheckInInfo((prev) => ({ ...prev, imageFile: imageSrc }));
-        const file = base64StringToFile(imageSrc, "uploaded_image.png");
+        const plateImageSrc = (plateCamRef.current as any).getScreenshot();
+        const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
+        setCheckInInfo((prev) => ({ ...prev, plateImgSrc: plateImageSrc }));
+        setCheckInInfo((prev) => ({ ...prev, imageBodyInSrc: bodyImageSrc }));
+        const plateFile = base64StringToFile(
+          plateImageSrc,
+          "uploaded_image.png"
+        );
+        const bodyFile = base64StringToFile(bodyImageSrc, "uploaded_image.png");
 
-        plateNumberBody.append("upload", file);
+        plateNumberBody.append("upload", plateFile);
         plateNumberBody.append("regions", "vn");
         await plateDetectionMutation.mutateAsync(plateNumberBody, {
           onSuccess: async (
             plateDetectionRes: SuccessResponse<LicenseResponse>
           ) => {
+            if (!plateDetectionRes.data.results[0]) {
+              reset();
+              setCheckInInfo((prev) => ({
+                ...prev,
+                message: "Không đọc được biển số xe. Hãy thử lại",
+              }));
+            }
             checkInData.PlateNumber =
               plateDetectionRes.data.results[0].plate.toUpperCase();
-            checkInData.ImageIn = imageSrc;
+            checkInData.ImageIn = plateImageSrc;
             const checkInBody = new FormData();
             checkInBody.append(
               "PlateNumber",
               plateDetectionRes.data.results[0].plate.toUpperCase()
             );
+            setCheckInInfo((prev) => ({
+              ...prev,
+              cardText: checkInData.CardId,
+            }));
             checkInBody.append("CardNumber", checkInData.CardId);
-            checkInBody.append("ImageIn", file);
+            checkInBody.append("ImageIn", plateFile);
+            checkInBody.append("ImageBodyIn", bodyFile);
             const gateInID = await window.ipcRenderer.invoke(
               GET_GATE_IN_ID_CHANNEL
             );
@@ -229,25 +261,17 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
             setCheckInInfo((prev) => ({
               ...prev,
               plateText: plateDetectionRes.data.results[0].plate.toUpperCase(),
-              plateImg: imageSrc,
+              plateImg: plateImageSrc,
             }));
             console.log(checkInBody);
             await handleCustomerCheckIn(checkInBody);
-          },
-          onError: (error) => {
-            //* make message not toast
-            //   toast.error("Không nhận diện được biển số");
-            setCheckInInfo((prev) => ({
-              ...prev,
-              message: "Lỗi",
-            }));
           },
         });
       }
     } catch (error) {
       setCheckInInfo((prev) => ({
         ...prev,
-        message: "Lỗi",
+        message: "Không đọc được biển số xe. Hãy thử lại",
       }));
     }
   };
@@ -257,24 +281,33 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
       await customerCheckInMutation.mutateAsync(body as any, {
         onSuccess: (res) => {
           if (res.data.message === GET_INFORMATION_SUCCESSFULLY) {
+            reset();
             if (res.data.data) {
               setUpdateVehicleInfo(res.data.data);
               setOpenDialog(true);
             }
           }
-          setMessage("KHÁCH CÓ THỂ VÀO");
           setCheckInInfo((prev) => ({
             ...prev,
-            plateImg: checkInInfo.imageFile,
+            message: "KHÁCH CÓ THỂ VÀO",
+          }));
+
+          setCheckInInfo((prev) => ({
+            ...prev,
+            plateImg: checkInInfo.plateImgSrc,
             customerType: SYSTEM_CUSTOMER,
-            time: toLocaleDate(new Date()),
+            time: new Date(),
           }));
         },
-        onError: async (error: any) => {
+        onError: (error: any) => {
           if (error.response.data.message === CUSTOMER_NOT_EXIST_ERROR) {
             setIsGuest(true);
             setOpenVehicleTypes(true);
-            setMessage("Chọn loại xe");
+            setCheckInInfo((prev) => ({
+              ...prev,
+              message: "Chọn loại xe",
+            }));
+
             setCheckInInfo((prev) => ({
               ...prev,
               customerType: GUEST,
@@ -283,7 +316,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
         },
       });
     } catch (error) {
-      setMessage("Lỗi hệ thống");
+      reset();
     }
   };
 
@@ -297,19 +330,27 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
         />
       )}
       <CameraSection
-        frontImage={checkInInfo.imageFile}
-        backImage={checkInInfo.imageFile}
-        webcamRef={webcamRef}
-        isLoading={plateDetectionMutation.isPending}
+        frontImage={checkInInfo.plateImgSrc}
+        backImage={checkInInfo.plateImgSrc}
+        plateCameRef={plateCamRef}
+        bodyCameRef={bodyCamRef}
+        isLoading={
+          plateDetectionMutation.isPending ||
+          isCustomerCheckingIn ||
+          isGuestCheckingIn
+        }
         deviceId={props.deviceId}
       />
       <VehicleForm
-        webcamRef={webcamRef}
         methods={methods}
+        isLoading={
+          plateDetectionMutation.isPending ||
+          isCustomerCheckingIn ||
+          isGuestCheckingIn
+        }
         onCheckIn={onCheckIn}
         onVehicleTypeChange={handleVehicleTypeChange}
         checkInInfo={checkInInfo}
-        onCardTextChange={handleCardTextChange}
       />
     </div>
   );

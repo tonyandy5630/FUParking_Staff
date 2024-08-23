@@ -3,6 +3,7 @@ export type CheckIn = {
   GateInId: string;
   PlateNumber: string;
   ImageIn: any;
+  ImageBodyIn: any;
   VehicleTypeId?: string;
 };
 

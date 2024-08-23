@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
-import React, { SelectHTMLAttributes, useMemo } from "react";
+import React, { SelectHTMLAttributes, useMemo, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
 export type SelectOptions = {
@@ -23,12 +23,22 @@ interface FormSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 const FormSelect = React.forwardRef<HTMLSelectElement, FormSelectProps>(
-  ({ options, onValueChange, name, defaultValue = "", ...props }, ref) => {
+  (
+    { options, onValueChange, name, defaultValue = "", onClick, ...props },
+    ref
+  ) => {
+    const [openSelect, setOpenSelect] = useState(true);
     const selectOptions = useMemo(() => {
       return options.map((item) => (
-        <SelectItem value={item.value}>{item.name}</SelectItem>
+        <SelectItem key={item.value} value={item.value}>
+          {item.name}
+        </SelectItem>
       ));
     }, [options.length]);
+
+    const handleOpenSelect = () => {
+      setOpenSelect((prev) => !prev);
+    };
 
     return (
       <ConnectForm>
@@ -39,11 +49,19 @@ const FormSelect = React.forwardRef<HTMLSelectElement, FormSelectProps>(
               control={control}
               render={(fields) => (
                 <Select
+                  open={openSelect}
+                  onOpenChange={handleOpenSelect}
                   onValueChange={onValueChange}
                   defaultValue={(defaultValue as string) || ""}
                   {...fields}
                 >
-                  <SelectTrigger className='min-w-full'>
+                  <SelectTrigger
+                    className='min-w-full'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenSelect();
+                    }}
+                  >
                     <SelectValue placeholder='Chọn loại xe' />
                   </SelectTrigger>
                   <SelectContent>

@@ -4,6 +4,7 @@ const CheckInSchema = object({
   GateInId: string().trim(),
   PlateNumber: string(),
   ImageIn: mixed().optional(),
+  ImageBodyIn: mixed().optional(),
 });
 
 export type CheckInSchemaType = InferType<typeof CheckInSchema>;

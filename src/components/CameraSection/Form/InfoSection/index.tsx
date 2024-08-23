@@ -41,7 +41,7 @@ export function InfoVehicle({
   return (
     <div className='grid items-center grid-cols-2 row-span-1 px-2 border border-solid justify-stretch border-grey-400'>
       <span>{label}</span>
-      {children}
+      <span className='font-bold'>{children}</span>
     </div>
   );
 }

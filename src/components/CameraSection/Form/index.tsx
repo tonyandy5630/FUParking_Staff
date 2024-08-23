@@ -33,28 +33,30 @@ export function FormInfoRow({ children }: FormInfoRowProps) {
 interface FormNameRowProps extends HTMLAttributes<HTMLDivElement> {
   error?: boolean;
   message?: string;
+  isLoading?: boolean;
 }
 
 export function FormNameRow({
   children,
   error,
   message,
+  isLoading,
   onClick,
 }: FormNameRowProps) {
   return (
     <div
-      className='grid w-full grid-cols-2 row-span-1 border border-gray-300 border-solid h-fit'
+      className='grid w-full grid-cols-3 row-span-1 border border-gray-300 border-solid h-fit'
       onClick={onClick}
     >
       <div className='flex items-center justify-center p-2 text-base text-white uppercase w-fit bg-primary'>
         {children}
       </div>
       <div
-        className={`grid col-span-1 items-center uppercase text-lg font-bold ${
+        className={`grid col-span-2  items-center uppercase text-lg font-bold ${
           error ? "text-red-500" : "text-green-500"
         }`}
       >
-        {message}
+        {isLoading ? "Đang xác thực" : message}
       </div>
     </div>
   );

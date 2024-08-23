@@ -20,14 +20,16 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   frontImage: string;
   backImage: string;
   isLoading?: boolean;
-  webcamRef: any;
+  plateCameRef: any;
+  bodyCameRef: any;
 }
 
 function CameraSection({
   cameraSize = "sm",
   frontImage,
   backImage,
-  webcamRef,
+  plateCameRef,
+  bodyCameRef,
   isLoading = false,
   ...props
 }: Props) {
@@ -36,17 +38,17 @@ function CameraSection({
       <CameraLane
         frontImage={frontImage}
         backImage={frontImage}
-        webcamRef={webcamRef}
+        webcamRef={plateCameRef}
         isLoading={isLoading}
         deviceId={props.deviceId}
       />
-      {/* <CameraLane
+      <CameraLane
         frontImage={frontImage}
         backImage={frontImage}
-        webcamRef={webcamRef}
+        webcamRef={bodyCameRef}
         isLoading={isLoading}
         deviceId={props.deviceId}
-      /> */}
+      />
     </div>
   );
 }
