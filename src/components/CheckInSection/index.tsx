@@ -263,7 +263,6 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
               plateText: plateDetectionRes.data.results[0].plate.toUpperCase(),
               plateImg: plateImageSrc,
             }));
-            console.log(checkInBody);
             await handleCustomerCheckIn(checkInBody);
           },
         });
@@ -324,7 +323,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
     <div className='grid w-full h-full col-span-1 p-1 border border-gray-500 border-solid justify-items-stretch'>
       {openDialog && (
         <UpdateVehicleTypeDialog
-          open={openDialog}
+          open={true}
           info={updateVehicleInfo}
           onOpenChange={handleOpenDialogChange}
         />
