@@ -1,5 +1,4 @@
 import { FormHTMLAttributes, HTMLAttributes, PropsWithChildren } from "react";
-import { StringSchema } from "yup";
 
 interface FormContainerProps
   extends Omit<FormHTMLAttributes<HTMLFormElement>, "onSubmit"> {

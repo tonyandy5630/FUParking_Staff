@@ -1,9 +1,4 @@
-import React, {
-  Children,
-  HTMLAttributes,
-  PropsWithChildren,
-  useMemo,
-} from "react";
+import { HTMLAttributes } from "react";
 
 interface InfoSectionProps extends HTMLAttributes<HTMLDivElement> {
   numberOfRow?: 2 | 3 | 5;

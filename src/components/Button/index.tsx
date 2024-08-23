@@ -3,7 +3,7 @@ import React from "react";
 import { Loader2 } from "lucide-react";
 
 type Props = {
-  isLoading?: Boolean;
+  isLoading?: boolean;
   children?: any;
 };
 
