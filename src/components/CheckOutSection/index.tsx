@@ -19,7 +19,7 @@ import { LicenseResponse } from "@my_types/license";
 import { DEFAULT_GUEST, GuestType } from "@constants/customer.const";
 import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_OUT } from "@constants/gate.const";
-import CheckOutVehicleForm from "@components/CheckOutVehicleForm";
+import CheckOutVehicleForm from "./CheckOutVehicleForm";
 import { SizeTypes } from "@my_types/my-camera";
 import {
   CARD_NOT_INFO,

@@ -26,7 +26,7 @@ import { GET_GATE_IN_ID_CHANNEL } from "@channels/index";
 import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_IN } from "@constants/gate.const";
 import CameraSection from "@components/CameraSection";
-import CheckInVehicleForm from "@components/CheckInVehicleForm";
+import CheckInVehicleForm from "./CheckInVehicleForm";
 
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
