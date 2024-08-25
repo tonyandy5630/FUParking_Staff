@@ -1,9 +1,7 @@
-import { useRef } from "react";
 import { useCallback, useEffect, useState } from "react";
 import CheckInSection from "@components/CheckInSection";
 export default function CheckInPage() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const leftCardRef = useRef<HTMLInputElement>(null);
 
   const handleDevices = useCallback(
     (mediaDevices: MediaDeviceInfo[]) => {
@@ -31,7 +29,6 @@ export default function CheckInPage() {
                 bodyDeviceId={devices[1].deviceId}
                 plateDeviceId={devices[0].deviceId}
                 cameraSize='md'
-                cardRef={leftCardRef}
               >
                 Lane 1
               </CheckInSection>

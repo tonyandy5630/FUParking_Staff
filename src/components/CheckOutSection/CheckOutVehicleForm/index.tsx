@@ -57,7 +57,7 @@ export default function CheckOutVehicleForm({
       buttonRef.current.click();
     }
   };
-  const ref = useHotkeys(
+  useHotkeys(
     position === LANE.LEFT ? SUBMIT_LEFT_HOTKEY : SUBMIT_RIGHT_HOTKEY,
     handleClick,
     {

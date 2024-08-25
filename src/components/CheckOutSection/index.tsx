@@ -36,7 +36,7 @@ import {
 } from "@constants/message.const";
 import { getLocalISOString } from "@utils/date";
 import { HotkeysProvider, useHotkeys } from "react-hotkeys-hook";
-import { SUBMIT_LEFT_HOTKEY, SUBMIT_RIGHT_HOTKEY } from "../../hotkeys";
+import { SUBMIT_LEFT_HOTKEY, SUBMIT_RIGHT_HOTKEY } from "../../hotkeys/key";
 import PAGE from "../../../url";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
@@ -55,8 +55,6 @@ export type Props = {
   bodyDeviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
   children: any;
-  currentDevice: ConstrainDOMString | undefined;
-  cardRef: React.RefObject<HTMLInputElement>;
   position: LanePosition;
 };
 
