@@ -4,6 +4,8 @@ const PAGE = {
   CHECK_IN: "/check/in",
   CHECK_OUT: "/check/out",
   SELECT_GATE_TYPE: "/select-gate-type",
+  CARD_CHECKER: "/card/check",
+  MISSING_CARD: "/card/missing",
 };
 
 export default PAGE;

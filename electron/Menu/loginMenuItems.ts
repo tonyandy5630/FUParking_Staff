@@ -1,80 +1,41 @@
 import dotenv from "dotenv";
-import url, { fileURLToPath } from "node:url";
-import path from "node:path";
 import { BrowserWindow } from "electron";
-import { BASE_URL } from "../main";
 import PAGE from "../../url";
 import ElectronStore from "electron-store";
 import { GATE_IN, GATE_OUT } from "../../src/constants/gate.const";
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import ElectronRedirect from "../../src/utils/electron-redirect";
 dotenv.config();
 
-function loginMenuItems(
-  win: BrowserWindow | null,
-  store: ElectronStore | null
-) {
-  if (win === null) {
-    return [];
-  }
+function loginMenuItems(win: BrowserWindow, store: ElectronStore | null): any {
   return [
     {
-      label: "Settings",
+      label: "Cài đặt",
       submenu: [
         {
           label: "Update Machine Code",
-          enable: true,
+          enabled: true,
           click: () => {
-            if (process.env.NODE_ENV === "development") {
-              win.webContents.loadURL(BASE_URL + "#" + PAGE.CODE_SET_UP);
-            } else {
-              const redirectURL = url.format({
-                pathname: path.join(__dirname, "../dist/index.html"),
-                hash: PAGE.CODE_SET_UP,
-                protocol: "file:",
-                slashes: true,
-              });
-              win.webContents.loadURL(redirectURL);
-            }
+            ElectronRedirect(win, PAGE.CODE_SET_UP);
           },
         },
         {
           label: "Device Setup",
-          enable: true,
+          enabled: true,
           click: () => {
-            if (process.env.NODE_ENV === "development") {
-              win.webContents.loadURL(BASE_URL + "#" + PAGE.DEVICE_SET_UP);
-            } else {
-              const redirectURL = url.format({
-                pathname: path.join(__dirname, "../dist/index.html"),
-                hash: PAGE.DEVICE_SET_UP,
-                protocol: "file:",
-                slashes: true,
-              });
-              win.webContents.loadURL(redirectURL);
-            }
+            ElectronRedirect(win, PAGE.DEVICE_SET_UP);
           },
         },
       ],
     },
     {
-      label: "Change gate",
+      label: "Đổi cổng",
       submenu: [
         {
           label: "Cổng vào",
           enabled: false,
           click: () => {
             if (store) store.set("gateType", GATE_IN);
-            if (process.env.NODE_ENV === "development") {
-              win.webContents.loadURL(BASE_URL + "#" + PAGE.CHECK_IN);
-            } else {
-              const redirectURL = url.format({
-                pathname: path.join(__dirname, "../dist/index.html"),
-                hash: PAGE.CHECK_IN,
-                protocol: "file:",
-                slashes: true,
-              });
-              win.webContents.loadURL(redirectURL);
-            }
+            ElectronRedirect(win, PAGE.CHECK_IN);
           },
         },
         {
@@ -82,19 +43,26 @@ function loginMenuItems(
           enabled: false,
           click: () => {
             if (store) store.set("gateType", GATE_OUT);
-            if (process.env.NODE_ENV === "development") {
-              win.webContents.loadURL(BASE_URL + "#" + PAGE.CHECK_OUT);
-            } else {
-              const redirectURL = url.format({
-                pathname: path.join(__dirname, "../dist/index.html"),
-                hash: PAGE.CHECK_OUT,
-                protocol: "file:",
-                slashes: true,
-              });
-              if (store) store.set("gateType", GATE_OUT);
-
-              win.webContents.loadURL(redirectURL);
-            }
+            ElectronRedirect(win, PAGE.CHECK_OUT);
+          },
+        },
+      ],
+    },
+    {
+      label: "Thẻ",
+      submenu: [
+        {
+          label: "Tra cứu thẻ",
+          enabled: false,
+          click: () => {
+            ElectronRedirect(win, PAGE.CARD_CHECKER);
+          },
+        },
+        {
+          label: "Báo mất thẻ",
+          enabled: false,
+          click: () => {
+            ElectronRedirect(win, PAGE.MISSING_CARD);
           },
         },
       ],

@@ -151,13 +151,27 @@ ipcMain.handle(GET_GATE_OUT_ID_CHANNEL, (event: any) => {
 });
 
 ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
+  if (!win) {
+    return;
+  }
+
   if (!isLoggedIn) {
     return;
   }
 
   const loggedInMenu = loginMenuItems(win, store);
-  (loggedInMenu[1].submenu[0] as Partial<MenuItem>).enabled = true;
-  (loggedInMenu[1].submenu[1] as Partial<MenuItem>).enabled = true;
+  if (loggedInMenu === undefined) return;
+
+  const gateInMenuItem = loggedInMenu[1].submenu[0] as Partial<MenuItem>;
+  const gateOutMenuItem = loggedInMenu[1].submenu[0] as Partial<MenuItem>;
+  const cardCheckerMenuItem = loggedInMenu[2].submenu[0] as Partial<MenuItem>;
+  const missingCardMenuITem = loggedInMenu[2].submenu[1] as Partial<MenuItem>;
+
+  gateInMenuItem.enabled = true;
+  gateOutMenuItem.enabled = true;
+  cardCheckerMenuItem.enabled = true;
+  cardCheckerMenuItem.enabled = true;
+  missingCardMenuITem.enabled = true;
   const menu = Menu.buildFromTemplate(loggedInMenu);
   Menu.setApplicationMenu(menu);
 });
@@ -185,6 +199,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
+    if (!win) return;
 
     const loginMenu = loginMenuItems(win, store);
     if (loginMenu.length === 0) {
