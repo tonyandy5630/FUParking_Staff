@@ -35,15 +35,6 @@ export default function CheckInPage() {
               >
                 Lane 1
               </CheckInSection>
-              {/* <CheckInSection
-                key={devices[0].deviceId}
-                deviceId={devices[0].deviceId}
-                currentDevice={curLane}
-                cardRef={rightCardRef}
-                cameraSize='md'
-              >
-                Lane 1
-              </CheckInSection> */}
             </div>
           )}
         </div>

@@ -127,7 +127,7 @@ export default function CheckInVehicleForm({
               </InfoVehicle>
             </InfoSection>
             <InfoSection numberOfRow={2}>
-              <InfoVehicle label='Loại xe' col={true}>
+              <InfoVehicle label='Loại xe' className='grid-cols-[100px_1fr]'>
                 {checkInInfo.customerType === GUEST && (
                   <FormSelect
                     name='vehicleType'
