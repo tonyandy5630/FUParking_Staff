@@ -3,6 +3,7 @@ export const CHANGE_MACHINE_STATUS_ERROR = "Thay đổi thất bại";
 
 export const GET_INFORMATION_SUCCESSFULLY = "Get information successfully";
 export const GUEST_EXIT_SUCCESSFULLY = "Khách có thể ra";
+export const GUEST_CAN_ENTRY = "Khách có thể vào";
 export const PLATE_MATCH = "Biển số trùng khớp";
 export const PLATE_NOT_MATCH = "Biển số không trùng khớp";
 export const PLATE_NOT_READ = "Không đọc được biển số";

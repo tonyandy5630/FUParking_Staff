@@ -25,7 +25,7 @@ function FormInput({ name, type, className, ...props }: Props) {
               <FormItem>
                 <FormControl>
                   <Input
-                    className={`${className} p-1.5 px-3 w-full border rounded-sm ${
+                    className={`${className} px-3 w-full border rounded-sm ${
                       errors[name]?.message !== undefined &&
                       "border-destructive"
                     }`}

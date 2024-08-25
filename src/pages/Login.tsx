@@ -101,8 +101,6 @@ export default function Login(): JSX.Element {
     }
   };
 
-  console.log(errors);
-
   return (
     <div className='flex flex-col items-center justify-center w-full h-full min-h-full'>
       <main className='flex flex-col items-center justify-between min-w-full gap-10 h-fit '>

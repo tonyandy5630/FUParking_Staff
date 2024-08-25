@@ -5,10 +5,11 @@ import {
   CUSTOMER_CHECK_IN_API_URL,
   GUEST_CHECK_IN_API_URL,
 } from "./url/check-in";
+import { CheckInSchemaType } from "@utils/schema/checkinSchema";
 
 type CheckInType = "guest" | "customer";
 
-export const CustomerCheckInAPI = (data: CheckIn) => {
+export const CustomerCheckInAPI = (data: CheckInSchemaType) => {
   return http.post<ErrorResponse<UpdateVehicleTypeInfo>>(
     CUSTOMER_CHECK_IN_API_URL,
     data,
@@ -20,7 +21,7 @@ export const CustomerCheckInAPI = (data: CheckIn) => {
   );
 };
 
-export const GuestCheckInAPI = (data: CheckIn) => {
+export const GuestCheckInAPI = (data: CheckInSchemaType) => {
   return http.post(GUEST_CHECK_IN_API_URL, data, {
     headers: {
       "Content-Type": "multipart/form-data",

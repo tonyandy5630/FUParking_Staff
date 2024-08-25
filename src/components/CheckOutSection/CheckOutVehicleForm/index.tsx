@@ -22,12 +22,13 @@ import { Button } from "@components/ui/button";
 import { getCardCheckOutAPI } from "@apis/check-out.api";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
-import { SUBMIT_LEFT_HOTKEY, SUBMIT_RIGHT_HOTKEY } from "../../../hotkeys";
+import { SUBMIT_LEFT_HOTKEY, SUBMIT_RIGHT_HOTKEY } from "../../../hotkeys/key";
 import PAGE from "../../../../url";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CheckOutInfo } from "@my_types/check-out";
 import { useSelector } from "react-redux";
 import { RootState } from "@utils/store";
+import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -75,7 +76,7 @@ export default function CheckOutVehicleForm({
   } = methods;
 
   useHotkeys(
-    "shift",
+    FOCUS_CARD_INPUT_KEY,
     () => {
       setFocus("CardNumber");
       reset();
@@ -85,11 +86,6 @@ export default function CheckOutVehicleForm({
       enableOnFormTags: ["input", "select", "textarea"],
     }
   );
-
-  const handleFocusPlateNumber = (e: React.MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
-    setFocus("CardNumber");
-  };
 
   const handlePreventSubmit = (
     e: SyntheticEvent<HTMLFormElement, SubmitEvent>
