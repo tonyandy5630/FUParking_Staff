@@ -14,27 +14,30 @@ import { CUSTOMER_NOT_EXIST_ERROR } from "@constants/error-message.const";
 const UpdateVehicleTypeDialog = lazy(
   () => import("@components/UpdateVehicleTypeDialog")
 );
-import { GET_INFORMATION_SUCCESSFULLY } from "@constants/message.const";
+import {
+  GET_INFORMATION_SUCCESSFULLY,
+  GUEST_CAN_ENTRY,
+  PLATE_NOT_READ,
+} from "@constants/message.const";
 import {
   DEFAULT_GUEST,
   GUEST,
   GuestType,
   SYSTEM_CUSTOMER,
 } from "@constants/customer.const";
-import { GET_GATE_IN_ID_CHANNEL } from "@channels/index";
 import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_IN } from "@constants/gate.const";
 import CameraSection from "@components/CameraSection";
 import CheckInVehicleForm from "./CheckInVehicleForm";
-import { SUBMIT_LEFT_HOTKEY } from "../../hotkeys";
-import { useHotkeys } from "react-hotkeys-hook";
+import { SUBMIT_LEFT_HOTKEY } from "../../hotkeys/key";
+import { HotkeysProvider, useHotkeys } from "react-hotkeys-hook";
 import PAGE from "../../../url";
 
 export type Props = {
-  deviceId: ConstrainDOMString | undefined;
+  plateDeviceId: ConstrainDOMString | undefined;
+  bodyDeviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
   children: any;
-  currentDevice: ConstrainDOMString | undefined;
   cardRef: React.RefObject<HTMLInputElement>;
 };
 
@@ -42,27 +45,27 @@ export type CheckInInfo = {
   plateText: string;
   cardText: string;
   plateImgSrc: string;
-  imageBodyInSrc: string;
+  ImageBodySrc: string;
   time: Date;
   customerType: GuestType;
   message: string;
+  isError: boolean;
+  vehicleType: string;
 };
 
 const initCheckInInfo: CheckInInfo = {
   plateText: "",
   cardText: "",
   plateImgSrc: "",
-  imageBodyInSrc: "",
+  ImageBodySrc: "",
   time: new Date(),
   customerType: DEFAULT_GUEST,
   message: "",
+  isError: false,
+  vehicleType: "",
 };
 
 function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
-  useHotkeys(SUBMIT_LEFT_HOTKEY, () => console.log("left checkin"), {
-    scopes: [PAGE.CHECK_IN],
-  });
-
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
   const { gateId } = useSelectGate(GATE_IN);
@@ -118,38 +121,13 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
     isError: isGuestCheckInError,
   } = guestCheckInMutation;
 
-  const handleChangePlateTxt = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    setCheckInInfo((prev) => ({ ...prev, plateText: e.target.value }));
-  };
-
-  const focusCardInput = () => {
-    if (cardRef.current) cardRef.current?.focus();
-  };
-
   const handleOpenDialogChange = () => {
     setOpenDialog((prev) => !prev);
   };
 
-  const handleVehicleTypeChange = async (e: string) => {
+  const handleGuestCheckIn = async (checkInBody: any) => {
     try {
-      const {
-        plateImgSrc: imageFile,
-        cardText,
-        plateText,
-        imageBodyInSrc,
-        time,
-      } = checkInInfo;
-      const checkInBody = new FormData();
-      const file = base64StringToFile(imageFile, "uploaded_image.png");
-      const bodyFile = base64StringToFile(imageBodyInSrc, "uploaded_image.png");
-      checkInBody.append("GateInId", gateId);
-      checkInBody.append("PlateNumber", plateText);
-      checkInBody.append("CardNumber", checkInInfo.cardText);
-      checkInBody.append("ImageIn", file);
-      checkInBody.append("VehicleTypeId", e);
-      checkInBody.append("ImageBody", bodyFile);
-      console.log(checkInBody);
+      const { plateImgSrc: imageFile } = checkInInfo;
       await guestCheckInMutation.mutateAsync(checkInBody as any, {
         onSuccess: () => {
           setIsGuest(false);
@@ -168,62 +146,84 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
     } catch (error) {
       reset();
       setCheckInInfo((prev) => ({ ...prev, message: "Lỗi hệ thống" }));
-      focusCardInput();
     }
   };
 
-  const handleSendCheckout = async () => {
+  const handleVehicleTypeChange = async (vehicleType: string) => {
     try {
+      setCheckInInfo((prev) => ({ ...prev, vehicleType }));
+
+      const {
+        plateImgSrc: imageFile,
+        cardText,
+        plateText,
+        ImageBodySrc,
+        time,
+      } = checkInInfo;
       const checkInBody = new FormData();
-      checkInBody.append("PlateNumber", checkInInfo.cardText);
-      checkInBody.append(
-        "CardNumber",
-        (cardRef.current?.value as string) ?? checkInInfo.cardText
-      );
-      const file = base64StringToFile(
+      const file = base64StringToFile(imageFile, "uploaded_image.png");
+      const bodyFile = base64StringToFile(ImageBodySrc, "uploaded_image.png");
+      checkInBody.append("GateInId", gateId);
+      checkInBody.append("PlateNumber", plateText);
+      checkInBody.append("CardNumber", checkInInfo.cardText);
+      checkInBody.append("ImageIn", file);
+      checkInBody.append("VehicleTypeId", vehicleType);
+      checkInBody.append("ImageBody", bodyFile);
+      await handleGuestCheckIn(checkInBody);
+    } catch (error) {
+      reset();
+      setCheckInInfo((prev) => ({ ...prev, message: "Lỗi hệ thống" }));
+    }
+  };
+
+  const handleFixPlate = async () => {
+    try {
+      setCheckInInfo((prev) => ({
+        ...prev,
+        plateText: watch("PlateNumber") as string,
+      }));
+
+      const checkInBody = new FormData();
+      checkInBody.append("PlateNumber", (watch("PlateNumber") as string) ?? "");
+
+      checkInBody.append("CardNumber", checkInInfo.cardText);
+      const plateImageFile = base64StringToFile(
         checkInInfo.plateImgSrc,
         "uploaded_image.png"
       );
-      checkInBody.append("ImageIn", file);
+      const bodyImageFile = base64StringToFile(
+        checkInInfo.plateImgSrc,
+        "uploaded_image.png"
+      );
+      checkInBody.append("ImageIn", plateImageFile);
       checkInBody.append("GateInId", gateId);
 
-      await customerCheckInMutation.mutateAsync(checkInBody as any, {
-        onSuccess: (res) => {
-          if (res.data.message === GET_INFORMATION_SUCCESSFULLY) {
-            if (res.data.data) {
-              setUpdateVehicleInfo(res.data.data);
-              setOpenDialog(true);
-            }
-          }
-          setCheckInInfo((prev) => ({ ...prev, message: "KHÁCH CÓ THỂ VÀO" }));
-        },
-        onError: async (error: any) => {
-          if (error.response.data.message === CUSTOMER_NOT_EXIST_ERROR) {
-            setIsGuest(true);
-            setOpenVehicleTypes(true);
-            setCheckInInfo((prev) => ({ ...prev, message: "Chọn loại xe" }));
-
-            setCheckInInfo((prev) => ({
-              ...prev,
-              customerType: GUEST,
-            }));
-          }
-        },
-      });
+      if (isGuest) {
+        checkInBody.append("ImageBody", bodyImageFile);
+        checkInBody.append("VehicleTypeId", checkInInfo.vehicleType ?? "");
+        await handleGuestCheckIn(checkInBody);
+        return;
+      }
+      checkInBody.append("ImageBodyIn", bodyImageFile);
+      await handleCustomerCheckIn(checkInBody);
     } catch (error) {
       reset();
       console.log(error);
     }
   };
-  const onCheckIn = async (checkInData: CheckIn) => {
+
+  const handleCheckIn = async (checkInData: CheckIn) => {
     try {
       setCheckInInfo((prev) => initCheckInInfo);
       if (plateCamRef.current && bodyCamRef.current) {
         const plateNumberBody = new FormData();
         const plateImageSrc = (plateCamRef.current as any).getScreenshot();
         const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
-        setCheckInInfo((prev) => ({ ...prev, plateImgSrc: plateImageSrc }));
-        setCheckInInfo((prev) => ({ ...prev, imageBodyInSrc: bodyImageSrc }));
+        setCheckInInfo((prev) => ({
+          ...prev,
+          plateImgSrc: plateImageSrc,
+          ImageBodySrc: bodyImageSrc,
+        }));
         const plateFile = base64StringToFile(
           plateImageSrc,
           "uploaded_image.png"
@@ -240,7 +240,8 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
               reset();
               setCheckInInfo((prev) => ({
                 ...prev,
-                message: "Không đọc được biển số xe. Hãy thử lại",
+                message: PLATE_NOT_READ,
+                isError: true,
               }));
             }
             checkInData.PlateNumber =
@@ -258,10 +259,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
             checkInBody.append("CardNumber", checkInData.CardId);
             checkInBody.append("ImageIn", plateFile);
             checkInBody.append("ImageBodyIn", bodyFile);
-            const gateInID = await window.ipcRenderer.invoke(
-              GET_GATE_IN_ID_CHANNEL
-            );
-            checkInBody.append("GateInId", gateInID);
+            checkInBody.append("GateInId", gateId);
 
             setValue("PlateNumber", checkInData.PlateNumber);
             setCheckInInfo((prev) => ({
@@ -276,7 +274,8 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
     } catch (error) {
       setCheckInInfo((prev) => ({
         ...prev,
-        message: "Không đọc được biển số xe. Hãy thử lại",
+        message: "Lỗi hệ thống",
+        isError: true,
       }));
     }
   };
@@ -294,7 +293,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
           }
           setCheckInInfo((prev) => ({
             ...prev,
-            message: "KHÁCH CÓ THỂ VÀO",
+            message: GUEST_CAN_ENTRY,
           }));
 
           setCheckInInfo((prev) => ({
@@ -311,6 +310,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
             setCheckInInfo((prev) => ({
               ...prev,
               message: "Chọn loại xe",
+              isError: true,
             }));
 
             setCheckInInfo((prev) => ({
@@ -336,7 +336,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
       )}
       <CameraSection
         frontImage={checkInInfo.plateImgSrc}
-        backImage={checkInInfo.plateImgSrc}
+        backImage={checkInInfo.ImageBodySrc}
         plateCameRef={plateCamRef}
         bodyCameRef={bodyCamRef}
         isLoading={
@@ -344,19 +344,23 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
           isCustomerCheckingIn ||
           isGuestCheckingIn
         }
-        plateDeviceId={props.deviceId}
+        plateDeviceId={props.plateDeviceId}
+        bodyDeviceId={props.bodyDeviceId}
       />
-      <CheckInVehicleForm
-        methods={methods}
-        isLoading={
-          plateDetectionMutation.isPending ||
-          isCustomerCheckingIn ||
-          isGuestCheckingIn
-        }
-        onCheckIn={onCheckIn}
-        onVehicleTypeChange={handleVehicleTypeChange}
-        checkInInfo={checkInInfo}
-      />
+      <HotkeysProvider initiallyActiveScopes={[PAGE.CHECK_IN]}>
+        <CheckInVehicleForm
+          methods={methods}
+          isLoading={
+            plateDetectionMutation.isPending ||
+            isCustomerCheckingIn ||
+            isGuestCheckingIn
+          }
+          onCheckIn={handleCheckIn}
+          onVehicleTypeChange={handleVehicleTypeChange}
+          checkInInfo={checkInInfo}
+          onFixPlate={handleFixPlate}
+        />
+      </HotkeysProvider>
     </div>
   );
 }

@@ -58,7 +58,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route
                 path='in'
                 element={
-                  <Suspense>
+                  <Suspense fallback={<p>Loading...</p>}>
                     <CheckInPage />
                   </Suspense>
                 }

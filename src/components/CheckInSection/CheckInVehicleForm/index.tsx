@@ -1,11 +1,8 @@
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import FormInput from "@components/Form/Input";
-
 import { GUEST } from "@constants/customer.const";
-
 import { getDayFromString, getHourMinuteFromString } from "@utils/date";
-
 import { CheckInSchemaType } from "@utils/schema/checkinSchema";
 import { getVehicleTypesAPI } from "@apis/vehicle.api";
 import { useQuery } from "@tanstack/react-query";
@@ -19,6 +16,12 @@ import InfoSection, {
 } from "@components/CameraSection/Form/InfoSection";
 import FormSelect, { SelectOptions } from "@components/Form/FormSelect";
 import { CheckInInfo } from "@components/CheckInSection";
+import { useHotkeys } from "react-hotkeys-hook";
+import PAGE from "../../../../url";
+import {
+  FIX_PLATE_NUMBER_KEY,
+  FOCUS_CARD_INPUT_KEY,
+} from "../../../hotkeys/key";
 
 type Props = {
   methods: UseFormReturn<CheckInSchemaType>;
@@ -26,6 +29,7 @@ type Props = {
   onVehicleTypeChange: any;
   checkInInfo: CheckInInfo;
   isLoading?: boolean;
+  onFixPlate: () => Promise<void>;
 };
 
 export default function CheckInVehicleForm({
@@ -34,8 +38,8 @@ export default function CheckInVehicleForm({
   checkInInfo,
   methods,
   isLoading,
+  onFixPlate,
 }: Props) {
-  const cardRef = useRef<HTMLInputElement>(null);
   const {
     formState: { errors },
     handleSubmit,
@@ -44,6 +48,37 @@ export default function CheckInVehicleForm({
     watch,
     setFocus,
   } = methods;
+  const [showInputPlate, setShowInputPlate] = useState(false);
+  useHotkeys(
+    FOCUS_CARD_INPUT_KEY,
+    () => {
+      setFocus("CardId");
+    },
+    {
+      scopes: [PAGE.CHECK_IN],
+      enableOnFormTags: ["input", "select", "textarea"],
+    }
+  );
+  useHotkeys(
+    FIX_PLATE_NUMBER_KEY,
+    async () => {
+      if (showInputPlate) {
+        await onFixPlate();
+      }
+      setShowInputPlate((prev) => !prev);
+    },
+    {
+      scopes: [PAGE.CHECK_IN],
+      enableOnFormTags: ["input", "select", "textarea"],
+    }
+  );
+
+  useEffect(() => {
+    if (!showInputPlate) return;
+
+    setFocus("PlateNumber");
+    setValue("PlateNumber", checkInInfo.plateText);
+  }, [showInputPlate]);
 
   const {
     data: vehicleTypesData,
@@ -67,35 +102,32 @@ export default function CheckInVehicleForm({
     }
     return [];
   }, [isSuccessVehicleTypes, vehicleTypesData?.data.data]);
-  const handleFocusPlateNumber = (e: React.MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
-    setFocus("CardId");
-  };
 
   return (
     <>
       <FormProvider {...methods}>
-        <FormContainer
-          onSubmit={handleSubmit(onCheckIn)}
-          onClick={handleFocusPlateNumber}
-        >
+        <FormContainer onSubmit={handleSubmit(onCheckIn)}>
           <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardId' />
           </div>
           <FormInfoRow>
             <InfoSection>
               <InfoVehicle label='Ngày vào'>
-                {getDayFromString(checkInInfo.time)}
+                {getDayFromString(checkInInfo.time.toString())}
               </InfoVehicle>
               <InfoVehicle label='Giờ vào'>
-                {getHourMinuteFromString(checkInInfo.time)}
+                {getHourMinuteFromString(checkInInfo.time.toString())}
               </InfoVehicle>
               <InfoVehicle label='Biển số xe'>
-                {checkInInfo.plateText}
+                {showInputPlate ? (
+                  <FormInput name='PlateNumber' />
+                ) : (
+                  <span className='text-red-500'>{checkInInfo.plateText}</span>
+                )}
               </InfoVehicle>
             </InfoSection>
             <InfoSection numberOfRow={2}>
-              <InfoVehicle label='Loại xe'>
+              <InfoVehicle label='Loại xe' col={true}>
                 {checkInInfo.customerType === GUEST && (
                   <FormSelect
                     name='vehicleType'
@@ -104,14 +136,17 @@ export default function CheckInVehicleForm({
                   />
                 )}
               </InfoVehicle>
-              <InfoVehicle label='Khách hàng'>
-                {checkInInfo.customerType}
+              <InfoVehicle label='Khách hàng' col={true}>
+                <span className='text-red-500'>{checkInInfo.customerType}</span>
               </InfoVehicle>
             </InfoSection>
           </FormInfoRow>
-          <FormNameRow isLoading={isLoading} label='Làn vào' error={false}>
-            {checkInInfo.message}
-          </FormNameRow>
+          <FormNameRow
+            isLoading={isLoading}
+            message={checkInInfo.message}
+            label='Làn vào'
+            error={checkInInfo.isError}
+          />
           <button type='submit' hidden>
             submit
           </button>
