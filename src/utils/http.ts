@@ -41,9 +41,9 @@ class Http {
         if (error.response?.status !== HttpStatusCode.UnprocessableEntity) {
           const data: any | undefined = error.response?.data;
           const message = data.message || error.message;
-          if (message !== CUSTOMER_NOT_EXIST_ERROR) {
-            toast.error(message);
-          }
+          // if (message !== CUSTOMER_NOT_EXIST_ERROR) {
+          //   toast.error(message);
+          // }
         }
         return Promise.reject(error);
       }

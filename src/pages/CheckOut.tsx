@@ -1,8 +1,9 @@
 import CheckOutSection from "@components/CheckOutSection";
 import { GATE_OUT } from "@constants/gate.const";
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { useCallback, useEffect, useState } from "react";
 import useSelectGate from "../hooks/useSelectGate";
+import LANE from "@constants/lane.const";
 
 export default function CheckOutPage() {
   useSelectGate(GATE_OUT);
@@ -61,13 +62,30 @@ export default function CheckOutPage() {
             <div className='grid min-w-full grid-cols-2 pt-1 space-x-1 justify-items-stretch'>
               <CheckOutSection
                 key={devices[0].deviceId}
-                deviceId={devices[0].deviceId}
+                plateDeviceId={devices[0].deviceId}
+                bodyDeviceId={devices[1].deviceId}
                 currentDevice={curLane}
                 cameraSize='sm'
                 cardRef={leftCardRef}
+                position={LANE.LEFT}
               >
                 Lane 1
               </CheckOutSection>
+              {/* <HotkeysProvider
+                initiallyActiveScopes={[LANE.RIGHT]}
+                key={LANE.RIGHT}
+              >
+                <CheckOutSection
+                  key={devices[0].deviceId}
+                  deviceId={devices[0].deviceId}
+                  currentDevice={curLane}
+                  cameraSize='sm'
+                  cardRef={leftCardRef}
+                  position={LANE.RIGHT}
+                >
+                  Lane 1
+                </CheckOutSection>
+              </HotkeysProvider> */}
             </div>
           )}
         </div>

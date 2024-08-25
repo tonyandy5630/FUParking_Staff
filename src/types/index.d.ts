@@ -12,3 +12,11 @@ export type ErrorResponse<Data> = {
   message?: string;
   data?: Data;
 };
+
+export type ErrorResponseAPI = {
+  data?: any;
+  message: string;
+  totalRecord?: number;
+  internalErrorMessage?: string;
+  isSuccess: boolean;
+};

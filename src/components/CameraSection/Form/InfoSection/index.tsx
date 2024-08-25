@@ -48,7 +48,7 @@ export function InfoVehicle({
       } px-2 border border-solid  border-grey-400`}
     >
       <div className='grid col-span-1 w-fit'>{label}</div>
-      <div className='font-bold text-center '>{children}</div>
+      <div className='font-bold text-center'>{children}</div>
     </div>
   );
 }

@@ -3,7 +3,8 @@ import { memo, HTMLAttributes } from "react";
 import CameraLane from "./LaneCamera";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
-  deviceId: ConstrainDOMString | undefined;
+  plateDeviceId: ConstrainDOMString | undefined;
+  bodyDeviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
   frontImage: string;
   backImage: string;
@@ -28,14 +29,14 @@ function CameraSection({
         backImage={frontImage}
         webcamRef={plateCameRef}
         isLoading={isLoading}
-        deviceId={props.deviceId}
+        deviceId={props.plateDeviceId}
       />
       <CameraLane
-        frontImage={frontImage}
-        backImage={frontImage}
+        frontImage={backImage}
+        backImage={backImage}
         webcamRef={bodyCameRef}
         isLoading={isLoading}
-        deviceId={props.deviceId}
+        deviceId={props.bodyDeviceId}
       />
     </div>
   );

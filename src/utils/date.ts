@@ -31,15 +31,15 @@ export default function toLocaleDate(date: Date): string {
   return finalDate;
 }
 
-export function getHourMinuteFromString(date?: Date): string {
-  if (!date) return "";
+export function getHourMinuteFromString(date?: string): string {
+  if (!date || date === "") return "";
   const formatDate = new Date(date);
   const finalDate = formatDate.toLocaleTimeString("vi-VN", hourMinuteOption);
   return finalDate;
 }
 
-export function getDayFromString(date?: Date): string {
-  if (!date) return "";
+export function getDayFromString(date?: string): string {
+  if (!date || date === "") return "";
   const formatDate = new Date(date);
   const finalDate = formatDate.toLocaleDateString("vi-VN", dayOption);
   return finalDate;

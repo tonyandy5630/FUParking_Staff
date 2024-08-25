@@ -2,7 +2,7 @@ import { FormHTMLAttributes, HTMLAttributes, PropsWithChildren } from "react";
 
 interface FormContainerProps
   extends Omit<FormHTMLAttributes<HTMLFormElement>, "onSubmit"> {
-  onSubmit: any;
+  onSubmit?: any;
 }
 
 export default function FormContainer({
@@ -46,19 +46,21 @@ export function FormNameRow({
 }: FormNameRowProps) {
   return (
     <div
-      className='grid w-full grid-cols-3 row-span-1 border border-gray-300 border-solid h-fit'
+      className='grid w-full grid-cols-[100px_1fr_200px] row-span-1 border border-gray-300 border-solid h-fit'
       onClick={onClick}
     >
       <div className='grid items-center justify-center col-span-1 p-2 text-base text-white uppercase w-fit bg-primary'>
         {label}
       </div>
+
       <div
-        className={`grid col-span-2  items-center uppercase text-lg font-bold ${
+        className={`grid col-span-1 items-center uppercase text-base text-center font-bold ${
           error ? "text-red-500" : "text-green-500"
         }`}
       >
-        {isLoading ? "Đang xác thực" : children}
+        {isLoading ? "Đang xác thực" : message}
       </div>
+      <div>{children}</div>
     </div>
   );
 }

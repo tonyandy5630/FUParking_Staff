@@ -1,7 +1,7 @@
 import FormInput from "@components/Form/Input";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
-import { User, UserLogin } from "@my_types/auth";
+import { UserLogin } from "@my_types/auth";
 import UserSchema from "@utils/schema/loginSchema";
 import { FormProvider, useForm } from "react-hook-form";
 import { loginAPI } from "@apis/auth.api";
@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
-import { ChangeEvent, useRef, useState } from "react";
+import { useState } from "react";
 import logo from "../assets/Bai_Logo.png";
 import {
   GET_GATE_TYPE_CHANNEL,
@@ -33,12 +33,20 @@ const GATE_IN = "IN";
 const GATE_OUT = "OUT";
 
 export default function Login(): JSX.Element {
-  const methods = useForm({ resolver: yupResolver(UserSchema) });
-  const { handleSubmit, reset } = methods;
+  const methods = useForm({
+    resolver: yupResolver(UserSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+  const {
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = methods;
   const [gate, setGate] = useState(GATE_IN);
   const navigate = useNavigate();
-  const userNameFef = useRef<HTMLInputElement>(null);
-  const pwdRef = useRef<HTMLInputElement>(null);
 
   const handleGateChange = (value: string) => {
     setGate(value);
@@ -80,8 +88,6 @@ export default function Login(): JSX.Element {
 
               window.ipcRenderer.send(LOGGED_IN, true);
               if (systemGateType === GATE_IN) {
-                // window.ipcRenderer.send(TO_CHECK_IN_CHANNEL);
-                // navigate(PAGE.CHECK_IN);
                 navigate(PAGE.CHECK_IN);
               } else {
                 navigate(PAGE.CHECK_OUT);
@@ -94,6 +100,8 @@ export default function Login(): JSX.Element {
       reset();
     }
   };
+
+  console.log(errors);
 
   return (
     <div className='flex flex-col items-center justify-center w-full h-full min-h-full'>
