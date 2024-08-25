@@ -3,7 +3,7 @@ import { CheckOutInfo } from "@my_types/check-out";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-const initialState: CheckOutInfo = {
+export const initCheckOutInfo: CheckOutInfo = {
   plateImgIn: "",
   plateImgOut: "",
   bodyImgOut: "",
@@ -22,13 +22,13 @@ const initialState: CheckOutInfo = {
 
 export const checkoutSlice = createSlice({
   name: "checkOutCardAction",
-  initialState,
+  initialState: initCheckOutInfo,
   reducers: {
     setNewCardInfo: (state, action: PayloadAction<CheckOutInfo>) => {
       Object.assign(state, JSON.parse(JSON.stringify(action.payload)));
     },
     resetCurrentCardInfo: (state) => {
-      Object.assign(state, JSON.parse(JSON.stringify(initialState)));
+      Object.assign(state, JSON.parse(JSON.stringify(initCheckOutInfo)));
     },
     setInfoMessage: (
       state,
