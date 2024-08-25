@@ -26,6 +26,9 @@ import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_IN } from "@constants/gate.const";
 import CameraSection from "@components/CameraSection";
 import CheckInVehicleForm from "./CheckInVehicleForm";
+import { SUBMIT_LEFT_HOTKEY } from "../../hotkeys";
+import { useHotkeys } from "react-hotkeys-hook";
+import PAGE from "../../../url";
 
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
@@ -56,6 +59,10 @@ const initCheckInInfo: CheckInInfo = {
 };
 
 function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
+  useHotkeys(SUBMIT_LEFT_HOTKEY, () => console.log("left checkin"), {
+    scopes: [PAGE.CHECK_IN],
+  });
+
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
   const { gateId } = useSelectGate(GATE_IN);
@@ -337,7 +344,7 @@ function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
           isCustomerCheckingIn ||
           isGuestCheckingIn
         }
-        deviceId={props.deviceId}
+        plateDeviceId={props.deviceId}
       />
       <CheckInVehicleForm
         methods={methods}

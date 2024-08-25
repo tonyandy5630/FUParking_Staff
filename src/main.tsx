@@ -13,66 +13,70 @@ import PAGE from "../url";
 const CheckOutPage = lazy(() => import("./pages/CheckOut"));
 const SelectGateTypePage = lazy(() => import("./pages/SelectGateType"));
 const DeviceSetupPage = lazy(() => import("./pages/DeviceSetup"));
-
+import { HotkeysProvider } from "react-hotkeys-hook";
+import { Provider } from "react-redux";
+import { store } from "@utils/store";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <QueryProviders>
-      <HashRouter>
-        <Routes>
-          <Route path='/' element={<Login />} />
-          <Route
-            path={PAGE.CODE_SET_UP}
-            element={
-              <Suspense fallback={<p>Loading...</p>}>
-                <MachineSetupPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path={PAGE.SELECT_GATE_TYPE}
-            element={
-              <Suspense>
-                <SelectGateTypePage />
-              </Suspense>
-            }
-          />
-          <Route
-            path={PAGE.DEVICE_SET_UP}
-            element={
-              <Suspense>
-                <DeviceSetupPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path='/check'
-            element={
-              <Suspense>
-                <Layout />
-              </Suspense>
-            }
-          >
+    <Provider store={store}>
+      <QueryProviders>
+        <HashRouter>
+          <Routes>
+            <Route path='/' element={<Login />} />
             <Route
-              path='in'
+              path={PAGE.CODE_SET_UP}
               element={
-                <Suspense>
-                  <CheckInPage />
+                <Suspense fallback={<p>Loading...</p>}>
+                  <MachineSetupPage />
                 </Suspense>
               }
             />
             <Route
-              path='out'
+              path={PAGE.SELECT_GATE_TYPE}
               element={
                 <Suspense>
-                  <CheckOutPage />
+                  <SelectGateTypePage />
                 </Suspense>
               }
             />
-          </Route>
-        </Routes>
-      </HashRouter>
-    </QueryProviders>
-    <ToastContainer autoClose={800} />
+            <Route
+              path={PAGE.DEVICE_SET_UP}
+              element={
+                <Suspense>
+                  <DeviceSetupPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path='/check'
+              element={
+                <Suspense>
+                  <Layout />
+                </Suspense>
+              }
+            >
+              <Route
+                path='in'
+                element={
+                  <Suspense>
+                    <CheckInPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path='out'
+                element={
+                  <Suspense>
+                    <CheckOutPage />
+                  </Suspense>
+                }
+              />
+            </Route>
+          </Routes>
+        </HashRouter>
+      </QueryProviders>
+      <ToastContainer autoClose={800} />
+    </Provider>
   </React.StrictMode>
 );
 
