@@ -1,6 +1,5 @@
 import CheckOutSection from "@components/CheckOutSection";
 import { GATE_OUT } from "@constants/gate.const";
-import { useRef } from "react";
 import { useCallback, useEffect, useState } from "react";
 import useSelectGate from "../hooks/useSelectGate";
 import LANE from "@constants/lane.const";
@@ -9,8 +8,6 @@ export default function CheckOutPage() {
   useSelectGate(GATE_OUT);
 
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [curLane, setCurLane] = useState("");
-  const leftCardRef = useRef<HTMLInputElement>(null);
 
   const handleDevices = useCallback(
     (mediaDevices: MediaDeviceInfo[]) => {
@@ -25,34 +22,8 @@ export default function CheckOutPage() {
 
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then(handleDevices);
-    const handleKeyPress = (event: KeyboardEvent) => {
-      // Check if Ctrl key is pressed and Tab key is pressed simultaneously
-      event.stopPropagation();
-
-      if (devices.length === 1) {
-        setCurLane(devices[0].deviceId);
-      }
-
-      if (devices.length < 2) {
-        return;
-      }
-
-      if (event.ctrlKey) {
-        if (event.key === "Tab") {
-          if (curLane === devices[0].deviceId) setCurLane(devices[1].deviceId);
-          else setCurLane(devices[0].deviceId);
-        }
-      }
-    };
-
     // Add event listener when component mounts
-    document.addEventListener("keydown", handleKeyPress);
-
-    // Clean up event listener when component unmounts
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [handleDevices, curLane, devices.length]);
+  }, [handleDevices, devices.length]);
 
   return (
     <>
@@ -64,9 +35,7 @@ export default function CheckOutPage() {
                 key={devices[0].deviceId}
                 plateDeviceId={devices[0].deviceId}
                 bodyDeviceId={devices[1].deviceId}
-                currentDevice={curLane}
                 cameraSize='sm'
-                cardRef={leftCardRef}
                 position={LANE.LEFT}
               >
                 Lane 1

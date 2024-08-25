@@ -38,7 +38,6 @@ export type Props = {
   bodyDeviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
   children: any;
-  cardRef: React.RefObject<HTMLInputElement>;
 };
 
 export type CheckInInfo = {
@@ -65,7 +64,7 @@ const initCheckInInfo: CheckInInfo = {
   vehicleType: "",
 };
 
-function CheckInSection({ cameraSize = "sm", cardRef, ...props }: Props) {
+function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
   const { gateId } = useSelectGate(GATE_IN);
