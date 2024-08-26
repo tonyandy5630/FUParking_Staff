@@ -10,6 +10,7 @@ type Props = {
 export default function Image({ src, isLoading = false }: Props) {
   return (
     <img
+      loading='lazy'
       src={isLoading ? loading : src === "" ? logo : src}
       className={`border aspect-auto w-full h-full ${
         src === "" ? "object-contain" : "object-cover"

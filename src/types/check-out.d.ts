@@ -1,5 +1,13 @@
 import { ErrorResponse } from ".";
 
+export type MissingCardCheckOut = {
+  PlateNumber: string;
+  CheckOutTime: string;
+  ImagePlate: any;
+  ImageBody: any;
+  GateId: string;
+};
+
 export type CheckOut = {
   CardNumber: string;
   GateOutId?: string;

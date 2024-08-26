@@ -27,6 +27,7 @@ import {
   LOGGED_IN,
   SET_NOT_FIRST_TIME_CHANNEL,
 } from "@channels/index";
+import { AxiosError, HttpStatusCode } from "axios";
 
 const IMG_SIZE = 170;
 const GATE_IN = "IN";
@@ -44,6 +45,8 @@ export default function Login(): JSX.Element {
     handleSubmit,
     reset,
     formState: { errors },
+    setError,
+    setFocus,
   } = methods;
   const [gate, setGate] = useState(GATE_IN);
   const navigate = useNavigate();
@@ -95,7 +98,20 @@ export default function Login(): JSX.Element {
           });
         },
       });
-    } catch (error) {
+    } catch (err: any) {
+      const error = err as AxiosError;
+      console.log(error.response?.status);
+      if (error.response?.status === HttpStatusCode.Unauthorized) {
+        setError("password", {
+          type: "validate",
+          message: "Sai mật khẩu hoặc tài khoản",
+        });
+        setError("email", {
+          type: "custom",
+          message: "Sai mật khẩu hoặc tài khoản",
+        });
+        setFocus("email");
+      }
       reset();
     }
   };

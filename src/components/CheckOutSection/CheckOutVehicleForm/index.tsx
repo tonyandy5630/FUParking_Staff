@@ -1,14 +1,7 @@
-import React, { SyntheticEvent, useCallback, useMemo, useRef } from "react";
+import { SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import FormInput from "@components/Form/Input";
-
-import { GUEST } from "@constants/customer.const";
-
 import { getDayFromString, getHourMinuteFromString } from "@utils/date";
-
-import { getVehicleTypesAPI } from "@apis/vehicle.api";
-import { useQuery } from "@tanstack/react-query";
-
 import FormContainer, {
   FormNameRow,
   FormInfoRow,
@@ -22,7 +15,11 @@ import { Button } from "@components/ui/button";
 import { getCardCheckOutAPI } from "@apis/check-out.api";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
-import { SUBMIT_LEFT_HOTKEY, SUBMIT_RIGHT_HOTKEY } from "../../../hotkeys/key";
+import {
+  FIX_PLATE_NUMBER_KEY,
+  SUBMIT_LEFT_HOTKEY,
+  SUBMIT_RIGHT_HOTKEY,
+} from "../../../hotkeys/key";
 import PAGE from "../../../../url";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CheckOutInfo } from "@my_types/check-out";
@@ -38,6 +35,8 @@ type Props = {
   onCashCheckOut: () => void;
   isError?: boolean;
   position: LanePosition;
+  onMissingCardCheckOut: () => Promise<void>;
+  onTriggerGetInfoByPlate: () => void;
 };
 
 export default function CheckOutVehicleForm({
@@ -48,18 +47,23 @@ export default function CheckOutVehicleForm({
   onCashCheckOut,
   isError,
   position,
+  onMissingCardCheckOut,
+  onTriggerGetInfoByPlate,
 }: Props) {
   const checkOutInfo = useSelector((state: RootState) => state.checkOutCard);
+  const pressPlateCount = useRef<number>(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  const handleClick = () => {
+  const [showInputPlate, setShowInputPlate] = useState<boolean>(false);
+  //* submit form
+  const handleSubmitCheckOut = () => {
     if (buttonRef.current) {
+      pressPlateCount.current = 0;
       buttonRef.current.click();
     }
   };
   useHotkeys(
     position === LANE.LEFT ? SUBMIT_LEFT_HOTKEY : SUBMIT_RIGHT_HOTKEY,
-    handleClick,
+    handleSubmitCheckOut,
     {
       scopes: [PAGE.CHECK_OUT, position],
       enableOnFormTags: ["input", "select", "textarea"],
@@ -86,6 +90,35 @@ export default function CheckOutVehicleForm({
       enableOnFormTags: ["input", "select", "textarea"],
     }
   );
+
+  useHotkeys(
+    FIX_PLATE_NUMBER_KEY,
+    async () => {
+      pressPlateCount.current++;
+      if (pressPlateCount.current === 3) {
+        pressPlateCount.current = 0;
+        setShowInputPlate((prev) => !prev);
+        await onMissingCardCheckOut();
+        return;
+      }
+
+      if (pressPlateCount.current === 2) {
+        onTriggerGetInfoByPlate();
+        return;
+      }
+      setShowInputPlate((prev) => !prev);
+    },
+    {
+      scopes: [PAGE.CHECK_OUT],
+      enableOnFormTags: ["input", "select", "textarea"],
+    }
+  );
+
+  useEffect(() => {
+    if (!showInputPlate) return;
+
+    setFocus("PlateNumber");
+  }, [showInputPlate]);
 
   const handlePreventSubmit = (
     e: SyntheticEvent<HTMLFormElement, SubmitEvent>
@@ -128,7 +161,11 @@ export default function CheckOutVehicleForm({
                 label='Biển số xe ra'
                 col={true}
               >
-                {checkOutInfo.plateTextOut}
+                {showInputPlate ? (
+                  <FormInput name='PlateNumber' />
+                ) : (
+                  checkOutInfo.plateTextOut
+                )}
               </InfoVehicle>
             </InfoSection>
             <InfoSection numberOfRow={2}>
