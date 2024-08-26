@@ -3,7 +3,7 @@ import { cn } from "@utils/utils";
 import * as React from "react";
 
 const frameVariants = cva(
-  "border-4 outline-offset-2 border-solid border-black aspect-auto",
+  " border-4 outline-offset-2 border-solid border-black aspect-auto",
   {
     variants: {
       size: {

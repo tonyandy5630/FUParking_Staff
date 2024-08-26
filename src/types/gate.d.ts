@@ -11,3 +11,11 @@ export type GateTypeOption = {
   id: string;
   name: string;
 };
+
+export type GateType = "IN" | "OUT";
+
+export type Gate = {
+  id: string;
+  name: string;
+  gateType: GateType;
+};

@@ -11,7 +11,7 @@ export default function Image({ src, isLoading = false }: Props) {
   return (
     <img
       src={isLoading ? loading : src === "" ? logo : src}
-      className={`aspect-auto min-w-full h-full ${
+      className={`border aspect-auto w-full h-full ${
         src === "" ? "object-contain" : "object-cover"
       }`}
       // width='100%'
