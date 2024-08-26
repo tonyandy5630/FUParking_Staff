@@ -10,8 +10,10 @@ import { formatPlateNumber } from "@utils/plate-number";
 import { useDispatch } from "react-redux";
 import { setNewSessionInfo } from "../../../redux/sessionSlice";
 import wrapText from "@utils/text";
+import useGetParkingId from "../../../hooks/useGetParkingId";
 
 function SessionTable() {
+  const parkingId = useGetParkingId();
   const pagination = usePagination();
   const dispatch = useDispatch();
 
@@ -28,28 +30,30 @@ function SessionTable() {
       pagination.pageIndex,
       pagination.pageSize,
       pagination,
+      parkingId,
     ],
-    queryFn: () => getParkingSession(pagination),
+    queryFn: () => getParkingSession({ pagination, parkingId }),
+    enabled: parkingId !== "",
   });
 
   const data: SessionCard[] = useMemo(() => {
     const sessions = sessionData?.data.data;
     if (!sessions) return [];
 
-    return sessions
-      .filter((item) => item.session !== null)
-      .map((item) => {
-        console.log(item);
-        return {
-          cardNumber: item.cardNumber,
-          plateNumber: formatPlateNumber(item.session.plateNumber),
-          cardStatus: item.isInUse ? "Parking" : "Free",
-          sessionId: wrapText(item.session.sessionId, 14),
-          vehicleType: item.session.vehicleType,
-          timeIn: toLocaleDate(new Date(item.session.timeIn)),
-          gateIn: item.session.gateIn,
-        };
-      });
+    return sessions.map((item) => {
+      console.log(item);
+      return {
+        cardNumber: item.cardNumber,
+        plateNumber: formatPlateNumber(item.plateNumber),
+        cardStatus: item.status ? "Parking" : "Free",
+        sessionId: wrapText(item.id, 14),
+        vehicleType: item.vehicleTypeName,
+        timeIn: toLocaleDate(new Date(item.timeIn)),
+        gateIn: item.gateInName,
+        imageInBodyUrl: item.imageInBodyUrl,
+        imageInUrl: item.imageInUrl,
+      } as SessionCard;
+    });
   }, [sessionData?.data.data]);
 
   return (

@@ -10,6 +10,8 @@ const initState: SessionCard = {
   sessionId: "",
   timeIn: "",
   vehicleType: "",
+  imageInBodyUrl: "",
+  imageInUrl: "",
 };
 
 export const sessionSlice = createSlice({

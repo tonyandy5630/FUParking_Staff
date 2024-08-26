@@ -67,14 +67,13 @@ export default function Login(): JSX.Element {
           toast.success("Login Successfully", {
             toastId: "LOGIN_TOAST",
           });
-          window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, false);
           toast.onChange(async (payload) => {
             if (payload.status === "removed") {
               const notFirstTime = await window.ipcRenderer.invoke(
                 GET_NOT_FIRST_TIME_CHANNEL
               );
 
-              if (notFirstTime) {
+              if (!notFirstTime) {
                 navigate(PAGE.SELECT_GATE_TYPE);
                 return;
               }

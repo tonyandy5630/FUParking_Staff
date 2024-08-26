@@ -16,3 +16,6 @@ export const GET_GATE_OUT_ID_CHANNEL = "get-gate-out-id";
 
 export const GET_NOT_FIRST_TIME_CHANNEL = "get-first-time";
 export const SET_NOT_FIRST_TIME_CHANNEL = "set-first-time";
+
+export const GET_PARKING_AREA_ID_CHANNEL = "get-parking-id";
+export const SET_PARKING_AREA_ID_CHANNEL = "get-parking-id";

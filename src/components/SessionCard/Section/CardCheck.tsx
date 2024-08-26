@@ -45,8 +45,8 @@ export default function CardCheckSection() {
         <CardInfoRow label='Cổng xe vào' content={cardInfo.gateIn} />
       </RectangleContainer>
       <RectangleContainer className='h-full grid-cols-2 justify-items-stretch'>
-        <Image src={""} isLoading={false} />
-        <Image src={""} isLoading={false} />
+        <Image src={cardInfo.imageInBodyUrl} isLoading={false} />
+        <Image src={cardInfo.imageInUrl} isLoading={false} />
       </RectangleContainer>
     </div>
   );

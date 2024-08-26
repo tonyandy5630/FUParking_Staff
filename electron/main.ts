@@ -3,11 +3,13 @@ import {
   GET_GATE_OUT_ID_CHANNEL,
   GET_GATE_TYPE_CHANNEL,
   GET_NOT_FIRST_TIME_CHANNEL,
+  GET_PARKING_AREA_ID_CHANNEL,
   GO_BACK_CHANNEL,
   LOGGED_IN,
   OPEN_ERROR_DIALOG_CHANNEL,
   SET_GATE_CHANNEL,
   SET_NOT_FIRST_TIME_CHANNEL,
+  SET_PARKING_AREA_ID_CHANNEL,
   TO_CHECK_IN_CHANNEL,
   TO_CHECK_OUT_CHANNEL,
   TO_DEVICE_SETUP_CHANNEL,
@@ -70,6 +72,7 @@ function createWindow() {
     win?.show();
     win?.maximize();
     store = new Store();
+    console.log(store.path);
   });
   try {
     if (VITE_DEV_SERVER_URL) {
@@ -105,17 +108,26 @@ ipcMain.on(OPEN_ERROR_DIALOG_CHANNEL, (e) => {
 });
 
 ipcMain.on(SET_NOT_FIRST_TIME_CHANNEL, (_, isFirstTime: boolean) => {
-  if (!store) return;
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in set store");
+    return;
+  }
   store.set("notFirstTime", isFirstTime);
 });
 
 ipcMain.handle(GET_NOT_FIRST_TIME_CHANNEL, () => {
-  if (!store) return;
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in set store");
+    return;
+  }
   return store.get("notFirstTime", false);
 });
 
 ipcMain.on(SET_GATE_CHANNEL, (e, gate: { id: string; type: string }) => {
-  if (!store) return;
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
   if (!gate.id || !gate.type) {
     dialog.showErrorBox("Select Gate", "Gate is not selected");
     return;
@@ -136,18 +148,45 @@ ipcMain.on(SET_GATE_CHANNEL, (e, gate: { id: string; type: string }) => {
 });
 
 ipcMain.handle(GET_GATE_TYPE_CHANNEL, (e) => {
-  if (!store) return;
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
   return store.get("gateType");
 });
 
 ipcMain.handle(GET_GATE_IN_ID_CHANNEL, (event: any) => {
-  if (!store) return;
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
   return store.get("gateInId");
 });
 
 ipcMain.handle(GET_GATE_OUT_ID_CHANNEL, (event: any) => {
-  if (!store) return;
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
   return store.get("gateOutId");
+});
+
+ipcMain.on(SET_PARKING_AREA_ID_CHANNEL, (_, parkingId: string) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  store.set("parkingAreaId", parkingId);
+});
+
+ipcMain.handle(GET_PARKING_AREA_ID_CHANNEL, (_) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get("parkingAreaId", "");
 });
 
 ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {

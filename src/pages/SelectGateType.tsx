@@ -1,12 +1,14 @@
-import { getAllGateAPI } from "@apis/gate.api";
+import { getAllGateAPI, getGateByParkingAreaIdAPI } from "@apis/gate.api";
 import { getAllParkingAreaAPI } from "@apis/parking-area.api";
 import {
   GET_GATE_IN_ID_CHANNEL,
   GET_GATE_OUT_ID_CHANNEL,
   GET_GATE_TYPE_CHANNEL,
+  GET_PARKING_AREA_ID_CHANNEL,
   LOGGED_IN,
   SET_GATE_CHANNEL,
   SET_NOT_FIRST_TIME_CHANNEL,
+  SET_PARKING_AREA_ID_CHANNEL,
 } from "@channels/index";
 import FormItem from "@components/CameraSection/Form/FormItem";
 import { Button } from "@components/ui/button";
@@ -25,19 +27,20 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PAGE from "../../url";
 import { GATE_IN, GATE_OUT } from "@constants/gate.const";
+import { GateType } from "@my_types/gate";
 
 export default function SelectGateTypePage() {
-  const [selectedParkingName, setSelectedParkingName] = useState("");
-  const [selectedGateId, setSelectedGateId] = useState("");
+  const [selectedParkingId, setSelectedParkingId] = useState<string>("");
+  const [selectedGateId, setSelectedGateId] = useState<string>("");
   const navigate = useNavigate();
   const {
     data: gatesData,
     isLoading: isLoadingGates,
     isSuccess: isSuccessGate,
   } = useQuery({
-    queryKey: ["/gate-all", selectedParkingName],
-    queryFn: () => getAllGateAPI(selectedParkingName),
-    enabled: selectedParkingName !== "",
+    queryKey: ["/gate-all", selectedParkingId],
+    queryFn: () => getGateByParkingAreaIdAPI(selectedParkingId),
+    enabled: selectedParkingId !== "",
   });
 
   const { data: parkingAreasData, isLoading: isLoadingParkingArea } = useQuery({
@@ -45,8 +48,8 @@ export default function SelectGateTypePage() {
     queryFn: getAllParkingAreaAPI,
   });
 
-  const handleParkingAreaNameChange = (value: string) => {
-    setSelectedParkingName(value);
+  const handleParkingAreaIdChange = (value: string) => {
+    setSelectedParkingId(value);
   };
 
   const gateSelects = useMemo(() => {
@@ -69,7 +72,7 @@ export default function SelectGateTypePage() {
 
     return parkingAreas.map((item) => {
       return (
-        <SelectItem key={item.id} value={item.name}>
+        <SelectItem key={item.id} value={item.id}>
           {item.name}
         </SelectItem>
       );
@@ -84,15 +87,32 @@ export default function SelectGateTypePage() {
     try {
       const gates = gatesData?.data.data;
       if (!gates) return;
-      const gateType = gates?.find((item) => item.id === selectedGateId)
-        ?.gateType.name;
+
+      if (gates.length === 0) return;
+
+      const currentGate = gates.find((item) => item.id === selectedGateId);
+      if (!currentGate) {
+        return;
+      }
+
+      const gateType = currentGate.gateType;
+
       window.ipcRenderer.send(SET_GATE_CHANNEL, {
         id: selectedGateId,
         type: gateType,
       });
+      window.ipcRenderer.send(SET_PARKING_AREA_ID_CHANNEL, selectedParkingId);
+
+      const newParkingAreaId = await window.ipcRenderer.invoke(
+        GET_PARKING_AREA_ID_CHANNEL
+      );
+
       const newGateType = await window.ipcRenderer.invoke(
         GET_GATE_TYPE_CHANNEL
       );
+
+      await Promise.all([newGateType, newParkingAreaId]);
+
       let gateId: string | undefined;
 
       switch (gateType) {
@@ -109,6 +129,12 @@ export default function SelectGateTypePage() {
 
       if (!gateId) {
         toast.error("Failed to retrieve gate ID");
+        window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, false);
+        return;
+      }
+
+      if (!newParkingAreaId) {
+        toast.error("Failed to retrieve new parking area");
         window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, false);
         return;
       }
@@ -140,10 +166,11 @@ export default function SelectGateTypePage() {
         <div className='flex items-center justify-center min-w-full p-3 text-4xl font-bold'>
           <h3>Select Gate</h3>
         </div>
-        <div className='grid w-1/4 h-full grid-cols-2 gap-y-3 '>
-          <FormItem>
+        <div className='grid w-1/4 h-full grid-rows-3 gap-3'>
+          <div className='grid grid-rows-[1fr_auto]'>
+            <p className='mb-1'>Bãi giữ xe</p>
             <Select
-              onValueChange={handleParkingAreaNameChange}
+              onValueChange={handleParkingAreaIdChange}
               disabled={isLoadingGates}
             >
               <SelectTrigger className='min-w-full'>
@@ -153,18 +180,18 @@ export default function SelectGateTypePage() {
                 <SelectGroup>{parkingAreaSelects}</SelectGroup>
               </SelectContent>
             </Select>
-          </FormItem>
-          <FormItem>
-            {selectedParkingName ? (
-              <p>
-                Chọn cổng của bãi xe: <strong>{selectedParkingName}</strong>
-              </p>
-            ) : (
-              <p className='text-destructive'>Hãy chọn cổng </p>
-            )}
-          </FormItem>
-          <FormItem>
-            <Select onValueChange={handleGateChange} disabled={isLoadingGates}>
+            <div className='grid'>
+              {!selectedParkingId && (
+                <p className='text-destructive'>Hãy chọn bãi giữ xe </p>
+              )}
+            </div>
+          </div>
+          <div className='grid'>
+            <p className='mb-1'>Cổng</p>
+            <Select
+              onValueChange={handleGateChange}
+              disabled={isLoadingGates || selectedParkingId === ""}
+            >
               <SelectTrigger className='min-w-full'>
                 <SelectValue
                   placeholder={isLoadingGates ? "Loading..." : "Chọn cổng"}
@@ -174,8 +201,8 @@ export default function SelectGateTypePage() {
                 <SelectGroup>{gateSelects}</SelectGroup>
               </SelectContent>
             </Select>
-          </FormItem>
-          <FormItem className='grid-cols-2 gap-1'>
+          </div>
+          <div className='grid grid-cols-2 gap-1'>
             <Button variant='destructive'>Hủy</Button>
             <Button
               disabled={selectedGateId === ""}
@@ -183,7 +210,7 @@ export default function SelectGateTypePage() {
             >
               Xác nhận
             </Button>
-          </FormItem>
+          </div>
         </div>
       </main>
     </>

@@ -6,26 +6,26 @@ type SessionCard = {
   vehicleType: string;
   timeIn: string;
   gateIn: string;
-};
-
-type ParkingSession = {
-  sessionId: string;
-  gateIn: string;
-  plateNumber: string;
   imageInUrl: string;
   imageInBodyUrl: string;
-  timeIn: string;
-  vehicleType: string;
-  customerEmail: string;
-  staffCheckInEmail: string;
 };
 
-export type ParkingCard = {
+export type Session = {
   id: string;
   cardNumber: string;
+  gateInName: string;
+  gateOutName: string;
   plateNumber: string;
-  createdDate: string;
+  imageInUrl: string;
+  imageOutUrl: string;
+  timeIn: string;
+  timeOut?: string;
+  mode: string;
+  block: number;
+  vehicleTypeName: string;
+  paymentMethodName: string;
+  customerEmail: string;
   status: string;
-  session: ParkingSession;
-  isInUse: boolean;
+  imageInBodyUrl: string;
+  imageOutBodyUrl: string;
 };
