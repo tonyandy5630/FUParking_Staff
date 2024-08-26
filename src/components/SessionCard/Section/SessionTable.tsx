@@ -61,6 +61,7 @@ function SessionTable() {
       columns={SessionCardColumns}
       data={data}
       onRowClick={setCardChecker}
+      isLoading={isLoadingSession}
     />
   );
 }

@@ -1,5 +1,5 @@
 const localDateOption: Intl.DateTimeFormatOptions = {
-  hour: "numeric",
+  hour: "2-digit",
   minute: "numeric",
   year: "numeric",
   month: "numeric",
@@ -7,7 +7,7 @@ const localDateOption: Intl.DateTimeFormatOptions = {
 };
 
 const hourMinuteOption: Intl.DateTimeFormatOptions = {
-  hour: "numeric",
+  hour: "2-digit",
   minute: "numeric",
   second: "numeric",
 };
