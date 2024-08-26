@@ -23,7 +23,7 @@ function CameraSection({
   ...props
 }: Props) {
   return (
-    <div className='flex justify-stretch h-fit gap-x-1'>
+    <div className='grid grid-cols-2 gap-x-1'>
       <CameraLane
         frontImage={frontImage}
         backImage={frontImage}

@@ -13,9 +13,9 @@ import PAGE from "../url";
 const CheckOutPage = lazy(() => import("./pages/CheckOut"));
 const SelectGateTypePage = lazy(() => import("./pages/SelectGateType"));
 const DeviceSetupPage = lazy(() => import("./pages/DeviceSetup"));
-import { HotkeysProvider } from "react-hotkeys-hook";
 import { Provider } from "react-redux";
 import { store } from "@utils/store";
+const CardCheckerPage = lazy(() => import("./pages/CardChecker"));
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Provider store={store}>
@@ -47,6 +47,23 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 </Suspense>
               }
             />
+            <Route
+              path='/card'
+              element={
+                <Suspense>
+                  <Layout />
+                </Suspense>
+              }
+            >
+              <Route
+                path='check'
+                element={
+                  <Suspense fallback={<p>Loading...</p>}>
+                    <CardCheckerPage />
+                  </Suspense>
+                }
+              />
+            </Route>
             <Route
               path='/check'
               element={

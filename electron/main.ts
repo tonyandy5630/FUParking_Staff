@@ -163,7 +163,7 @@ ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
   if (loggedInMenu === undefined) return;
 
   const gateInMenuItem = loggedInMenu[1].submenu[0] as Partial<MenuItem>;
-  const gateOutMenuItem = loggedInMenu[1].submenu[0] as Partial<MenuItem>;
+  const gateOutMenuItem = loggedInMenu[1].submenu[1] as Partial<MenuItem>;
   const cardCheckerMenuItem = loggedInMenu[2].submenu[0] as Partial<MenuItem>;
   const missingCardMenuITem = loggedInMenu[2].submenu[1] as Partial<MenuItem>;
 
