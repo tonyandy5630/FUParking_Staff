@@ -1,9 +1,8 @@
-import SessionCardColumns from "@components/SessionCard/columns";
 import CardCheckSection from "@components/SessionCard/Section/CardCheck";
 import ParkingSection from "@components/SessionCard/Section/ParkingAreaStatistic";
-import { DataTable } from "@components/Table";
 import { HotkeysProvider } from "react-hotkeys-hook";
 import PAGE from "../../url";
+import SessionTable from "@components/SessionCard/Section/SessionTable";
 
 export default function CardCheckerPage() {
   return (
@@ -12,7 +11,7 @@ export default function CardCheckerPage() {
         <div className='grid grid-cols-[2fr_1fr] gap-3 min-h-full max-w-screen-xl'>
           <div className='grid col-span-1 gap-3 grid-rows-[auto_1fr]'>
             <ParkingSection />
-            <DataTable columns={SessionCardColumns} data={[]} />
+            <SessionTable />
           </div>
           <CardCheckSection />
         </div>

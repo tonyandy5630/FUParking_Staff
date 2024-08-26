@@ -5,9 +5,14 @@ import Image from "@components/Image";
 import { useHotkeys } from "react-hotkeys-hook";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import PAGE from "../../../../url";
+import { Separator } from "@components/ui/separator";
+import { useSelector } from "react-redux";
+import { RootState } from "@utils/store";
 
 export default function CardCheckSection() {
   const cardNumberRef = useRef<HTMLInputElement>(null);
+  const cardInfo = useSelector((state: RootState) => state.session);
+
   useHotkeys(
     FOCUS_CARD_INPUT_KEY,
     () => {
@@ -28,16 +33,16 @@ export default function CardCheckSection() {
         />
       </RectangleContainer>
       <RectangleContainer className='h-full border rounded-md grid-rows-8'>
-        <CardInfoRow label='Số thẻ'></CardInfoRow>
-        <CardInfoRow label='Biển số xe'></CardInfoRow>
-        <CardInfoRow label='Trạng thái thẻ'></CardInfoRow>
-        <CardInfoRow>
-          <hr />
-        </CardInfoRow>
-        <CardInfoRow label='Session ID'></CardInfoRow>
-        <CardInfoRow label='Loại xe'></CardInfoRow>
-        <CardInfoRow label='Giờ xe vào'></CardInfoRow>
-        <CardInfoRow label='Cổng xe vào'></CardInfoRow>
+        <CardInfoRow label='Số thẻ' content={cardInfo.cardNumber} />
+        <CardInfoRow label='Biển số xe' content={cardInfo.plateNumber} />
+        <CardInfoRow label='Trạng thái thẻ' content={cardInfo.cardStatus} />
+        <div className='flex items-center px-4'>
+          <Separator />
+        </div>
+        <CardInfoRow label='Session ID' content={cardInfo.sessionId} />
+        <CardInfoRow label='Loại xe' content={cardInfo.vehicleType} />
+        <CardInfoRow label='Giờ xe vào' content={cardInfo.timeIn} />
+        <CardInfoRow label='Cổng xe vào' content={cardInfo.gateIn} />
       </RectangleContainer>
       <RectangleContainer className='h-full grid-cols-2 justify-items-stretch'>
         <Image src={""} isLoading={false} />

@@ -1,3 +1,4 @@
+import { SessionCard } from "@my_types/session-card";
 import { ColumnDef } from "@tanstack/react-table";
 
 export const SessionCardColumns: ColumnDef<SessionCard>[] = [
@@ -16,14 +17,6 @@ export const SessionCardColumns: ColumnDef<SessionCard>[] = [
   {
     accessorKey: "gateIn",
     header: "Cổng vào",
-  },
-  {
-    accessorKey: "customerName",
-    header: "Tên khách hàng",
-  },
-  {
-    accessorKey: "customerEmail",
-    header: "Email khách hàng",
   },
 ];
 
