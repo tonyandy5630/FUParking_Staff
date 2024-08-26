@@ -15,6 +15,11 @@ import { SessionCard } from "@my_types/session-card";
 import { setNewSessionInfo } from "../../../redux/sessionSlice";
 import toLocaleDate from "@utils/date";
 import { formatPlateNumber } from "@utils/plate-number";
+import {
+  CLOSED_SESSION_STATUS,
+  PARKED_SESSION_STATUS,
+} from "@constants/session.const";
+import { CARD_NOT_INFO } from "@constants/message.const";
 
 export default function CardCheckSection() {
   const cardNumberRef = useRef<HTMLInputElement>(null);
@@ -58,7 +63,12 @@ export default function CardCheckSection() {
       plateNumber,
       timeIn,
       vehicleType,
+      status,
     } = cardInfo;
+    if (cardNumberRef.current) cardNumberRef.current.value = "";
+
+    if (status === CLOSED_SESSION_STATUS) return;
+
     const newCardInfo: SessionCard = {
       gateIn,
       imageInBodyUrl: imageInBodyUrl,
@@ -68,9 +78,9 @@ export default function CardCheckSection() {
       plateNumber: formatPlateNumber(plateNumber),
       sessionId: "",
       cardNumber: cardValue,
-      cardStatus: "PARKED",
+      cardStatus:
+        status === PARKED_SESSION_STATUS ? "Đang giữ xe" : CARD_NOT_INFO,
     };
-    if (cardNumberRef.current) cardNumberRef.current.value = "";
 
     dispatch(setNewSessionInfo(newCardInfo));
   }, [cardData?.data.data]);
@@ -78,7 +88,6 @@ export default function CardCheckSection() {
   const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCardValue(e.target.value);
   };
-  console.log(cardInfo);
 
   return (
     <div className='grid col-span-1 gap-3 grid-rows-[auto_2fr_auto] '>

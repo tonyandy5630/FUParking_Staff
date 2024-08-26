@@ -46,6 +46,7 @@ export type CheckOutCardInfo = {
   timeIn: string;
   vehicleType: string;
   isEnoughToPay: boolean | null;
+  status: string;
   amount: number;
 };
 

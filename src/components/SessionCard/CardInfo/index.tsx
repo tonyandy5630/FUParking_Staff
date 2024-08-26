@@ -17,11 +17,11 @@ export default function CardInfoRow({
 }: Props) {
   const show = useMemo(() => {
     if (isLoading) return <Skeleton className='w-full h-4' />;
-
-    return content !== "" || content !== undefined ? (
-      <p className='text-base'>{content}</p>
+    console.log(content !== "" || content !== undefined);
+    return content === "" ? (
+      <p className='text-base'>{CARD_NOT_INFO}</p>
     ) : (
-      CARD_NOT_INFO
+      content
     );
   }, [isLoading, content]);
   return (

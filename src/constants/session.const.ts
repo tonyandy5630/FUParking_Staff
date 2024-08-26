@@ -1,0 +1,2 @@
+export const CLOSED_SESSION_STATUS = "CLOSED";
+export const PARKED_SESSION_STATUS = "PARKED";
