@@ -10,7 +10,10 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CheckInSchema, { CheckInSchemaType } from "@utils/schema/checkinSchema";
 import { CheckIn, UpdateVehicleTypeInfo } from "@my_types/check-in";
-import { CUSTOMER_NOT_EXIST_ERROR } from "@constants/error-message.const";
+import {
+  CARD_INACTIVE,
+  CUSTOMER_NOT_EXIST_ERROR,
+} from "@constants/error-message.const";
 const UpdateVehicleTypeDialog = lazy(
   () => import("@components/UpdateVehicleTypeDialog")
 );
@@ -315,6 +318,14 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
             setCheckInInfo((prev) => ({
               ...prev,
               customerType: GUEST,
+            }));
+          }
+
+          if (error.response.data.message === CARD_INACTIVE) {
+            setCheckInInfo((prev) => ({
+              ...prev,
+              message: "THẺ KHÔNG TỒN TẠI TRONG HỆ THỐNG",
+              isError: true,
             }));
           }
         },

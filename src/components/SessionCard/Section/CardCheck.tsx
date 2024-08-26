@@ -141,7 +141,7 @@ export default function CardCheckSection() {
           content={cardInfo.gateIn}
         />
       </RectangleContainer>
-      <RectangleContainer className='h-full grid-cols-2 justify-items-stretch'>
+      <RectangleContainer className='h-full grid-cols-2 justify-items-stretch min-h-[205px]'>
         <Image isLoading={isLoadingCard} src={cardInfo.imageInBodyUrl} />
         <Image isLoading={isLoadingCard} src={cardInfo.imageInUrl} />
       </RectangleContainer>
