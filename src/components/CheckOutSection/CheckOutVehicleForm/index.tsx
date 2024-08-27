@@ -123,6 +123,14 @@ export default function CheckOutVehicleForm({
     FIX_PLATE_NUMBER_KEY,
     async () => {
       pressPlateCount.current++;
+
+      //* second press get info
+      if (pressPlateCount.current === 2) {
+        onTriggerGetInfoByPlate();
+        return;
+      }
+
+      //* final press send checkout
       if (pressPlateCount.current === 3) {
         pressPlateCount.current = 0;
         setShowInputPlate((prev) => !prev);
@@ -130,10 +138,6 @@ export default function CheckOutVehicleForm({
         return;
       }
 
-      if (pressPlateCount.current === 2) {
-        onTriggerGetInfoByPlate();
-        return;
-      }
       setShowInputPlate((prev) => !prev);
     },
     {
