@@ -7,6 +7,6 @@ export const GUEST_CAN_ENTRY = "Khách có thể vào";
 export const PLATE_MATCH = "Biển số trùng khớp";
 export const PLATE_NOT_MATCH = "Biển số không trùng khớp";
 export const PLATE_NOT_READ = "Không đọc được biển số";
-export const CARD_NOT_INFO = "Không có dữ liêu";
+export const CARD_NOT_INFO = "Không có dữ liệu";
 export const PLEASE_CHECK_OUT = "Hủy hoặc hoàn tất check out xe trước đó";
 export const CAMERA_NOT_FOUND = "KHÔNG TÌM THẤY CAMERA";

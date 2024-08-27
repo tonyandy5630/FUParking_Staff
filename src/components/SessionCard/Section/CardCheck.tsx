@@ -1,5 +1,5 @@
 import RectangleContainer from "@components/Rectangle";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import CardInfoRow from "../CardInfo";
 import Image from "@components/Image";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -8,9 +8,7 @@ import PAGE from "../../../../url";
 import { Separator } from "@components/ui/separator";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@utils/store";
-import { useQuery } from "@tanstack/react-query";
-import { GET_CARD_CHECK_OUT_API_URL } from "@apis/url/check-out";
-import { getCardCheckOutAPI } from "@apis/check-out.api";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { SessionCard } from "@my_types/session-card";
 import { setNewSessionInfo } from "../../../redux/sessionSlice";
 import toLocaleDate from "@utils/date";
@@ -20,12 +18,25 @@ import {
   PARKED_SESSION_STATUS,
 } from "@constants/session.const";
 import { CARD_NOT_INFO } from "@constants/message.const";
+import { Button } from "@components/ui/button";
+import FormInput from "@components/Form/Input";
+import {
+  getCardSessionInfoAPI,
+  updateSessionPlateNumberAPI,
+} from "@apis/session.api";
+import { FormProvider, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import {
+  updateSessionPlateNumberSchema,
+  updateSessionPlateNumberSchemaType,
+} from "@utils/schema/sessionSchema";
+import wrapText from "@utils/text";
 
 export default function CardCheckSection() {
+  const cardInfo = useSelector((state: RootState) => state.session);
   const cardNumberRef = useRef<HTMLInputElement>(null);
   const [cardValue, setCardValue] = useState<string>("");
-  const cardInfo = useSelector((state: RootState) => state.session);
-
+  const [showPlateInput, setShowPlateInput] = useState(false);
   const dispatch = useDispatch();
 
   const {
@@ -34,10 +45,21 @@ export default function CardCheckSection() {
     isError: isErrorCard,
   } = useQuery({
     queryKey: ["/get-card-session-by-number", cardValue],
-    queryFn: () => getCardCheckOutAPI(cardValue),
+    queryFn: () => getCardSessionInfoAPI(cardValue),
     enabled: cardValue.length === 10,
   });
 
+  const handleTogglePlateInput = () => {
+    setShowPlateInput((prev) => !prev);
+  };
+
+  const methods = useForm({
+    resolver: yupResolver(updateSessionPlateNumberSchema),
+    defaultValues: {
+      SessionId: cardInfo.sessionId,
+    },
+  });
+  const { getValues, setValue, reset } = methods;
   useHotkeys(
     FOCUS_CARD_INPUT_KEY,
     () => {
@@ -48,38 +70,69 @@ export default function CardCheckSection() {
     },
     {
       scopes: [PAGE.CARD_CHECKER],
-      enableOnFormTags: ["input", "textarea", "select"],
     }
   );
 
+  const {
+    mutateAsync: mutateUpdateSessionPlateNumber,
+    isPending: isPendingUpdate,
+  } = useMutation({
+    mutationKey: ["/update-session-plate-number"],
+    mutationFn: updateSessionPlateNumberAPI,
+  });
+
+  const handleUpdateSessionPlate = async (
+    data: updateSessionPlateNumberSchemaType
+  ) => {
+    try {
+      const updateBody = new FormData();
+      updateBody.append("PlateNumber", getValues("PlateNumber"));
+      updateBody.append("SessionId", cardInfo.sessionId);
+
+      await mutateUpdateSessionPlateNumber(updateBody as any, {
+        onSuccess: () => {
+          setShowPlateInput(false);
+          dispatch(
+            setNewSessionInfo({
+              ...cardInfo,
+              plateNumber: getValues("PlateNumber"),
+            })
+          );
+        },
+      });
+    } catch (err: unknown) {}
+  };
+
   useEffect(() => {
-    const cardInfo = cardData?.data.data;
-    if (!cardInfo) return;
+    const cardInfoData = cardData?.data.data;
+    if (!cardInfoData) return;
 
     const {
-      gateIn,
+      cardNumber,
       imageInBodyUrl,
       imageInUrl,
-      plateNumber,
-      timeIn,
-      vehicleType,
       status,
-    } = cardInfo;
+      sessionGateIn,
+      sessionPlateNumber,
+      sessionTimeIn,
+      sessionVehicleType,
+      sessionId,
+    } = cardInfoData;
     if (cardNumberRef.current) cardNumberRef.current.value = "";
-
-    if (status === CLOSED_SESSION_STATUS) return;
+    // if (status === CLOSED_SESSION_STATUS) return;
 
     const newCardInfo: SessionCard = {
-      gateIn,
+      gateIn: sessionGateIn,
       imageInBodyUrl: imageInBodyUrl,
       imageInUrl,
-      timeIn: toLocaleDate(new Date(timeIn)),
-      vehicleType,
-      plateNumber: formatPlateNumber(plateNumber),
-      sessionId: "",
+      timeIn: toLocaleDate(new Date(sessionTimeIn)),
+      vehicleType: sessionVehicleType,
+      plateNumber: formatPlateNumber(sessionPlateNumber),
+      sessionId: sessionId,
       cardNumber: cardValue,
       cardStatus:
         status === PARKED_SESSION_STATUS ? "Đang giữ xe" : CARD_NOT_INFO,
+      isClosed: status === CLOSED_SESSION_STATUS || cardInfo.isClosed,
     };
 
     dispatch(setNewSessionInfo(newCardInfo));
@@ -89,6 +142,21 @@ export default function CardCheckSection() {
     setCardValue(e.target.value);
   };
 
+  useEffect(() => {
+    setShowPlateInput(false);
+  }, [cardInfo]);
+
+  const plateNumberRow = useMemo(() => {
+    if (cardInfo.plateNumber === "") return "";
+
+    if (!showPlateInput) {
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showPlateInput) setValue("PlateNumber", cardInfo.plateNumber);
+  }, [showPlateInput]);
   return (
     <div className='grid col-span-1 gap-3 grid-rows-[auto_2fr_auto] '>
       <RectangleContainer>
@@ -106,44 +174,70 @@ export default function CardCheckSection() {
           />
         </form>
       </RectangleContainer>
-      <RectangleContainer className='h-full border rounded-md grid-rows-7'>
-        <CardInfoRow
-          isLoading={isLoadingCard}
-          label='Biển số xe'
-          content={cardInfo.plateNumber}
-        />
-        <CardInfoRow
-          isLoading={isLoadingCard}
-          label='Trạng thái thẻ'
-          content={cardInfo.cardStatus}
-        />
+      <RectangleContainer className='min-h-full border rounded-md grid-rows-7'>
+        <FormProvider {...methods}>
+          <CardInfoRow isLoading={isLoadingCard} label='Biển số xe'>
+            {cardInfo.plateNumber !== "" ? (
+              <form className='grid grid-cols-[auto_1fr] gap-2 items-center w-full'>
+                {showPlateInput ? (
+                  <FormInput
+                    autoFocus={true}
+                    className='border w-22'
+                    defaultValue={cardInfo.plateNumber}
+                    name='plateNumber'
+                  />
+                ) : (
+                  <p>{cardInfo.plateNumber}</p>
+                )}
+                {!cardInfo.isClosed && (
+                  <div>
+                    <Button
+                      className='!min-w-4 text-primary h-8'
+                      type='button'
+                      variant='ghost'
+                      onClick={() => handleTogglePlateInput()}
+                    >
+                      {showPlateInput ? "Hủy" : "Sửa"}
+                    </Button>
+                  </div>
+                )}
+              </form>
+            ) : (
+              cardInfo.plateNumber
+            )}
+          </CardInfoRow>
+        </FormProvider>
+
+        <CardInfoRow isLoading={isLoadingCard} label='Trạng thái thẻ'>
+          {cardInfo.cardStatus}
+        </CardInfoRow>
         <div className='flex items-center px-4'>
           <Separator />
         </div>
-        <CardInfoRow
-          isLoading={isLoadingCard}
-          label='Session ID'
-          content={cardInfo.sessionId}
-        />
-        <CardInfoRow
-          isLoading={isLoadingCard}
-          label='Loại xe'
-          content={cardInfo.vehicleType}
-        />
-        <CardInfoRow
-          isLoading={isLoadingCard}
-          label='Giờ xe vào'
-          content={cardInfo.timeIn}
-        />
-        <CardInfoRow
-          isLoading={isLoadingCard}
-          label='Cổng xe vào'
-          content={cardInfo.gateIn}
-        />
+        <CardInfoRow isLoading={isLoadingCard} label='Session ID'>
+          {wrapText(cardInfo.sessionId, 20)}
+        </CardInfoRow>
+        <CardInfoRow isLoading={isLoadingCard} label='Loại xe'>
+          {cardInfo.vehicleType}
+        </CardInfoRow>
+        <CardInfoRow isLoading={isLoadingCard} label='Giờ xe vào'>
+          {cardInfo.timeIn}
+        </CardInfoRow>
+        <CardInfoRow isLoading={isLoadingCard} label='Cổng xe vào'>
+          {cardInfo.gateIn}
+        </CardInfoRow>
       </RectangleContainer>
-      <RectangleContainer className='h-full grid-cols-2 justify-items-stretch min-h-[205px]'>
-        <Image isLoading={isLoadingCard} src={cardInfo.imageInBodyUrl} />
-        <Image isLoading={isLoadingCard} src={cardInfo.imageInUrl} />
+      <RectangleContainer className='h-full grid-cols-2 justify-items-stretch min-h-[190px]'>
+        <Image
+          isLoading={isLoadingCard}
+          className='object-scale-down'
+          src={cardInfo.imageInBodyUrl}
+        />
+        <Image
+          isLoading={isLoadingCard}
+          className='object-scale-down'
+          src={cardInfo.imageInUrl}
+        />
       </RectangleContainer>
     </div>
   );

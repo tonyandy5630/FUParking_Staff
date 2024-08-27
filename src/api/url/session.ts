@@ -17,3 +17,8 @@ export const GET_SESSION_API_URL = ({
   parkingId,
 }: SessionParams) =>
   `${baseAPI_URL}/session/${parkingId}?PageIndex=${pagination.pageIndex}&PageSize=${pagination.pageSize}&StartDate=${startDate}&endDate=${endDate}&cardNum=${cardNum}`;
+
+export const UPDATE_SESSION_PLATE_NUMBER_API_URL = `${baseAPI_URL}/session/session/platenumber`;
+
+export const GET_SESSION_CARD_INFO_API_URL = (cardNumber: string) =>
+  `${baseAPI_URL}/cards/${cardNumber}`;

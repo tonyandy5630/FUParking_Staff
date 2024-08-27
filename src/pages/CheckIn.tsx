@@ -17,7 +17,7 @@ export default function CheckInPage() {
 
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then(handleDevices);
-  }, [handleDevices, devices]);
+  }, [handleDevices, devices.length]);
 
   return (
     <>

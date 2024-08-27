@@ -53,6 +53,7 @@ function SessionTable() {
         gateIn: item.gateInName,
         imageInBodyUrl: item.imageInBodyUrl,
         imageInUrl: item.imageInUrl,
+        isClosed: item.status !== PARKED_SESSION_STATUS,
       } as SessionCard;
     });
   }, [sessionData?.data.data]);

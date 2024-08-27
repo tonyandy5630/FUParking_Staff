@@ -23,9 +23,9 @@ import {
   PLATE_NOT_READ,
 } from "@constants/message.const";
 import {
-  DEFAULT_GUEST,
   GUEST,
   GuestType,
+  NEXT_CUSTOMER,
   SYSTEM_CUSTOMER,
 } from "@constants/customer.const";
 import useSelectGate from "../../hooks/useSelectGate";
@@ -50,7 +50,7 @@ export type CheckInInfo = {
   plateImgSrc: string;
   ImageBodySrc: string;
   time: Date;
-  customerType: GuestType;
+  customerType: GuestType | "";
   message: string;
   isError: boolean;
   vehicleType: string;
@@ -62,8 +62,8 @@ const initCheckInInfo: CheckInInfo = {
   plateImgSrc: "",
   ImageBodySrc: "",
   time: new Date(),
-  customerType: DEFAULT_GUEST,
-  message: "",
+  customerType: "",
+  message: NEXT_CUSTOMER,
   isError: false,
   vehicleType: "",
 };
@@ -181,12 +181,12 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
 
   const handleFixPlate = async () => {
     try {
+      const checkInBody = new FormData();
       setCheckInInfo((prev) => ({
         ...prev,
         plateText: watch("PlateNumber") as string,
       }));
 
-      const checkInBody = new FormData();
       checkInBody.append("PlateNumber", (watch("PlateNumber") as string) ?? "");
 
       checkInBody.append("CardNumber", checkInInfo.cardText);
@@ -201,12 +201,12 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       checkInBody.append("ImageIn", plateImageFile);
       checkInBody.append("GateInId", gateId);
 
-      if (isGuest) {
-        checkInBody.append("ImageBody", bodyImageFile);
-        checkInBody.append("VehicleTypeId", checkInInfo.vehicleType ?? "");
-        await handleGuestCheckIn(checkInBody);
-        return;
-      }
+      // if (isGuest) {
+      //   checkInBody.append("ImageBody", bodyImageFile);
+      //   checkInBody.append("VehicleTypeId", checkInInfo.vehicleType ?? "");
+      //   await handleGuestCheckIn(checkInBody);
+      //   return;
+      // }
       checkInBody.append("ImageBodyIn", bodyImageFile);
       await handleCustomerCheckIn(checkInBody);
     } catch (error) {

@@ -1,4 +1,4 @@
-import { DEFAULT_GUEST } from "@constants/customer.const";
+import { NEXT_CUSTOMER } from "@constants/customer.const";
 import { CheckOutInfo } from "@my_types/check-out";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
@@ -12,11 +12,11 @@ export const initCheckOutInfo: CheckOutInfo = {
   cashToPay: 0,
   bodyImgIn: "",
   checkOutCardText: "",
-  customerType: DEFAULT_GUEST,
+  customerType: "",
   needPay: false,
   timeIn: undefined,
   timeOut: undefined,
-  message: "",
+  message: NEXT_CUSTOMER,
   isError: false,
 };
 

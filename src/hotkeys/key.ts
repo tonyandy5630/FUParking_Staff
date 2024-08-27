@@ -1,4 +1,4 @@
-export const FOCUS_CARD_INPUT_KEY = "enter";
+export const FOCUS_CARD_INPUT_KEY = "shift";
 
 export const FIX_PLATE_NUMBER_KEY = "ctrl";
 

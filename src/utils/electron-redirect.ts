@@ -14,7 +14,7 @@ export default function ElectronRedirect(
   } else {
     const redirectURL = url.format({
       pathname: path.join(__dirname, "../dist/index.html"),
-      hash: PAGE.CODE_SET_UP,
+      hash: redirectTo,
       protocol: "file:",
       slashes: true,
     });

@@ -63,7 +63,6 @@ function createWindow() {
     icon: path.join(logoURL),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
-      nodeIntegration: true,
     },
     title: "Bai Parking System",
   });
@@ -204,13 +203,11 @@ ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
   const gateInMenuItem = loggedInMenu[1].submenu[0] as Partial<MenuItem>;
   const gateOutMenuItem = loggedInMenu[1].submenu[1] as Partial<MenuItem>;
   const cardCheckerMenuItem = loggedInMenu[2].submenu[0] as Partial<MenuItem>;
-  const missingCardMenuITem = loggedInMenu[2].submenu[1] as Partial<MenuItem>;
 
   gateInMenuItem.enabled = true;
   gateOutMenuItem.enabled = true;
   cardCheckerMenuItem.enabled = true;
   cardCheckerMenuItem.enabled = true;
-  missingCardMenuITem.enabled = true;
   const menu = Menu.buildFromTemplate(loggedInMenu);
   Menu.setApplicationMenu(menu);
 });

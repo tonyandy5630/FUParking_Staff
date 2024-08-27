@@ -21,6 +21,7 @@ function FormInput({ name, type, className, ...props }: Props) {
           name={name}
           control={control}
           render={({ field }) => {
+            const { value, ...rest } = field;
             return (
               <FormItem>
                 <FormControl>
@@ -34,6 +35,7 @@ function FormInput({ name, type, className, ...props }: Props) {
                     autoFocus={props.autoFocus}
                     placeholder={props.placeholder}
                     disabled={props.disabled}
+                    defaultValue={props.defaultValue ?? ""}
                     {...field}
                     // onChange={props.onChange}
                   />

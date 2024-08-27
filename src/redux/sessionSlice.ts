@@ -12,6 +12,7 @@ const initState: SessionCard = {
   vehicleType: "",
   imageInBodyUrl: "",
   imageInUrl: "",
+  isClosed: false,
 };
 
 export const sessionSlice = createSlice({

@@ -1,7 +1,5 @@
 import CheckOutSection from "@components/CheckOutSection";
-import { GATE_OUT } from "@constants/gate.const";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import useSelectGate from "../hooks/useSelectGate";
 import LANE from "@constants/lane.const";
 
 export default function CheckOutPage() {
@@ -22,7 +20,7 @@ export default function CheckOutPage() {
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then(handleDevices);
     // Add event listener when component mounts
-  }, [handleDevices, devices]);
+  }, [handleDevices, devices.length]);
 
   return (
     <>

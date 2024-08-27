@@ -19,8 +19,8 @@ const CardCheckerPage = lazy(() => import("./pages/CardChecker"));
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Provider store={store}>
-      <QueryProviders>
-        <HashRouter>
+      <HashRouter>
+        <QueryProviders>
           <Routes>
             <Route path='/' element={<Login />} />
             <Route
@@ -90,9 +90,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               />
             </Route>
           </Routes>
-        </HashRouter>
-      </QueryProviders>
-      <ToastContainer autoClose={800} />
+        </QueryProviders>
+      </HashRouter>
+      <ToastContainer autoClose={1000} />
     </Provider>
   </React.StrictMode>
 );

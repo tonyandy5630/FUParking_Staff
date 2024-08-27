@@ -5,7 +5,7 @@ import React, { PropsWithChildren, useMemo } from "react";
 
 interface Props extends PropsWithChildren {
   label?: string;
-  content?: string;
+  content?: React.ReactNode;
   isLoading?: boolean;
 }
 
@@ -17,12 +17,12 @@ export default function CardInfoRow({
 }: Props) {
   const show = useMemo(() => {
     if (isLoading) return <Skeleton className='w-full h-4' />;
-    return content === "" ? (
+    return children === undefined || children === "" ? (
       <p className='text-base'>{CARD_NOT_INFO}</p>
     ) : (
-      content
+      children
     );
-  }, [isLoading, content]);
+  }, [isLoading, children]);
   return (
     <div
       className={` grid p-2 min-w-full items-center ${

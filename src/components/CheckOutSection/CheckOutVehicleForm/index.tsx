@@ -29,6 +29,7 @@ import { RootState } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
 import { resetCurrentCardInfo } from "../../../redux/checkoutSlice";
+import { getFacetedMinMaxValues } from "@tanstack/react-table";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -93,6 +94,7 @@ export default function CheckOutVehicleForm({
     setValue,
     watch,
     setFocus,
+    getValues,
   } = methods;
 
   useHotkeys(
@@ -110,8 +112,8 @@ export default function CheckOutVehicleForm({
   useHotkeys(
     CANCELED_HOTKEY,
     () => {
+      reset({ CardNumber: "" });
       dispatch(resetCurrentCardInfo());
-      reset();
     },
     {
       scopes: [PAGE.CHECK_OUT, position],
@@ -122,6 +124,7 @@ export default function CheckOutVehicleForm({
   useHotkeys(
     FIX_PLATE_NUMBER_KEY,
     async () => {
+      console.log("true");
       pressPlateCount.current++;
 
       //* second press get info
@@ -158,11 +161,12 @@ export default function CheckOutVehicleForm({
     e.preventDefault();
     handleSubmit(onCheckOut);
   };
+
   return (
     <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handlePreventSubmit}>
-          <div className='absolute bottom-0 right-0 opacity-0'>
+          <div className='absolute bottom-0 right-0 opacity-1'>
             <FormInput name='CardNumber' autoFocus={true} />
           </div>
           <FormInfoRow className='grid-cols-2'>

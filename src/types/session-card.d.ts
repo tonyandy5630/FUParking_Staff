@@ -8,6 +8,22 @@ type SessionCard = {
   gateIn: string;
   imageInUrl: string;
   imageInBodyUrl: string;
+  isClosed: boolean;
+};
+
+export type CardInfo = {
+  cardNumber: string;
+  plateNumber: string;
+  status: string;
+  sessionPlateNumber: string;
+  sessionVehicleType: string;
+  sessionTimeIn: string;
+  sessionGateIn: string;
+  sessionCustomerName: string;
+  sessionCustomerEmail: string;
+  imageInUrl: string;
+  imageInBodyUrl: string;
+  sessionId: string;
 };
 
 export type Session = {
