@@ -24,9 +24,11 @@ import {
 import PAGE from "../../../../url";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CheckOutInfo } from "@my_types/check-out";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
+import Image from "@components/Image";
+import { resetCurrentCardInfo } from "../../../redux/checkoutSlice";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -54,6 +56,7 @@ export default function CheckOutVehicleForm({
   const checkOutInfo = useSelector((state: RootState) => state.checkOutCard);
   const pressPlateCount = useRef<number>(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dispatch = useDispatch();
   const [showInputPlate, setShowInputPlate] = useState<boolean>(false);
   //* submit form
   const handleSubmitCheckOut = () => {
@@ -105,9 +108,29 @@ export default function CheckOutVehicleForm({
   );
 
   useHotkeys(
+    CANCELED_HOTKEY,
+    () => {
+      dispatch(resetCurrentCardInfo());
+      reset();
+    },
+    {
+      scopes: [PAGE.CHECK_OUT, position],
+      enableOnFormTags: ["input", "select", "textarea"],
+    }
+  );
+
+  useHotkeys(
     FIX_PLATE_NUMBER_KEY,
     async () => {
       pressPlateCount.current++;
+
+      //* second press get info
+      if (pressPlateCount.current === 2) {
+        onTriggerGetInfoByPlate();
+        return;
+      }
+
+      //* final press send checkout
       if (pressPlateCount.current === 3) {
         pressPlateCount.current = 0;
         setShowInputPlate((prev) => !prev);
@@ -115,10 +138,6 @@ export default function CheckOutVehicleForm({
         return;
       }
 
-      if (pressPlateCount.current === 2) {
-        onTriggerGetInfoByPlate();
-        return;
-      }
       setShowInputPlate((prev) => !prev);
     },
     {
@@ -146,7 +165,7 @@ export default function CheckOutVehicleForm({
           <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardNumber' autoFocus={true} />
           </div>
-          <FormInfoRow>
+          <FormInfoRow className='grid-cols-2'>
             <InfoSection className='grid-cols-2 grid-rows-[repeat(4,30px)]'>
               <InfoVehicle label='Ngày vào'>
                 {getDayFromString(checkOutInfo.timeIn)}
@@ -192,6 +211,11 @@ export default function CheckOutVehicleForm({
                 </span>
               </InfoVehicle>
             </InfoSection>
+            {/* <InfoSection className='items-center justify-center grid-rows-1'>
+              <div className=' w-[100px] h-full'>
+                <Image src='' isLoading={false} />
+              </div>
+            </InfoSection> */}
           </FormInfoRow>
           <FormNameRow
             isLoading={isLoading}

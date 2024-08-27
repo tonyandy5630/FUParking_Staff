@@ -6,8 +6,10 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   plateDeviceId: ConstrainDOMString | undefined;
   bodyDeviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
-  plateImage: string;
-  bodyImage: string;
+  imageSrc: string;
+  bodyImageSrc: string;
+  plateImageOut?: string;
+  bodyImageOut?: string;
   isLoading?: boolean;
   plateCameRef: any;
   bodyCameRef: any;
@@ -15,26 +17,30 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 
 function CameraSection({
   cameraSize = "sm",
-  plateImage,
-  bodyImage,
+  imageSrc,
+  bodyImageSrc,
   plateCameRef,
   bodyCameRef,
   isLoading = false,
+  plateImageOut,
+  bodyImageOut,
   ...props
 }: Props) {
   return (
     <div className='grid grid-cols-2 gap-x-1'>
       <CameraLane
-        imageSrc={plateImage}
+        imageSrc={imageSrc}
         webcamRef={plateCameRef}
         isLoading={isLoading}
         deviceId={props.plateDeviceId}
+        imageWebcamSrc={plateImageOut}
       />
       <CameraLane
-        imageSrc={bodyImage}
+        imageSrc={bodyImageSrc}
         webcamRef={bodyCameRef}
         isLoading={isLoading}
         deviceId={props.bodyDeviceId}
+        imageWebcamSrc={bodyImageOut}
       />
     </div>
   );

@@ -35,6 +35,7 @@ import CheckInVehicleForm from "./CheckInVehicleForm";
 import { SUBMIT_LEFT_HOTKEY } from "../../hotkeys/key";
 import { HotkeysProvider, useHotkeys } from "react-hotkeys-hook";
 import PAGE from "../../../url";
+import ParkingContainer from "@components/ParkingContainer";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -336,7 +337,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   };
 
   return (
-    <div className='grid w-full h-full col-span-1 p-1 border border-gray-500 border-solid justify-items-stretch'>
+    <ParkingContainer>
       {openDialog && (
         <UpdateVehicleTypeDialog
           open={true}
@@ -345,8 +346,8 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         />
       )}
       <CameraSection
-        plateImage={checkInInfo.plateImgSrc}
-        bodyImage={checkInInfo.ImageBodySrc}
+        imageSrc={checkInInfo.plateImgSrc}
+        bodyImageSrc={checkInInfo.ImageBodySrc}
         plateCameRef={plateCamRef}
         bodyCameRef={bodyCamRef}
         isLoading={
@@ -371,7 +372,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           onFixPlate={handleFixPlate}
         />
       </HotkeysProvider>
-    </div>
+    </ParkingContainer>
   );
 }
 

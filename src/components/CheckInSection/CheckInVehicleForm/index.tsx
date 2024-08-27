@@ -110,7 +110,7 @@ export default function CheckInVehicleForm({
           <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardId' />
           </div>
-          <FormInfoRow>
+          <FormInfoRow className='grid-cols-2'>
             <InfoSection>
               <InfoVehicle label='Ngày vào'>
                 {getDayFromString(checkInInfo.time.toString())}
@@ -140,6 +140,11 @@ export default function CheckInVehicleForm({
                 <span className='text-red-500'>{checkInInfo.customerType}</span>
               </InfoVehicle>
             </InfoSection>
+            {/* <InfoSection className='items-center justify-center grid-rows-1'>
+              <div className=' w-[100px] h-full'>
+                <Image src='' isLoading={false} />
+              </div>
+            </InfoSection> */}
           </FormInfoRow>
           <FormNameRow
             isLoading={isLoading}
