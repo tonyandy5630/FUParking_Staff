@@ -42,8 +42,8 @@ export function DataTable<TData, TValue>({
 
   const tableRows = useMemo(() => {
     if (isLoading) {
-      const loadUI = Array.from({ length: MAX_ROWS_TABLE }, () => (
-        <TableRow>
+      const loadUI = Array.from({ length: MAX_ROWS_TABLE }, (_, i) => (
+        <TableRow key={i}>
           <TableCell colSpan={columns.length}>
             <Skeleton className='w-full h-10' />
           </TableCell>

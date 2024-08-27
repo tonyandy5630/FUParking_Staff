@@ -346,8 +346,8 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         />
       )}
       <CameraSection
-        plateImage={checkInInfo.plateImgSrc}
-        bodyImage={checkInInfo.ImageBodySrc}
+        imageSrc={checkInInfo.plateImgSrc}
+        bodyImageSrc={checkInInfo.ImageBodySrc}
         plateCameRef={plateCamRef}
         bodyCameRef={bodyCamRef}
         isLoading={

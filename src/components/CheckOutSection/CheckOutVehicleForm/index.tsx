@@ -24,10 +24,11 @@ import {
 import PAGE from "../../../../url";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CheckOutInfo } from "@my_types/check-out";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
+import { resetCurrentCardInfo } from "../../../redux/checkoutSlice";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -55,6 +56,7 @@ export default function CheckOutVehicleForm({
   const checkOutInfo = useSelector((state: RootState) => state.checkOutCard);
   const pressPlateCount = useRef<number>(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dispatch = useDispatch();
   const [showInputPlate, setShowInputPlate] = useState<boolean>(false);
   //* submit form
   const handleSubmitCheckOut = () => {
@@ -97,6 +99,18 @@ export default function CheckOutVehicleForm({
     FOCUS_CARD_INPUT_KEY,
     () => {
       setFocus("CardNumber");
+      reset();
+    },
+    {
+      scopes: [PAGE.CHECK_OUT, position],
+      enableOnFormTags: ["input", "select", "textarea"],
+    }
+  );
+
+  useHotkeys(
+    CANCELED_HOTKEY,
+    () => {
+      dispatch(resetCurrentCardInfo());
       reset();
     },
     {

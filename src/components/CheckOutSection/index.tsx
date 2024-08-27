@@ -200,7 +200,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
               setNewCardInfo({
                 ...initCheckOutInfo,
                 message: PLATE_NOT_READ,
-                plateImgOut,
+                plateImgOut: plateImageSrc,
                 bodyImgOut: bodyImageSrc,
                 isError: true,
               })
@@ -277,8 +277,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         plateImgIn: cardInfo.imageInUrl,
         timeIn: new Date(cardInfo.timeIn).toString(),
         plateTextIn: cardInfo.plateNumber,
-        plateImgOut: checkOutInfo.plateImgOut,
-        bodyImgOut: checkOutInfo.bodyImgOut,
         customerType: cardInfo.vehicleType,
         plateTextOut: checkOutInfo.plateTextOut,
         isError: !isPlateMatched,
@@ -364,15 +362,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         })
       );
 
-      const plateImageSrc = (plateCamRef.current as any).getScreenshot();
-      const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
-
       const bodyImageFile = base64StringToFile(
-        bodyImageSrc,
+        checkOutInfo.bodyImgOut,
         "uploaded_image.png"
       );
       const plateImageFile = base64StringToFile(
-        plateImageSrc,
+        checkOutInfo.plateImgOut,
         "uploaded_image.png"
       );
 
@@ -412,24 +407,27 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
 
   const onCheckOut = async (checkOutData: CheckOut) => {
     try {
-      if (!bodyCamRef.current) {
-        reset();
-        dispatch(
-          setNewCardInfo({
-            ...checkOutInfo,
-            message: "KHÔNG TÌM THẤY CAMERA",
-            isError: true,
-          })
-        );
-      }
-      const plateImageSrc = (plateCamRef.current as any).getScreenshot();
+      // if (!bodyCamRef.current) {
+      //   reset();
+      //   dispatch(
+      //     setNewCardInfo({
+      //       ...checkOutInfo,
+      //       message: "KHÔNG TÌM THẤY CAMERA",
+      //       isError: true,
+      //     })
+      //   );
+      // }
       const bodyFile = base64StringToFile(
         checkOutInfo.bodyImgOut,
         "uploaded_image.png"
       );
-      const plateFile = base64StringToFile(plateImageSrc, "uploaded_image.png");
+      const plateFile = base64StringToFile(
+        checkOutInfo.plateImgOut,
+        "uploaded_image.png"
+      );
 
       const current = getLocalISOString(new Date());
+      console.log(checkOutInfo.plateTextOut);
 
       const checkOutBody = new FormData();
       checkOutBody.append("CardNumber", checkOutData.CardNumber);
@@ -455,7 +453,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
                 ...checkOutInfo,
                 plateImgIn: imageIn,
                 bodyImgOut: checkOutInfo.bodyImgOut,
-                plateImgOut: plateImageSrc,
+                plateImgOut: checkOutInfo.plateImgOut,
                 cashToPay: amount,
                 plateTextIn: plateNumber,
                 plateTextOut: checkOutInfo.plateTextOut,
@@ -520,6 +518,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       });
     } catch (err: unknown) {
       const error = err as AxiosError<ErrorResponseAPI>;
+      console.log(error);
       if (!error.response?.data) {
         dispatch(
           setNewCardInfo({
@@ -535,10 +534,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   return (
     <ParkingContainer>
       <CameraSection
-        plateImage={checkOutInfo.plateImgIn}
-        bodyImage={checkOutInfo.bodyImgIn}
+        imageSrc={checkOutInfo.plateImgIn}
+        bodyImageSrc={checkOutInfo.bodyImgIn}
         plateCameRef={plateCamRef}
         bodyCameRef={bodyCamRef}
+        plateImageOut={checkOutInfo.plateImgOut}
+        bodyImageOut={checkOutInfo.bodyImgOut}
         isLoading={
           plateDetectionMutation.isPending ||
           checkOutMutation.isPending ||

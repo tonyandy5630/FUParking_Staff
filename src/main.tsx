@@ -96,11 +96,3 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </Provider>
   </React.StrictMode>
 );
-
-// Use contextBridge
-window.ipcRenderer.on(
-  "main-process-message",
-  (_event: any, message: string) => {
-    console.log(message);
-  }
-);
