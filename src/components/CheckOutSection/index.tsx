@@ -51,6 +51,7 @@ import {
   setInfoMessage,
   setNewCardInfo,
 } from "../../redux/checkoutSlice";
+import ParkingContainer from "@components/ParkingContainer";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -532,7 +533,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   };
 
   return (
-    <div className='grid w-full h-full col-span-1 p-1 border border-gray-500 border-solid justify-items-stretch'>
+    <ParkingContainer>
       <CameraSection
         plateImage={checkOutInfo.plateImgIn}
         bodyImage={checkOutInfo.bodyImgIn}
@@ -568,7 +569,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           onTriggerGetInfoByPlate={handleTriggerGetInfoByPlate}
         />
       </HotkeysProvider>
-    </div>
+    </ParkingContainer>
   );
 }
 

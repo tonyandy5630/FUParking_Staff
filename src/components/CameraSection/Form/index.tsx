@@ -23,10 +23,12 @@ export default function FormContainer({
   );
 }
 
-interface FormInfoRowProps extends PropsWithChildren {}
+interface FormInfoRowProps extends PropsWithChildren {
+  className?: string;
+}
 
-export function FormInfoRow({ children }: FormInfoRowProps) {
-  return <div className='grid grid-cols-2 row-span-4 gap-2'>{children}</div>;
+export function FormInfoRow({ children, className }: FormInfoRowProps) {
+  return <div className={`grid ${className} row-span-4 gap-2`}>{children}</div>;
 }
 
 interface FormNameRowProps extends HTMLAttributes<HTMLDivElement> {

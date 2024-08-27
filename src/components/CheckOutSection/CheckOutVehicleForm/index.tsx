@@ -27,6 +27,7 @@ import { CheckOutInfo } from "@my_types/check-out";
 import { useSelector } from "react-redux";
 import { RootState } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
+import Image from "@components/Image";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -146,7 +147,7 @@ export default function CheckOutVehicleForm({
           <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardNumber' autoFocus={true} />
           </div>
-          <FormInfoRow>
+          <FormInfoRow className='grid-cols-2'>
             <InfoSection className='grid-cols-2 grid-rows-[repeat(4,30px)]'>
               <InfoVehicle label='Ngày vào'>
                 {getDayFromString(checkOutInfo.timeIn)}
@@ -192,6 +193,11 @@ export default function CheckOutVehicleForm({
                 </span>
               </InfoVehicle>
             </InfoSection>
+            {/* <InfoSection className='items-center justify-center grid-rows-1'>
+              <div className=' w-[100px] h-full'>
+                <Image src='' isLoading={false} />
+              </div>
+            </InfoSection> */}
           </FormInfoRow>
           <FormNameRow
             isLoading={isLoading}
