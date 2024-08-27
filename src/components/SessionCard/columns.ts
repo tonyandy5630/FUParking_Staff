@@ -18,6 +18,10 @@ export const SessionCardColumns: ColumnDef<SessionCard>[] = [
     accessorKey: "gateIn",
     header: "Cổng vào",
   },
+  {
+    accessorKey: "cardStatus",
+    header: "Trạng thái xe",
+  },
 ];
 
 export default SessionCardColumns;

@@ -534,8 +534,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   return (
     <div className='grid w-full h-full col-span-1 p-1 border border-gray-500 border-solid justify-items-stretch'>
       <CameraSection
-        frontImage={checkOutInfo.plateImgIn}
-        backImage={checkOutInfo.bodyImgIn}
+        plateImage={checkOutInfo.plateImgIn}
+        bodyImage={checkOutInfo.bodyImgIn}
         plateCameRef={plateCamRef}
         bodyCameRef={bodyCamRef}
         isLoading={

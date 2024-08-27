@@ -8,16 +8,14 @@ import Frame from "../Frame";
 export type Props = {
   deviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
-  frontImage: string;
-  backImage: string;
+  imageSrc: string;
   isLoading?: boolean;
   webcamRef: any;
 };
 
 function LaneCamera({
   cameraSize = "sm",
-  frontImage,
-  backImage,
+  imageSrc,
   webcamRef,
   isLoading = false,
   ...props
@@ -29,7 +27,6 @@ function LaneCamera({
           audio={false}
           ref={webcamRef}
           className='w-full h-full'
-          key={Math.floor(Math.random() * 1000)}
           videoConstraints={{
             deviceId: props.deviceId,
           }}
@@ -37,7 +34,7 @@ function LaneCamera({
         />
       </Frame>
       <Frame>
-        <Image src={frontImage} isLoading={isLoading} />
+        <Image src={imageSrc} isLoading={isLoading} />
       </Frame>
     </div>
   );

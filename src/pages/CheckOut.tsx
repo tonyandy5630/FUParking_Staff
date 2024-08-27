@@ -23,7 +23,7 @@ export default function CheckOutPage() {
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then(handleDevices);
     // Add event listener when component mounts
-  }, [handleDevices, devices.length]);
+  }, [handleDevices, devices]);
 
   return (
     <>

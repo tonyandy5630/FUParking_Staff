@@ -16,6 +16,7 @@ import { getCardCheckOutAPI } from "@apis/check-out.api";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import {
+  CANCELED_HOTKEY,
   FIX_PLATE_NUMBER_KEY,
   SUBMIT_LEFT_HOTKEY,
   SUBMIT_RIGHT_HOTKEY,
@@ -66,6 +67,18 @@ export default function CheckOutVehicleForm({
     handleSubmitCheckOut,
     {
       scopes: [PAGE.CHECK_OUT, position],
+      enableOnFormTags: ["input", "select", "textarea"],
+    }
+  );
+
+  useHotkeys(
+    CANCELED_HOTKEY,
+    () => {
+      pressPlateCount.current = 0;
+      setShowInputPlate(false);
+    },
+    {
+      scopes: [PAGE.CHECK_OUT],
       enableOnFormTags: ["input", "select", "textarea"],
     }
   );

@@ -11,6 +11,7 @@ import { useDispatch } from "react-redux";
 import { setNewSessionInfo } from "../../../redux/sessionSlice";
 import wrapText from "@utils/text";
 import useGetParkingId from "../../../hooks/useGetParkingId";
+import { PARKED_SESSION_STATUS } from "@constants/session.const";
 
 function SessionTable() {
   const parkingId = useGetParkingId();
@@ -41,11 +42,11 @@ function SessionTable() {
     if (!sessions) return [];
 
     return sessions.map((item) => {
-      console.log(item);
       return {
         cardNumber: item.cardNumber,
         plateNumber: formatPlateNumber(item.plateNumber),
-        cardStatus: item.status ? "Parking" : "Free",
+        cardStatus:
+          item.status === PARKED_SESSION_STATUS ? "Trong bãi" : "Đã kết thúc",
         sessionId: wrapText(item.id, 14),
         vehicleType: item.vehicleTypeName,
         timeIn: toLocaleDate(new Date(item.timeIn)),
