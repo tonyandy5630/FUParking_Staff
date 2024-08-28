@@ -46,7 +46,6 @@ type Props = {
 
 export default function CheckOutVehicleForm({
   onCheckOut,
-  // checkOutInfo,
   methods,
   isLoading,
   onCashCheckOut,

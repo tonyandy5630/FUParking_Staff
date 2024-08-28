@@ -16,6 +16,8 @@ interface Props extends HTMLAttributes<HTMLSelectElement> {
   onValueChange: any;
   label?: string;
   placeholder: string;
+  col?: boolean;
+  defaultValue?: string;
 }
 export default function MySelect({
   options,
@@ -23,18 +25,32 @@ export default function MySelect({
   onValueChange,
   label,
   placeholder,
+  col,
+  defaultValue,
   ...props
 }: Props) {
   const selectOptions = useMemo(() => {
     return options.map((item) => (
-      <SelectItem value={item.value}>{item.name}</SelectItem>
+      <SelectItem key={item.value} value={item.value}>
+        {item.name}
+      </SelectItem>
     ));
   }, [options.length]);
 
   return (
-    <div className='flex items-center justify-between w-full'>
+    <div
+      className={`flex ${
+        col
+          ? " flex-col gap-2 items-start justify-center"
+          : "items-center justify-between"
+      }    w-full`}
+    >
       {label && <Label className='min-w-16'>{label}</Label>}
-      <Select defaultValue={value} onValueChange={onValueChange}>
+      <Select
+        defaultValue={defaultValue}
+        value={value}
+        onValueChange={onValueChange}
+      >
         <SelectTrigger className='border-gray-600 rounded-sm'>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

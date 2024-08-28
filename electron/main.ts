@@ -1,4 +1,8 @@
 import {
+  GET_CAMERA_LEFT_OTHER_CHANNEL,
+  GET_CAMERA_LEFT_PLATE_CHANNEL,
+  GET_CAMERA_RIGHT_OTHER_CHANNEL,
+  GET_CAMERA_RIGHT_PLATE_CHANNEL,
   GET_GATE_IN_ID_CHANNEL,
   GET_GATE_OUT_ID_CHANNEL,
   GET_GATE_TYPE_CHANNEL,
@@ -7,6 +11,10 @@ import {
   GO_BACK_CHANNEL,
   LOGGED_IN,
   OPEN_ERROR_DIALOG_CHANNEL,
+  SET_CAMERA_LEFT_OTHER_CHANNEL,
+  SET_CAMERA_LEFT_PLATE_CHANNEL,
+  SET_CAMERA_RIGHT_OTHER_CHANNEL,
+  SET_CAMERA_RIGHT_PLATE_CHANNEL,
   SET_GATE_CHANNEL,
   SET_NOT_FIRST_TIME_CHANNEL,
   SET_PARKING_AREA_ID_CHANNEL,
@@ -25,6 +33,12 @@ import { loadURL } from "./utils/electron_utils";
 import Store from "electron-store";
 import ElectronStore from "electron-store";
 import { GATE_IN, GATE_OUT } from "../src/constants/gate.const";
+import {
+  LEFT_OTHER_CAMERA_ID_KEY,
+  LEFT_PLATE_CAMERA_ID_KEY,
+  RIGHT_OTHER_CAMERA_ID_KEY,
+  RIGHT_PLATE_CAMERA_ID_KEY,
+} from "./store/keys";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -188,6 +202,85 @@ ipcMain.handle(GET_PARKING_AREA_ID_CHANNEL, (_) => {
 
   return store.get("parkingAreaId", "");
 });
+
+//#region Left Camera
+
+ipcMain.handle(GET_CAMERA_LEFT_PLATE_CHANNEL, () => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get(LEFT_PLATE_CAMERA_ID_KEY, "");
+});
+
+ipcMain.on(SET_CAMERA_LEFT_PLATE_CHANNEL, (_, cameraId: string) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  store.set(LEFT_PLATE_CAMERA_ID_KEY, cameraId);
+});
+
+ipcMain.handle(GET_CAMERA_LEFT_OTHER_CHANNEL, () => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get(LEFT_OTHER_CAMERA_ID_KEY, "");
+});
+
+ipcMain.on(SET_CAMERA_LEFT_OTHER_CHANNEL, (_, cameraId: string) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  store.set(LEFT_OTHER_CAMERA_ID_KEY, cameraId);
+});
+//#endregion
+
+//#region Right Camera
+
+ipcMain.handle(GET_CAMERA_RIGHT_PLATE_CHANNEL, () => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get(RIGHT_PLATE_CAMERA_ID_KEY, "");
+});
+
+ipcMain.on(SET_CAMERA_RIGHT_PLATE_CHANNEL, (_, cameraId: string) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.set(RIGHT_PLATE_CAMERA_ID_KEY, cameraId);
+});
+
+ipcMain.handle(GET_CAMERA_RIGHT_OTHER_CHANNEL, () => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get(RIGHT_OTHER_CAMERA_ID_KEY, "");
+});
+
+ipcMain.on(SET_CAMERA_RIGHT_OTHER_CHANNEL, (_, cameraId: string) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.set(RIGHT_OTHER_CAMERA_ID_KEY, cameraId);
+});
+
+//#endregion
 
 ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
   if (!win) {

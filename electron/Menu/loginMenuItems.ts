@@ -12,14 +12,7 @@ function loginMenuItems(win: BrowserWindow, store: ElectronStore | null): any {
       label: "Cài đặt",
       submenu: [
         {
-          label: "Update Machine Code",
-          enabled: true,
-          click: () => {
-            ElectronRedirect(win, PAGE.CODE_SET_UP);
-          },
-        },
-        {
-          label: "Device Setup",
+          label: "Camera",
           enabled: true,
           click: () => {
             ElectronRedirect(win, PAGE.DEVICE_SET_UP);
