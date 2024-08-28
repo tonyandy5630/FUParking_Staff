@@ -11,6 +11,7 @@ import {
   SET_CAMERA_RIGHT_OTHER_CHANNEL,
   SET_CAMERA_RIGHT_PLATE_CHANNEL,
 } from "@channels/index";
+import useGetCamera from "../../../hooks/useGetCamera";
 
 type Props = {
   laneKey: LanePosition;
@@ -18,6 +19,7 @@ type Props = {
 
 export default function SetUpCameraLane({ laneKey }: Props) {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const cameraIds = useGetCamera();
   const [laneCameras, setLaneCameras] = useState({
     plateCameraId: "",
     otherCameraId: "",
@@ -32,6 +34,20 @@ export default function SetUpCameraLane({ laneKey }: Props) {
     },
     [setDevices]
   );
+
+  useEffect(() => {
+    if (laneKey === LANE.LEFT) {
+      setLaneCameras((prev) => ({
+        plateCameraId: cameraIds.left.plateCameraId,
+        otherCameraId: cameraIds.left.otherCameraId,
+      }));
+      return;
+    }
+    setLaneCameras((prev) => ({
+      plateCameraId: cameraIds.right?.plateCameraId ?? "",
+      otherCameraId: cameraIds.right?.otherCameraId ?? "",
+    }));
+  }, [cameraIds]);
 
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then(handleDevices);
@@ -76,15 +92,24 @@ export default function SetUpCameraLane({ laneKey }: Props) {
       value: item.deviceId,
     }));
   }, [devices]);
+
   const cameras = useMemo(() => {
     return Array.from({ length: 2 }, (_, i) => {
+      const isPlate = i === 0;
+
       return (
         <div className='grid grid-rows-[auto_1fr] gap-2 p-2' key={i}>
           <MySelect
+            defaultValue={
+              isPlate ? laneCameras.plateCameraId : laneCameras.otherCameraId
+            }
             options={cameraOptions}
-            onValueChange={i === 0 ? onSelectPlateCamera : onSelectOtherCamera}
-            placeholder={`Chọn Camera ${i === 0 ? "Biển số" : "Còn Lại"}`}
-            label={`Camera ${i === 0 ? "Biển số" : "Còn Lại"}`}
+            onValueChange={isPlate ? onSelectPlateCamera : onSelectOtherCamera}
+            placeholder={`Chọn Camera ${isPlate ? "Biển số" : "Còn Lại"}`}
+            label={`Camera ${isPlate ? "Biển số" : "Còn Lại"}`}
+            value={
+              isPlate ? laneCameras.plateCameraId : laneCameras.otherCameraId
+            }
             col={true}
           />
           <Frame>
@@ -92,10 +117,9 @@ export default function SetUpCameraLane({ laneKey }: Props) {
               audio={false}
               className='w-full h-full'
               videoConstraints={{
-                deviceId:
-                  i === 0
-                    ? laneCameras.plateCameraId
-                    : laneCameras.otherCameraId,
+                deviceId: isPlate
+                  ? laneCameras.plateCameraId
+                  : laneCameras.otherCameraId,
               }}
               style={{ objectFit: "cover" }}
             />
@@ -103,7 +127,7 @@ export default function SetUpCameraLane({ laneKey }: Props) {
         </div>
       );
     });
-  }, [laneCameras.plateCameraId, laneCameras.otherCameraId, cameraOptions]);
+  }, [laneCameras, cameraOptions, laneKey]);
 
   return <div className='grid grid-cols-2 gap-x-1'>{cameras}</div>;
 }

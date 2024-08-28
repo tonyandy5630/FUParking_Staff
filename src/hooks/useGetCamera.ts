@@ -6,7 +6,7 @@ import {
 } from "@channels/index";
 import LANE from "@constants/lane.const";
 import LanePosition from "@my_types/lane";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 export type CameraLane = {
   plateCameraId: string;
@@ -18,14 +18,11 @@ const initState = {
     plateCameraId: "",
     otherCameraId: "",
   },
-  right: {
-    plateCameraId: "",
-    otherCameraId: "",
-  },
+  right: undefined,
 };
 
 export default function useGetCamera() {
-  const laneCameras = useRef<{
+  const [laneCameras, setLaneCameras] = useState<{
     left: CameraLane;
     right?: CameraLane;
   }>(initState);
@@ -33,62 +30,40 @@ export default function useGetCamera() {
   useEffect(() => {
     let shouldUpdate = true;
 
-    const getCameraIds = () => {
-      const leftPlateCameraPromise = window.ipcRenderer.invoke(
-        GET_CAMERA_LEFT_PLATE_CHANNEL
-      );
-      const leftOtherCameraPromise = window.ipcRenderer.invoke(
-        GET_CAMERA_LEFT_OTHER_CHANNEL
-      );
+    const getCameraIds = async () => {
+      try {
+        const [
+          leftPlateCameraId,
+          leftOtherCameraId,
+          rightPlateCameraId,
+          rightOtherCameraId,
+        ] = await Promise.all([
+          window.ipcRenderer.invoke(GET_CAMERA_LEFT_PLATE_CHANNEL),
+          window.ipcRenderer.invoke(GET_CAMERA_LEFT_OTHER_CHANNEL),
+          window.ipcRenderer.invoke(GET_CAMERA_RIGHT_PLATE_CHANNEL),
+          window.ipcRenderer.invoke(GET_CAMERA_RIGHT_OTHER_CHANNEL),
+        ]);
 
-      const rightPlateCameraPromise = window.ipcRenderer.invoke(
-        GET_CAMERA_RIGHT_PLATE_CHANNEL
-      );
-      const rightOtherCameraPromise = window.ipcRenderer.invoke(
-        GET_CAMERA_RIGHT_OTHER_CHANNEL
-      );
+        if (!shouldUpdate) {
+          return;
+        }
 
-      Promise.all([
-        leftPlateCameraPromise,
-        leftOtherCameraPromise,
-        rightPlateCameraPromise,
-        rightOtherCameraPromise,
-      ])
-        .then((values) => {
-          if (!shouldUpdate) {
-            return;
-          }
-          const leftPlateCameraId = values[0];
-          const leftOtherCameraId = values[1];
-
-          const rightPlateCameraId = values[2];
-          const rightOtherCameraId = values[3];
-
-          if (rightPlateCameraId && rightOtherCameraId) {
-            laneCameras.current = {
-              left: {
-                otherCameraId: leftOtherCameraId,
-                plateCameraId: leftPlateCameraId,
-              },
-              right: {
-                plateCameraId: rightPlateCameraId,
-                otherCameraId: rightOtherCameraId,
-              },
-            };
-            return;
-          }
-
-          laneCameras.current = {
-            left: {
-              otherCameraId: leftOtherCameraId,
-              plateCameraId: leftPlateCameraId,
-            },
-            right: undefined,
-          };
-        })
-        .then((error) => {
-          console.log(error);
+        setLaneCameras({
+          left: {
+            otherCameraId: leftOtherCameraId,
+            plateCameraId: leftPlateCameraId,
+          },
+          right:
+            rightPlateCameraId !== "" && rightOtherCameraId !== ""
+              ? {
+                  plateCameraId: rightPlateCameraId,
+                  otherCameraId: rightOtherCameraId,
+                }
+              : undefined,
         });
+      } catch (error) {
+        console.log(error);
+      }
     };
 
     getCameraIds();

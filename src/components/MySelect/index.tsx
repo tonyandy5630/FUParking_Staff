@@ -17,6 +17,7 @@ interface Props extends HTMLAttributes<HTMLSelectElement> {
   label?: string;
   placeholder: string;
   col?: boolean;
+  defaultValue?: string;
 }
 export default function MySelect({
   options,
@@ -25,6 +26,7 @@ export default function MySelect({
   label,
   placeholder,
   col,
+  defaultValue,
   ...props
 }: Props) {
   const selectOptions = useMemo(() => {
@@ -44,7 +46,11 @@ export default function MySelect({
       }    w-full`}
     >
       {label && <Label className='min-w-16'>{label}</Label>}
-      <Select defaultValue={value} onValueChange={onValueChange}>
+      <Select
+        defaultValue={defaultValue}
+        value={value}
+        onValueChange={onValueChange}
+      >
         <SelectTrigger className='border-gray-600 rounded-sm'>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
