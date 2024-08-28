@@ -12,6 +12,7 @@ export default function RectangleContainer({ children, className }: Props) {
 interface RectangleProps extends Props {
   title: string;
   isLoading?: boolean;
+  contentClassName?: string;
 }
 
 export function Rectangle({
@@ -19,15 +20,18 @@ export function Rectangle({
   title,
   isLoading = true,
   children,
+  contentClassName,
 }: RectangleProps) {
   return (
-    <div className='grid items-center justify-center col-span-1 grid-rows-2 border rounded-md'>
-      <h5>{title}</h5>
+    <div
+      className={`grid ${className} py-2 items-center justify-center col-span-1 grid-rows-[auto_1fr] border rounded-md`}
+    >
+      <p className='text-sm text-center min-h-8'>{title}</p>
       {isLoading && <Skeleton className='min-w-full h-9' />}
       {
-        <p className='text-2xl font-bold text-center'>
+        <div className={` ${contentClassName} text-xl font-bold text-center `}>
           {!isLoading && children}
-        </p>
+        </div>
       }
     </div>
   );

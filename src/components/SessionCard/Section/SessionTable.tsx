@@ -24,13 +24,13 @@ function SessionTable() {
   const { pagination, onPaginationChange } = usePagination();
   const sessionTable = useSelector((state: RootState) => state.sessionTable);
   const dispatch = useDispatch();
-  const [dateFilter, setDateFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState(FITLER_DATE_VALUE.TODAY);
   const [apiDateFilter, setApiDateFilter] = useState<{
-    startDate?: string;
-    endDate?: string;
+    startDate?: string | null;
+    endDate?: string | null;
   }>({
-    startDate: undefined,
-    endDate: undefined,
+    startDate: "",
+    endDate: "",
   });
 
   const setCardChecker = (cardInfo: SessionCard) => {
@@ -56,8 +56,8 @@ function SessionTable() {
       getParkingSession({
         pagination,
         parkingId,
-        startDate: apiDateFilter.startDate,
-        endDate: apiDateFilter.endDate,
+        startDate: apiDateFilter.startDate as string,
+        endDate: apiDateFilter.endDate as string,
       }),
     enabled: parkingId !== "",
   });
@@ -65,7 +65,7 @@ function SessionTable() {
   const handleSetDateFilter = (e: string) => {
     setDateFilter(e);
     if (e === FITLER_DATE_VALUE.TODAY) {
-      setApiDateFilter({ startDate: undefined, endDate: undefined });
+      setApiDateFilter({ startDate: "", endDate: "" });
       return;
     }
 
@@ -109,7 +109,7 @@ function SessionTable() {
 
   return (
     <div className='grid grid-rows-[auto_1fr] h-full'>
-      <div className='grid max-h-full p-1 w-fit auto-cols-auto'>
+      <div className='grid max-h-full pb-1 w-fit auto-cols-auto'>
         <MySelect
           options={SelectDateFilter}
           label='Thống kê'
