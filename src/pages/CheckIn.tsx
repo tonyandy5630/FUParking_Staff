@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import CheckInSection from "@components/CheckInSection";
+import LaneContainer from "@components/LaneContainer";
 export default function CheckInPage() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const is2Lane = useRef<boolean>(false);
@@ -24,13 +25,7 @@ export default function CheckInPage() {
       {devices.length !== 0 && (
         <div className={`flex w-full min-h-full`}>
           {devices[0] !== undefined && (
-            <div
-              className={`grid min-w-full ${
-                is2Lane.current
-                  ? "grid-cols-2 justify-items-stretch"
-                  : "grid-cols-1 justify-items-center"
-              } pt-1 space-x-1 `}
-            >
+            <LaneContainer is2Lane={is2Lane.current}>
               <CheckInSection
                 key={devices[0].deviceId}
                 bodyDeviceId={devices[1].deviceId}
@@ -39,7 +34,7 @@ export default function CheckInPage() {
               >
                 Lane 1
               </CheckInSection>
-            </div>
+            </LaneContainer>
           )}
         </div>
       )}

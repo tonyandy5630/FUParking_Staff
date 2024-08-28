@@ -1,10 +1,13 @@
 import CheckOutSection from "@components/CheckOutSection";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import LANE from "@constants/lane.const";
+import LaneContainer from "@components/LaneContainer";
+import useGetCamera from "../hooks/useGetCamera";
 
 export default function CheckOutPage() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const is2Lane = useRef<boolean>(false);
+  const cameraIds = useGetCamera();
 
   const handleDevices = useCallback(
     (mediaDevices: MediaDeviceInfo[]) => {
@@ -27,13 +30,7 @@ export default function CheckOutPage() {
       {devices.length !== 0 && (
         <div className='flex w-full min-h-full'>
           {devices[0] !== undefined && (
-            <div
-              className={`grid min-w-full ${
-                is2Lane.current
-                  ? "grid-cols-2 justify-items-stretch"
-                  : "grid-cols-1 justify-items-center"
-              } pt-1 space-x-1 `}
-            >
+            <LaneContainer is2Lane={is2Lane.current}>
               <CheckOutSection
                 key={devices[0].deviceId}
                 plateDeviceId={devices[0].deviceId}
@@ -58,7 +55,7 @@ export default function CheckOutPage() {
                   Lane 1
                 </CheckOutSection>
               </HotkeysProvider> */}
-            </div>
+            </LaneContainer>
           )}
         </div>
       )}

@@ -19,3 +19,15 @@ export const SET_NOT_FIRST_TIME_CHANNEL = "set-first-time";
 
 export const GET_PARKING_AREA_ID_CHANNEL = "get-parking-id";
 export const SET_PARKING_AREA_ID_CHANNEL = "get-parking-id";
+
+export const SET_CAMERA_LEFT_PLATE_CHANNEL = "set-plate-left";
+export const GET_CAMERA_LEFT_PLATE_CHANNEL = "get-plate-left";
+
+export const SET_CAMERA_LEFT_OTHER_CHANNEL = "set-other-left";
+export const GET_CAMERA_LEFT_OTHER_CHANNEL = "get-other-left";
+
+export const SET_CAMERA_RIGHT_PLATE_CHANNEL = "set-plate-right";
+export const GET_CAMERA_RIGHT_PLATE_CHANNEL = "get-plate-right";
+
+export const SET_CAMERA_RIGHT_OTHER_CHANNEL = "set-other-right";
+export const GET_CAMERA_RIGHT_OTHER_CHANNEL = "get-other-right";
