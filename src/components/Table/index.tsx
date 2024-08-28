@@ -4,6 +4,8 @@ import {
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
+  PaginationState,
+  Updater,
 } from "@tanstack/react-table";
 
 import {
@@ -16,7 +18,7 @@ import {
   TableRow,
 } from "@components/ui/table";
 import { DataTablePagination } from "./Pagination";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Skeleton } from "@components/ui/skeleton";
 import { ScrollArea } from "@components/ui/scroll-area";
 
@@ -26,6 +28,10 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   onRowClick: (value: TData) => void;
   isLoading?: boolean;
+  totalRecord: number;
+  onPaginationChange: (updater: Updater<PaginationState>) => void;
+  pagination: PaginationState;
+  isError?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -33,11 +39,21 @@ export function DataTable<TData, TValue>({
   data,
   onRowClick,
   isLoading,
+  totalRecord,
+  pagination,
+  isError,
+  onPaginationChange,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    onPaginationChange: onPaginationChange,
+    rowCount: totalRecord,
+    state: {
+      pagination,
+    },
   });
 
   const tableRows = useMemo(() => {
@@ -50,6 +66,19 @@ export function DataTable<TData, TValue>({
         </TableRow>
       ));
       return loadUI;
+    }
+
+    if (isError) {
+      return (
+        <TableRow>
+          <TableCell
+            colSpan={columns.length}
+            className='text-center text-destructive'
+          >
+            Lỗi xảy ra khi lấy dữ liệu
+          </TableCell>
+        </TableRow>
+      );
     }
 
     return table.getRowModel().rows?.length ? (
@@ -72,12 +101,11 @@ export function DataTable<TData, TValue>({
     ) : (
       <TableRow>
         <TableCell colSpan={columns.length} className='text-center'>
-          No results.
+          Không có dữ liệu
         </TableCell>
       </TableRow>
     );
   }, [table.getRowModel().rows, isLoading]);
-
   return (
     <div className='max-h-[600px] relative min-w-full flex flex-col justify-between border rounded-md '>
       <ScrollArea className=' max-h-[550px] w-full h-full'>

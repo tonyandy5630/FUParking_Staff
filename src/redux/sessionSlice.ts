@@ -32,6 +32,7 @@ export const sessionTableSlice = createSlice({
   initialState: initSessionTable,
   reducers: {
     setNewTable: (state, { payload }: PayloadAction<SessionCard[]>) => {
+      console.log(payload);
       return [...payload];
     },
     setSessionTableItem: (state, { payload }: PayloadAction<SessionCard>) => {

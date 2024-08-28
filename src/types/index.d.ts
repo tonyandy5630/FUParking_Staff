@@ -6,6 +6,7 @@ export type ResponseAPI<Data> = {
 export type SuccessResponse<Data> = {
   message?: string;
   data: Data;
+  totalRecord?: number;
 };
 
 export type ErrorResponse<Data> = {

@@ -1,7 +1,7 @@
 import { DataTable } from "@components/Table";
-import { memo, useEffect, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo } from "react";
 import SessionCardColumns from "../columns";
-import { SessionCard } from "@my_types/session-card";
+import { Session, SessionCard } from "@my_types/session-card";
 import { useQuery } from "@tanstack/react-query";
 import { getParkingSession } from "@apis/session.api";
 import usePagination from "../../../hooks/usePagination";
@@ -16,7 +16,7 @@ import { RootState } from "@utils/store";
 
 function SessionTable() {
   const parkingId = useGetParkingId();
-  const pagination = usePagination();
+  const { pagination, onPaginationChange } = usePagination();
   const sessionTable = useSelector((state: RootState) => state.sessionTable);
   const dispatch = useDispatch();
 
@@ -24,11 +24,11 @@ function SessionTable() {
     dispatch(setNewSessionInfo(cardInfo));
   };
 
-  console.log(parkingId);
   const {
     data: sessionData,
     isLoading: isLoadingSession,
     isSuccess: isSuccessSession,
+    isError: isErrorSession,
   } = useQuery({
     queryKey: [
       "/get-session-parking-area",
@@ -41,12 +41,9 @@ function SessionTable() {
     enabled: parkingId !== "",
   });
 
-  const data: SessionCard[] = useMemo(() => {
-    if (sessionTable.length !== 0) {
-      return sessionTable;
-    }
+  useEffect(() => {
     const sessions = sessionData?.data.data;
-    if (!sessions) return [];
+    if (!sessions) return;
 
     const addSession = sessions.map((item) => {
       return {
@@ -63,17 +60,21 @@ function SessionTable() {
         isClosed: item.status !== PARKED_SESSION_STATUS,
       } as SessionCard;
     });
-
     dispatch(setNewTable(addSession));
-    return addSession;
-  }, [sessionData?.data.data, sessionTable]);
+
+    return () => {};
+  }, [sessionData?.data.data]);
 
   return (
     <DataTable
       columns={SessionCardColumns}
-      data={data}
+      data={sessionTable}
       onRowClick={setCardChecker}
       isLoading={isLoadingSession}
+      totalRecord={sessionData?.data.totalRecord ?? 0}
+      onPaginationChange={onPaginationChange}
+      pagination={pagination}
+      isError={isErrorSession}
     />
   );
 }
