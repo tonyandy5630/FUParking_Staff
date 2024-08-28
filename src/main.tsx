@@ -7,7 +7,6 @@ import "react-toastify/dist/ReactToastify.css";
 import QueryProviders from "./utils/queryClientProvider";
 const Layout = lazy(() => import("@components/Layout"));
 const CheckInPage = lazy(() => import("./pages/CheckIn"));
-const MachineSetupPage = lazy(() => import("./pages/MachineSetup"));
 import Login from "./pages/Login";
 import PAGE from "../url";
 const CheckOutPage = lazy(() => import("./pages/CheckOut"));
@@ -23,14 +22,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <QueryProviders>
           <Routes>
             <Route path='/' element={<Login />} />
-            <Route
-              path={PAGE.CODE_SET_UP}
-              element={
-                <Suspense fallback={<p>Loading...</p>}>
-                  <MachineSetupPage />
-                </Suspense>
-              }
-            />
             <Route
               path={PAGE.SELECT_GATE_TYPE}
               element={
