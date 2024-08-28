@@ -15,6 +15,8 @@ const initState: SessionCard = {
   isClosed: false,
 };
 
+const initSessionTable: SessionCard[] = [];
+
 export const sessionSlice = createSlice({
   name: "session",
   initialState: initState,
@@ -24,6 +26,28 @@ export const sessionSlice = createSlice({
     },
   },
 });
+
+export const sessionTableSlice = createSlice({
+  name: "sessiontable",
+  initialState: initSessionTable,
+  reducers: {
+    setNewTable: (state, { payload }: PayloadAction<SessionCard[]>) => {
+      return [...payload];
+    },
+    setSessionTableItem: (state, { payload }: PayloadAction<SessionCard>) => {
+      const newState = state.map((item) => {
+        if (item.sessionId === payload.sessionId) {
+          return { ...item, ...payload };
+        }
+        return item;
+      });
+      return [...newState];
+    },
+  },
+});
+
+export const { setNewTable, setSessionTableItem } = sessionTableSlice.actions;
+export const sessionTableReducer = sessionTableSlice.reducer;
 
 export const { setNewSessionInfo } = sessionSlice.actions;
 export default sessionSlice.reducer;

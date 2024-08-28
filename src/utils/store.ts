@@ -1,11 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import checkOutReducer from "../redux/checkoutSlice";
-import sessionReducer from "../redux/sessionSlice";
+import sessionReducer, { sessionTableReducer } from "../redux/sessionSlice";
 
 export const store = configureStore({
   reducer: {
     checkOutCard: checkOutReducer,
     session: sessionReducer,
+    sessionTable: sessionTableReducer,
   },
 });
 

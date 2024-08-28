@@ -25,7 +25,6 @@ import {
   GET_GATE_TYPE_CHANNEL,
   GET_NOT_FIRST_TIME_CHANNEL,
   LOGGED_IN,
-  SET_NOT_FIRST_TIME_CHANNEL,
 } from "@channels/index";
 import { AxiosError, HttpStatusCode } from "axios";
 

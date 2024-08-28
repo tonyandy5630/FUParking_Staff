@@ -35,7 +35,6 @@ function FormInput({ name, type, className, ...props }: Props) {
                     autoFocus={props.autoFocus}
                     placeholder={props.placeholder}
                     disabled={props.disabled}
-                    defaultValue={props.defaultValue ?? ""}
                     {...field}
                     // onChange={props.onChange}
                   />

@@ -10,7 +10,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@utils/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { SessionCard } from "@my_types/session-card";
-import { setNewSessionInfo } from "../../../redux/sessionSlice";
+import {
+  setNewSessionInfo,
+  setSessionTableItem,
+} from "../../../redux/sessionSlice";
 import toLocaleDate from "@utils/date";
 import { formatPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 import {
@@ -58,6 +61,7 @@ export default function CardCheckSection() {
     resolver: yupResolver(updateSessionPlateNumberSchema),
     defaultValues: {
       SessionId: cardInfo.sessionId,
+      PlateNumber: cardInfo.plateNumber,
     },
   });
   const {
@@ -118,6 +122,9 @@ export default function CardCheckSection() {
               plateNumber: getValues("PlateNumber"),
             })
           );
+          dispatch(
+            setSessionTableItem({ ...cardInfo, plateNumber: data.PlateNumber })
+          );
         },
       });
     } catch (err: unknown) {
@@ -175,7 +182,6 @@ export default function CardCheckSection() {
       setValue("PlateNumber", cardInfo.plateNumber);
     }
   }, [showPlateInput]);
-  console.log(errors);
   return (
     <div className='grid col-span-1 gap-3 grid-rows-[auto_2fr_auto] '>
       <RectangleContainer>
@@ -183,7 +189,7 @@ export default function CardCheckSection() {
           <h4>Tra cứu thẻ</h4>
         </div>
         <form
-          className='absolute right-0 border opacity-1 top-20'
+          className='absolute right-0 border opacity-0 top-20'
           onSubmit={(e) => e.preventDefault()}
         >
           <input
@@ -209,7 +215,6 @@ export default function CardCheckSection() {
                     <FormInput
                       autoFocus={true}
                       className='border w-22'
-                      defaultValue={cardInfo.plateNumber}
                       name='PlateNumber'
                     />
                     <button type='submit' hidden>
