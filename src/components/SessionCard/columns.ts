@@ -1,10 +1,14 @@
 import { SessionCard } from "@my_types/session-card";
 import { ColumnDef } from "@tanstack/react-table";
+import { formatPlateNumber } from "@utils/plate-number";
 
 export const SessionCardColumns: ColumnDef<SessionCard>[] = [
   {
     accessorKey: "plateNumber",
     header: "Biển số xe",
+    cell: ({ row }) => {
+      return formatPlateNumber(row.getValue("plateNumber"));
+    },
   },
   {
     accessorKey: "vehicleType",

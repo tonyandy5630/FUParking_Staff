@@ -10,3 +10,11 @@ export const formatPlateNumber = (plate?: string): string => {
 
   return `${regionId}-${remains}`;
 };
+
+export const unFormatPlateNumber = (plate?: string) => {
+  if (!plate) return CARD_NOT_INFO;
+
+  const plateAfterSplit = plate.split("-");
+  //* 2 parts in formatted plate number
+  return plateAfterSplit[0] + plateAfterSplit[1];
+};

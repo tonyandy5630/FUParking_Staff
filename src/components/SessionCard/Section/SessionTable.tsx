@@ -44,10 +44,10 @@ function SessionTable() {
     return sessions.map((item) => {
       return {
         cardNumber: item.cardNumber,
-        plateNumber: formatPlateNumber(item.plateNumber),
+        plateNumber: item.plateNumber,
         cardStatus:
           item.status === PARKED_SESSION_STATUS ? "Trong bãi" : "Đã kết thúc",
-        sessionId: wrapText(item.id, 14),
+        sessionId: item.id,
         vehicleType: item.vehicleTypeName,
         timeIn: toLocaleDate(new Date(item.timeIn)),
         gateIn: item.gateInName,

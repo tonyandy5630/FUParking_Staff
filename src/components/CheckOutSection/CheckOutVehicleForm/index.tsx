@@ -166,7 +166,7 @@ export default function CheckOutVehicleForm({
     <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handlePreventSubmit}>
-          <div className='absolute bottom-0 right-0 opacity-1'>
+          <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardNumber' autoFocus={true} />
           </div>
           <FormInfoRow className='grid-cols-2'>

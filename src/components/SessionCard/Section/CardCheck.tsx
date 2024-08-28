@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import CardInfoRow from "../CardInfo";
 import Image from "@components/Image";
 import { useHotkeys } from "react-hotkeys-hook";
-import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
+import { CANCELED_HOTKEY, FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import PAGE from "../../../../url";
 import { Separator } from "@components/ui/separator";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,7 +12,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { SessionCard } from "@my_types/session-card";
 import { setNewSessionInfo } from "../../../redux/sessionSlice";
 import toLocaleDate from "@utils/date";
-import { formatPlateNumber } from "@utils/plate-number";
+import { formatPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 import {
   CLOSED_SESSION_STATUS,
   PARKED_SESSION_STATUS,
@@ -31,6 +31,7 @@ import {
   updateSessionPlateNumberSchemaType,
 } from "@utils/schema/sessionSchema";
 import wrapText from "@utils/text";
+import { watch } from "original-fs";
 
 export default function CardCheckSection() {
   const cardInfo = useSelector((state: RootState) => state.session);
@@ -59,17 +60,36 @@ export default function CardCheckSection() {
       SessionId: cardInfo.sessionId,
     },
   });
-  const { getValues, setValue, reset } = methods;
+  const {
+    getValues,
+    setValue,
+    reset,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = methods;
   useHotkeys(
     FOCUS_CARD_INPUT_KEY,
     () => {
       if (cardNumberRef.current) {
-        cardNumberRef.current.value = "";
         cardNumberRef.current.focus();
+        cardNumberRef.current.value = "";
       }
     },
     {
       scopes: [PAGE.CARD_CHECKER],
+    }
+  );
+
+  useHotkeys(
+    CANCELED_HOTKEY,
+    () => {
+      setShowPlateInput(false);
+      reset();
+    },
+    {
+      scopes: [PAGE.CARD_CHECKER],
+      enableOnFormTags: ["INPUT"],
     }
   );
 
@@ -86,8 +106,8 @@ export default function CardCheckSection() {
   ) => {
     try {
       const updateBody = new FormData();
-      updateBody.append("PlateNumber", getValues("PlateNumber"));
-      updateBody.append("SessionId", cardInfo.sessionId);
+      updateBody.append("PlateNumber", data.PlateNumber);
+      updateBody.append("SessionId", data.SessionId);
 
       await mutateUpdateSessionPlateNumber(updateBody as any, {
         onSuccess: () => {
@@ -100,7 +120,9 @@ export default function CardCheckSection() {
           );
         },
       });
-    } catch (err: unknown) {}
+    } catch (err: unknown) {
+      console.log(err);
+    }
   };
 
   useEffect(() => {
@@ -119,6 +141,7 @@ export default function CardCheckSection() {
       sessionId,
     } = cardInfoData;
     if (cardNumberRef.current) cardNumberRef.current.value = "";
+    if (sessionId === null) return;
     // if (status === CLOSED_SESSION_STATUS) return;
 
     const newCardInfo: SessionCard = {
@@ -127,7 +150,7 @@ export default function CardCheckSection() {
       imageInUrl,
       timeIn: toLocaleDate(new Date(sessionTimeIn)),
       vehicleType: sessionVehicleType,
-      plateNumber: formatPlateNumber(sessionPlateNumber),
+      plateNumber: sessionPlateNumber,
       sessionId: sessionId,
       cardNumber: cardValue,
       cardStatus:
@@ -144,19 +167,15 @@ export default function CardCheckSection() {
 
   useEffect(() => {
     setShowPlateInput(false);
+    setValue("SessionId", cardInfo.sessionId);
   }, [cardInfo]);
 
-  const plateNumberRow = useMemo(() => {
-    if (cardInfo.plateNumber === "") return "";
-
-    if (!showPlateInput) {
-      return;
-    }
-  }, []);
-
   useEffect(() => {
-    if (showPlateInput) setValue("PlateNumber", cardInfo.plateNumber);
+    if (showPlateInput) {
+      setValue("PlateNumber", cardInfo.plateNumber);
+    }
   }, [showPlateInput]);
+  console.log(errors);
   return (
     <div className='grid col-span-1 gap-3 grid-rows-[auto_2fr_auto] '>
       <RectangleContainer>
@@ -164,7 +183,7 @@ export default function CardCheckSection() {
           <h4>Tra cứu thẻ</h4>
         </div>
         <form
-          className='absolute right-0 border opacity-0 top-20'
+          className='absolute right-0 border opacity-1 top-20'
           onSubmit={(e) => e.preventDefault()}
         >
           <input
@@ -176,18 +195,33 @@ export default function CardCheckSection() {
       </RectangleContainer>
       <RectangleContainer className='min-h-full border rounded-md grid-rows-7'>
         <FormProvider {...methods}>
-          <CardInfoRow isLoading={isLoadingCard} label='Biển số xe'>
+          <CardInfoRow
+            isLoading={isLoadingCard || isPendingUpdate}
+            label='Biển số xe'
+          >
             {cardInfo.plateNumber !== "" ? (
-              <form className='grid grid-cols-[auto_1fr] gap-2 items-center w-full'>
+              <form
+                className='grid grid-cols-[auto_1fr] gap-2 items-center w-full'
+                onSubmit={handleSubmit(handleUpdateSessionPlate)}
+              >
                 {showPlateInput ? (
-                  <FormInput
-                    autoFocus={true}
-                    className='border w-22'
-                    defaultValue={cardInfo.plateNumber}
-                    name='plateNumber'
-                  />
+                  <>
+                    <FormInput
+                      autoFocus={true}
+                      className='border w-22'
+                      defaultValue={cardInfo.plateNumber}
+                      name='PlateNumber'
+                    />
+                    <button type='submit' hidden>
+                      submit
+                    </button>
+                  </>
                 ) : (
-                  <p>{cardInfo.plateNumber}</p>
+                  <p>
+                    {cardInfo.plateNumber !== ""
+                      ? formatPlateNumber(cardInfo.plateNumber)
+                      : ""}
+                  </p>
                 )}
                 {!cardInfo.isClosed && (
                   <div>
@@ -215,7 +249,7 @@ export default function CardCheckSection() {
           <Separator />
         </div>
         <CardInfoRow isLoading={isLoadingCard} label='Session ID'>
-          {wrapText(cardInfo.sessionId, 20)}
+          {wrapText(20, cardInfo.sessionId)}
         </CardInfoRow>
         <CardInfoRow isLoading={isLoadingCard} label='Loại xe'>
           {cardInfo.vehicleType}

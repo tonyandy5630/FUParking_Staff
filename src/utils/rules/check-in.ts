@@ -1,4 +1,5 @@
 import { LENGTH_WARNING } from "@constants/auth.const";
+import { PLATE_NUMBER_REGEX } from "@constants/regex";
 import { UseFormGetValues } from "react-hook-form";
 
 export const MAX_CARD_NUMBER_LENGTH = 11;
@@ -6,9 +7,6 @@ export const MIN_CARD_NUMBER_LENGTH = 5;
 
 const MIN_PLATE_NUMBER_LENGTH = 9;
 const MAX_PLATE_NUMBER_LENGTH = 10;
-
-const PLATE_NUMBER_REGEX =
-  /^(\d{2}[A-Z]{1}\d{1,2}\d{4,5}|\d{2}[A-Z]{2}\d{1,2}-\d{4,5})$/;
 
 const getRules = (getValues?: UseFormGetValues<any>) => ({
   cardNumber: {
