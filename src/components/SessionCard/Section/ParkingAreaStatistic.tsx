@@ -44,19 +44,16 @@ function ParkingSection() {
 
   return (
     <RectangleContainer className='grid-cols-4'>
-      <Rectangle isLoading={isLoadingStatistic} title='Tổng số lượt xe vào'>
+      <Rectangle isLoading={isLoadingStatistic} title='Tổng xe vào hôm nay'>
         {parkingStats.vehicleIn}
       </Rectangle>
-      <Rectangle isLoading={isLoadingStatistic} title='Tổng số lượt xe ra'>
+      <Rectangle isLoading={isLoadingStatistic} title='Tổng xe ra hôm nay'>
         {parkingStats.vehicleOut}
       </Rectangle>
-      <Rectangle
-        isLoading={isLoadingStatistic}
-        title='Xe trong bãi / Lượng xe có thể chứa'
-      >
+      <Rectangle isLoading={isLoadingStatistic} title='Số xe / Tối đa'>
         {parkingStats.parkingCapacity}
       </Rectangle>
-      <Rectangle isLoading={isLoadingStatistic} title='Tổng tiền trong ngày'>
+      <Rectangle isLoading={isLoadingStatistic} title='Tổng tiền hôm nay'>
         {/* {parkingStats.parkingCapacity} */}
         <RectangleContainer className='grid-cols-[1fr_auto_1fr] gap-x-2 h-fit'>
           <Rectangle

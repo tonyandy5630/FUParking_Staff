@@ -22,6 +22,7 @@ import {
   FIX_PLATE_NUMBER_KEY,
   FOCUS_CARD_INPUT_KEY,
 } from "../../../hotkeys/key";
+import { GATE_IN } from "@constants/gate.const";
 
 type Props = {
   methods: UseFormReturn<CheckInSchemaType>;
@@ -148,6 +149,7 @@ export default function CheckInVehicleForm({
           </FormInfoRow>
           <FormNameRow
             isLoading={isLoading}
+            gateType={GATE_IN}
             message={checkInInfo.message}
             label='Làn vào'
             error={checkInInfo.isError}

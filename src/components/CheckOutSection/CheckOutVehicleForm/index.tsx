@@ -30,6 +30,7 @@ import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
 import { resetCurrentCardInfo } from "../../../redux/checkoutSlice";
 import { getFacetedMinMaxValues } from "@tanstack/react-table";
+import { GATE_IN, GATE_OUT } from "@constants/gate.const";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -223,6 +224,7 @@ export default function CheckOutVehicleForm({
           </FormInfoRow>
           <FormNameRow
             isLoading={isLoading}
+            gateType={GATE_OUT}
             label='Làn ra'
             error={isError}
             message={checkOutInfo.message}

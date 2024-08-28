@@ -1,3 +1,5 @@
+import { GATE_IN } from "@constants/gate.const";
+import { GateType } from "@my_types/gate";
 import { FormHTMLAttributes, HTMLAttributes, PropsWithChildren } from "react";
 
 interface FormContainerProps
@@ -36,6 +38,7 @@ interface FormNameRowProps extends HTMLAttributes<HTMLDivElement> {
   message?: string;
   isLoading?: boolean;
   label: string;
+  gateType: GateType;
 }
 
 export function FormNameRow({
@@ -45,13 +48,18 @@ export function FormNameRow({
   isLoading,
   label,
   onClick,
+  gateType,
 }: FormNameRowProps) {
   return (
     <div
-      className='grid w-full grid-cols-[100px_1fr_200px] row-span-1 border border-gray-300 border-solid h-fit'
+      className='grid w-full grid-cols-[100px_1fr] row-span-1 border border-gray-300 border-solid h-fit'
       onClick={onClick}
     >
-      <div className='grid items-center justify-center col-span-1 p-2 text-base text-white uppercase w-fit bg-primary'>
+      <div
+        className={`grid items-center justify-center col-span-1 p-2 text-base text-white uppercase w-fit bg-primary ${
+          gateType === GATE_IN ? "bg-blue-500" : ""
+        }`}
+      >
         {label}
       </div>
 
