@@ -1,4 +1,5 @@
 type SessionCard = {
+  index?: number;
   cardNumber: string;
   plateNumber: string;
   cardStatus: string;

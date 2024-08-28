@@ -107,8 +107,8 @@ export function DataTable<TData, TValue>({
     );
   }, [table.getRowModel().rows, isLoading]);
   return (
-    <div className='max-h-[600px] relative min-w-full flex flex-col justify-between border rounded-md '>
-      <ScrollArea className=' max-h-[550px] w-full h-full'>
+    <div className='max-h-[30rem] min-h-full relative min-w-full flex flex-col justify-between border rounded-md '>
+      <ScrollArea className='w-full h-full '>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -131,7 +131,7 @@ export function DataTable<TData, TValue>({
           <TableBody>{tableRows}</TableBody>
         </Table>
       </ScrollArea>
-      <div className='flex items-center w-full min-w-full py-4 space-x-2'>
+      <div className='flex items-center w-full min-w-full space-x-2 p-2S'>
         <DataTablePagination table={table} />
       </div>
     </div>
