@@ -39,7 +39,7 @@ function FormInput({ name, type, className, ...props }: Props) {
                     // onChange={props.onChange}
                   />
                 </FormControl>
-                <FormMessage className='text-sm' />
+                <FormMessage className='text-[12px]' />
               </FormItem>
             );
           }}

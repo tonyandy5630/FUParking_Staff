@@ -42,6 +42,7 @@
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "url": "^0.11.4",
+    "use-debounce": "^10.0.3",
     "yup": "^1.4.0"
   },
   "devDependencies": {

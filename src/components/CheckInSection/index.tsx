@@ -21,6 +21,7 @@ import {
   GET_INFORMATION_SUCCESSFULLY,
   GUEST_CAN_ENTRY,
   PLATE_NOT_READ,
+  PLATE_NOT_VALID,
 } from "@constants/message.const";
 import {
   GUEST,
@@ -37,6 +38,7 @@ import { HotkeysProvider, useHotkeys } from "react-hotkeys-hook";
 import PAGE from "../../../url";
 import ParkingContainer from "@components/ParkingContainer";
 import { AxiosError, HttpStatusCode } from "axios";
+import { PLATE_NUMBER_REGEX } from "@constants/regex";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -166,6 +168,15 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         ImageBodySrc,
         time,
       } = checkInInfo;
+      if (!PLATE_NUMBER_REGEX.test(plateText)) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: PLATE_NOT_VALID,
+          plateText: plateText,
+          isError: true,
+        }));
+        return;
+      }
       const checkInBody = new FormData();
       const file = base64StringToFile(imageFile, "uploaded_image.png");
       const bodyFile = base64StringToFile(ImageBodySrc, "uploaded_image.png");
@@ -188,10 +199,21 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       const checkInBody = new FormData();
       const plateNumber = watch("PlateNumber")?.toUpperCase() as string;
       const cardNumber = checkInInfo.cardText;
+
       if (cardNumber === "") {
         setCheckInInfo((prev) => ({
           ...initCheckInInfo,
           message: "Chưa quẹt thẻ",
+          isError: true,
+        }));
+        return;
+      }
+
+      if (!PLATE_NUMBER_REGEX.test(plateNumber)) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: PLATE_NOT_VALID,
+          plateText: plateNumber,
           isError: true,
         }));
         return;
@@ -281,6 +303,16 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
             }
             checkInData.ImageIn = plateImageSrc;
             const checkInBody = new FormData();
+            if (!PLATE_NUMBER_REGEX.test(plateRead)) {
+              setCheckInInfo((prev) => ({
+                ...prev,
+                message: PLATE_NOT_VALID,
+                plateText: plateRead,
+                time: current,
+                isError: true,
+              }));
+              return;
+            }
             checkInBody.append("PlateNumber", plateRead);
             setCheckInInfo((prev) => ({
               ...prev,
@@ -323,7 +355,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       }));
     }
   };
-
   const handleCustomerCheckIn = async (body: any) => {
     try {
       await customerCheckInMutation.mutateAsync(body as any, {

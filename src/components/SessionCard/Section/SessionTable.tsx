@@ -18,6 +18,9 @@ import { PARKED_SESSION_STATUS } from "@constants/session.const";
 import { RootState } from "@utils/store";
 import MySelect from "@components/MySelect";
 import { FITLER_DATE_VALUE, SelectDateFilter } from "@constants/selects.const";
+import { Input } from "@components/ui/input";
+import { Label } from "@components/ui/label";
+import { useDebounce } from "use-debounce";
 
 function SessionTable() {
   const parkingId = useGetParkingId();
@@ -25,6 +28,8 @@ function SessionTable() {
   const sessionTable = useSelector((state: RootState) => state.sessionTable);
   const dispatch = useDispatch();
   const [dateFilter, setDateFilter] = useState(FITLER_DATE_VALUE.TODAY);
+  const [plateText, setPlateText] = useState("");
+  const [debouncePlateText] = useDebounce(plateText, 750);
   const [apiDateFilter, setApiDateFilter] = useState<{
     startDate?: string | null;
     endDate?: string | null;
@@ -51,6 +56,7 @@ function SessionTable() {
       parkingId,
       apiDateFilter.startDate,
       apiDateFilter.endDate,
+      debouncePlateText,
     ],
     queryFn: () =>
       getParkingSession({
@@ -58,9 +64,14 @@ function SessionTable() {
         parkingId,
         startDate: apiDateFilter.startDate as string,
         endDate: apiDateFilter.endDate as string,
+        plateNum: debouncePlateText,
       }),
     enabled: parkingId !== "",
   });
+
+  const handlePlateTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPlateText(e.target.value);
+  };
 
   const handleSetDateFilter = (e: string) => {
     setDateFilter(e);
@@ -108,8 +119,19 @@ function SessionTable() {
   }, [sessionData?.data.data]);
 
   return (
-    <div className='grid grid-rows-[auto_1fr] h-full'>
-      <div className='grid max-h-full pb-1 w-fit auto-cols-auto'>
+    <div className='grid grid-rows-[auto_1fr] h-full justify-items-end'>
+      <div className='grid max-h-full grid-flow-col gap-2 pb-1 w-fit auto-cols-auto'>
+        <div className='flex items-center w-full'>
+          <Label htmlFor='search-plate-input' className=' min-w-16'>
+            Tìm kiếm
+          </Label>
+          <Input
+            id='search-plate-input'
+            value={plateText}
+            onChange={handlePlateTextChange}
+            placeholder='Nhập biển số'
+          />
+        </div>
         <MySelect
           options={SelectDateFilter}
           label='Thống kê'

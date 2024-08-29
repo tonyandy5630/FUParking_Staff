@@ -7,6 +7,7 @@ export type SessionParams = {
   endDate?: string;
   cardNum?: string;
   parkingId: string;
+  plateNum?: string;
 };
 
 export const GET_SESSION_API_URL = ({
@@ -14,13 +15,14 @@ export const GET_SESSION_API_URL = ({
   startDate = "",
   endDate = "",
   cardNum = "",
+  plateNum = "",
   parkingId,
 }: SessionParams) =>
   `${baseAPI_URL}/session/${parkingId}?PageIndex=${
     pagination.pageIndex + 1
   }&PageSize=${
     pagination.pageSize
-  }&StartDate=${startDate}&endDate=${endDate}&cardNum=${cardNum}`;
+  }&StartDate=${startDate}&endDate=${endDate}&cardNum=${cardNum}&plateNum=${plateNum}`;
 
 export const UPDATE_SESSION_PLATE_NUMBER_API_URL = `${baseAPI_URL}/session/session/platenumber`;
 

@@ -51,7 +51,7 @@ export default function MySelect({
         value={value}
         onValueChange={onValueChange}
       >
-        <SelectTrigger className='border-gray-600 rounded-sm'>
+        <SelectTrigger className='border-gray-200 rounded-sm h-9'>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

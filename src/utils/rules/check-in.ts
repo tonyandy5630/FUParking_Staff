@@ -8,7 +8,7 @@ export const MIN_CARD_NUMBER_LENGTH = 5;
 const MIN_PLATE_NUMBER_LENGTH = 9;
 const MAX_PLATE_NUMBER_LENGTH = 10;
 
-const getRules = (getValues?: UseFormGetValues<any>) => ({
+const getCheckInRules = (getValues?: UseFormGetValues<any>) => ({
   cardNumber: {
     maxLength: {
       value: MAX_CARD_NUMBER_LENGTH,
@@ -22,7 +22,7 @@ const getRules = (getValues?: UseFormGetValues<any>) => ({
   plateNumber: {
     pattern: {
       value: PLATE_NUMBER_REGEX,
-      message: "Not a valid plate number",
+      message: "Biển số không hợp lệ",
     },
     minLength: {
       value: MIN_PLATE_NUMBER_LENGTH,
@@ -35,4 +35,4 @@ const getRules = (getValues?: UseFormGetValues<any>) => ({
   },
 });
 
-export default getRules;
+export default getCheckInRules;

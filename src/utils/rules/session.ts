@@ -5,7 +5,7 @@ const getSessionRules = (getValues?: UseFormGetValues<any>) => ({
   PlateNumber: {
     pattern: {
       value: PLATE_NUMBER_REGEX,
-      message: "Not a valid plate number",
+      message: "Biển số không hợp lệ",
     },
   },
 });
