@@ -38,6 +38,7 @@ import {
   PLATE_MATCH,
   PLATE_NOT_MATCH,
   PLATE_NOT_READ,
+  PLATE_NOT_VALID,
   PLEASE_CHECK_OUT,
   SLOW_DOWN_ACTION,
 } from "@constants/message.const";
@@ -58,6 +59,7 @@ import {
 } from "../../redux/checkoutSlice";
 import ParkingContainer from "@components/ParkingContainer";
 import CardInfoRow from "@components/SessionCard/CardInfo";
+import { PLATE_NUMBER_REGEX } from "@constants/regex";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -327,6 +329,18 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       return;
     }
 
+    if (!PLATE_NUMBER_REGEX.test(plateNumber)) {
+      dispatch(
+        setNewCardInfo({
+          ...checkOutInfo,
+          message: PLATE_NOT_VALID,
+          plateTextOut: plateNumber,
+          isError: true,
+        })
+      );
+      return;
+    }
+
     const cardInfo = cardByPlateData?.data?.data;
     if (!cardInfo) {
       dispatch(
@@ -437,12 +451,25 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   }, [cardData?.data?.data, checkOutInfo, dispatch, watch("CardNumber")]);
   const handleCheckOutMissingCard = async () => {
     try {
+      const plateNumber = watch("PlateNumber") as string;
       dispatch(
         setNewCardInfo({
           ...checkOutInfo,
-          plateTextOut: watch("PlateNumber") as string,
+          plateTextOut: plateNumber,
         })
       );
+
+      if (!PLATE_NUMBER_REGEX.test(plateNumber)) {
+        dispatch(
+          setNewCardInfo({
+            ...checkOutInfo,
+            plateTextOut: plateNumber,
+            message: PLATE_NOT_VALID,
+            isError: true,
+          })
+        );
+        return;
+      }
 
       const bodyImageFile = base64StringToFile(
         checkOutInfo.bodyImgOut,
@@ -459,10 +486,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         new Date(checkOutInfo.timeOut as string)
       );
 
-      checkOutBody.append(
-        "PlateNumber",
-        watch("PlateNumber")?.toUpperCase() as string
-      );
+      checkOutBody.append("PlateNumber", plateNumber);
       checkOutBody.append("ImagePlate", plateImageFile);
       checkOutBody.append("CheckOutTime", current);
       checkOutBody.append("ImageBody", bodyImageFile);
