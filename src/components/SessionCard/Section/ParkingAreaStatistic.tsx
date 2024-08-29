@@ -18,7 +18,7 @@ function ParkingSection() {
     parkingCapacity: "0/0",
   });
   const parkingId = useGetParkingId();
-  const { gateId } = useSelectGate(GATE_OUT, false);
+  const { gateId: gateOutId } = useSelectGate(GATE_OUT, false);
 
   const [
     {
@@ -41,9 +41,9 @@ function ParkingSection() {
         enabled: parkingId !== "",
       },
       {
-        queryKey: ["/get-gate-income", gateId],
-        queryFn: () => getGateTotalIncomeAPI(gateId),
-        enabled: gateId !== "",
+        queryKey: ["/get-gate-income", gateOutId],
+        queryFn: () => getGateTotalIncomeAPI(gateOutId),
+        enabled: gateOutId !== "",
       },
     ],
   });
@@ -67,7 +67,9 @@ function ParkingSection() {
   }, [statisticData?.data.data, parkingId]);
 
   return (
-    <RectangleContainer className='grid-cols-4'>
+    <RectangleContainer
+      className={`${gateOutId !== "" ? "grid-cols-4" : "grid-cols-3"}`}
+    >
       <Rectangle isLoading={isLoadingStatistic} title='Tổng xe vào hôm nay'>
         {parkingStats.vehicleIn}
       </Rectangle>
@@ -77,28 +79,30 @@ function ParkingSection() {
       <Rectangle isLoading={isLoadingStatistic} title='Số xe / Tối đa'>
         {parkingStats.parkingCapacity}
       </Rectangle>
-      <Rectangle isLoading={isLoadingStatistic} title='Tổng tiền hôm nay'>
-        {/* {parkingStats.parkingCapacity} */}
-        <RectangleContainer className='grid-cols-[1fr_auto_1fr] gap-x-2 h-fit'>
-          <Rectangle
-            className='text-sm font-normal border-none'
-            title='Qua Ví'
-            isLoading={isLoadingIncome}
-          >
-            {formatVNCurrency(incomeData?.data.data.totalCashPayment)}
-          </Rectangle>
-          {/* <div className='max-w-1'> */}
-          <Separator orientation='vertical' className='p-0' />
-          {/* </div> */}
-          <Rectangle
-            className='text-sm font-normal border-none'
-            title='Khác'
-            isLoading={isLoadingIncome}
-          >
-            {formatVNCurrency(incomeData?.data.data.totalCashPayment)}
-          </Rectangle>
-        </RectangleContainer>
-      </Rectangle>
+      {gateOutId !== "" && (
+        <Rectangle isLoading={isLoadingStatistic} title='Tổng tiền hôm nay'>
+          {/* {parkingStats.parkingCapacity} */}
+          <RectangleContainer className='grid-cols-[1fr_auto_1fr] gap-x-2 h-fit'>
+            <Rectangle
+              className='text-sm font-normal border-none'
+              title='Qua Ví'
+              isLoading={isLoadingIncome}
+            >
+              {formatVNCurrency(incomeData?.data.data.totalCashPayment)}
+            </Rectangle>
+            {/* <div className='max-w-1'> */}
+            <Separator orientation='vertical' className='p-0' />
+            {/* </div> */}
+            <Rectangle
+              className='text-sm font-normal border-none'
+              title='Khác'
+              isLoading={isLoadingIncome}
+            >
+              {formatVNCurrency(incomeData?.data.data.totalCashPayment)}
+            </Rectangle>
+          </RectangleContainer>
+        </Rectangle>
+      )}
     </RectangleContainer>
   );
 }
