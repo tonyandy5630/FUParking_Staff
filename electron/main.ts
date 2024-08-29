@@ -34,8 +34,12 @@ import Store from "electron-store";
 import ElectronStore from "electron-store";
 import { GATE_IN, GATE_OUT } from "../src/constants/gate.const";
 import {
+  GATE_IN_ID_KEY,
+  GATE_OUT_ID_KEY,
+  GATE_TYPE_KEY,
   LEFT_OTHER_CAMERA_ID_KEY,
   LEFT_PLATE_CAMERA_ID_KEY,
+  PARKING_AREA_ID_KEY,
   RIGHT_OTHER_CAMERA_ID_KEY,
   RIGHT_PLATE_CAMERA_ID_KEY,
 } from "./store/keys";
@@ -166,7 +170,7 @@ ipcMain.handle(GET_GATE_TYPE_CHANNEL, (e) => {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
-  return store.get("gateType");
+  return store.get(GATE_TYPE_KEY);
 });
 
 ipcMain.handle(GET_GATE_IN_ID_CHANNEL, (event: any) => {
@@ -174,7 +178,7 @@ ipcMain.handle(GET_GATE_IN_ID_CHANNEL, (event: any) => {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
-  return store.get("gateInId");
+  return store.get(GATE_IN_ID_KEY);
 });
 
 ipcMain.handle(GET_GATE_OUT_ID_CHANNEL, (event: any) => {
@@ -182,7 +186,7 @@ ipcMain.handle(GET_GATE_OUT_ID_CHANNEL, (event: any) => {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
-  return store.get("gateOutId");
+  return store.get(GATE_OUT_ID_KEY);
 });
 
 ipcMain.on(SET_PARKING_AREA_ID_CHANNEL, (_, parkingId: string) => {
@@ -191,7 +195,7 @@ ipcMain.on(SET_PARKING_AREA_ID_CHANNEL, (_, parkingId: string) => {
     return;
   }
 
-  store.set("parkingAreaId", parkingId);
+  store.set(PARKING_AREA_ID_KEY, parkingId);
 });
 
 ipcMain.handle(GET_PARKING_AREA_ID_CHANNEL, (_) => {
@@ -200,7 +204,7 @@ ipcMain.handle(GET_PARKING_AREA_ID_CHANNEL, (_) => {
     return;
   }
 
-  return store.get("parkingAreaId", "");
+  return store.get(PARKING_AREA_ID_KEY, "");
 });
 
 //#region Left Camera

@@ -42,6 +42,7 @@ type Props = {
   position: LanePosition;
   onMissingCardCheckOut: () => Promise<void>;
   onTriggerGetInfoByPlate: () => void;
+  onReset: () => void;
 };
 
 export default function CheckOutVehicleForm({
@@ -53,6 +54,7 @@ export default function CheckOutVehicleForm({
   position,
   onMissingCardCheckOut,
   onTriggerGetInfoByPlate,
+  onReset,
 }: Props) {
   const checkOutInfo = useSelector((state: RootState) => state.checkOutCard);
   const pressPlateCount = useRef<number>(0);
@@ -79,6 +81,7 @@ export default function CheckOutVehicleForm({
     CANCELED_HOTKEY,
     () => {
       pressPlateCount.current = 0;
+      onReset();
       setShowInputPlate(false);
     },
     {
@@ -101,7 +104,7 @@ export default function CheckOutVehicleForm({
     FOCUS_CARD_INPUT_KEY,
     () => {
       setFocus("CardNumber");
-      reset();
+      // reset();
     },
     {
       scopes: [PAGE.CHECK_OUT, position],
@@ -124,20 +127,15 @@ export default function CheckOutVehicleForm({
   useHotkeys(
     FIX_PLATE_NUMBER_KEY,
     async () => {
-      console.log("true");
       pressPlateCount.current++;
-
-      //* second press get info
-      if (pressPlateCount.current === 2) {
-        onTriggerGetInfoByPlate();
-        return;
-      }
-
       //* final press send checkout
       if (pressPlateCount.current === 3) {
         pressPlateCount.current = 0;
-        setShowInputPlate((prev) => !prev);
         await onMissingCardCheckOut();
+      }
+      //* second press get info
+      if (pressPlateCount.current === 2) {
+        onTriggerGetInfoByPlate();
         return;
       }
 

@@ -32,35 +32,40 @@ export default function useGetCamera() {
 
     const getCameraIds = async () => {
       try {
-        const [
-          leftPlateCameraId,
-          leftOtherCameraId,
-          rightPlateCameraId,
-          rightOtherCameraId,
-        ] = await Promise.all([
+        Promise.all([
           window.ipcRenderer.invoke(GET_CAMERA_LEFT_PLATE_CHANNEL),
           window.ipcRenderer.invoke(GET_CAMERA_LEFT_OTHER_CHANNEL),
           window.ipcRenderer.invoke(GET_CAMERA_RIGHT_PLATE_CHANNEL),
           window.ipcRenderer.invoke(GET_CAMERA_RIGHT_OTHER_CHANNEL),
-        ]);
+        ])
+          .then((res) => {
+            const [
+              leftPlateCameraId,
+              leftOtherCameraId,
+              rightPlateCameraId,
+              rightOtherCameraId,
+            ] = res;
 
-        if (!shouldUpdate) {
-          return;
-        }
-
-        setLaneCameras({
-          left: {
-            otherCameraId: leftOtherCameraId,
-            plateCameraId: leftPlateCameraId,
-          },
-          right:
-            rightPlateCameraId !== "" && rightOtherCameraId !== ""
-              ? {
-                  plateCameraId: rightPlateCameraId,
-                  otherCameraId: rightOtherCameraId,
-                }
-              : undefined,
-        });
+            if (!shouldUpdate) {
+              return;
+            }
+            setLaneCameras({
+              left: {
+                otherCameraId: leftOtherCameraId,
+                plateCameraId: leftPlateCameraId,
+              },
+              right:
+                rightPlateCameraId !== "" && rightOtherCameraId !== ""
+                  ? {
+                      plateCameraId: rightPlateCameraId,
+                      otherCameraId: rightOtherCameraId,
+                    }
+                  : undefined,
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
       } catch (error) {
         console.log(error);
       }
@@ -72,6 +77,5 @@ export default function useGetCamera() {
       shouldUpdate = false;
     };
   }, []);
-
   return laneCameras;
 }

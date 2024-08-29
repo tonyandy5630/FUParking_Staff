@@ -1,13 +1,8 @@
-import Frame from "@components/CameraSection/Frame";
-import Lane from "@components/CameraSection/Lane";
 import SetUpCameraLane from "@components/CameraSection/SetUpCameraLane";
-import { SelectOptions } from "@components/Form/FormSelect";
 import LaneContainer from "@components/LaneContainer";
-import MySelect from "@components/MySelect";
 import ParkingContainer from "@components/ParkingContainer";
 import LANE from "@constants/lane.const";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Webcam from "react-webcam";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function DeviceSetupPage() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -38,6 +33,7 @@ export default function DeviceSetupPage() {
       <LaneContainer is2Lane={is2Lane.current}>
         <ParkingContainer>
           <SetUpCameraLane laneKey={LANE.LEFT} />
+          {is2Lane.current && <SetUpCameraLane laneKey={LANE.RIGHT} />}
         </ParkingContainer>
       </LaneContainer>
     </div>

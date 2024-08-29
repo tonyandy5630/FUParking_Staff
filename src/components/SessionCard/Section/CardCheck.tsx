@@ -270,12 +270,12 @@ export default function CardCheckSection() {
         <Image
           isLoading={isLoadingCard}
           className='object-scale-down'
-          src={cardInfo.imageInBodyUrl}
+          src={cardInfo.imageInUrl}
         />
         <Image
           isLoading={isLoadingCard}
           className='object-scale-down'
-          src={cardInfo.imageInUrl}
+          src={cardInfo.imageInBodyUrl}
         />
       </RectangleContainer>
     </div>

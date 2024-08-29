@@ -19,6 +19,7 @@ import { CheckInInfo } from "@components/CheckInSection";
 import { useHotkeys } from "react-hotkeys-hook";
 import PAGE from "../../../../url";
 import {
+  CANCELED_HOTKEY,
   FIX_PLATE_NUMBER_KEY,
   FOCUS_CARD_INPUT_KEY,
 } from "../../../hotkeys/key";
@@ -31,6 +32,7 @@ type Props = {
   checkInInfo: CheckInInfo;
   isLoading?: boolean;
   onFixPlate: () => Promise<void>;
+  onReset: () => void;
 };
 
 export default function CheckInVehicleForm({
@@ -40,6 +42,7 @@ export default function CheckInVehicleForm({
   methods,
   isLoading,
   onFixPlate,
+  onReset,
 }: Props) {
   const {
     formState: { errors },
@@ -70,15 +73,25 @@ export default function CheckInVehicleForm({
     },
     {
       scopes: [PAGE.CHECK_IN],
+      enableOnFormTags: ["input", "textarea"],
+    }
+  );
+  useHotkeys(
+    CANCELED_HOTKEY,
+    () => {
+      onReset();
+      setShowInputPlate(false);
+    },
+    {
+      scopes: [PAGE.CHECK_IN],
       enableOnFormTags: ["input", "select", "textarea"],
     }
   );
 
   useEffect(() => {
     if (!showInputPlate) return;
-
     setFocus("PlateNumber");
-    setValue("PlateNumber", checkInInfo.plateText);
+    setValue("PlateNumber", checkInInfo.plateText.toUpperCase());
   }, [showInputPlate]);
 
   const {
@@ -109,15 +122,15 @@ export default function CheckInVehicleForm({
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onCheckIn)}>
           <div className='absolute bottom-0 right-0 opacity-0'>
-            <FormInput name='CardId' />
+            <FormInput name='CardId' autoFocus={true} />
           </div>
           <FormInfoRow className='grid-cols-2'>
             <InfoSection>
               <InfoVehicle label='Ngày vào'>
-                {getDayFromString(checkInInfo.time.toString())}
+                {getDayFromString(checkInInfo.time?.toString())}
               </InfoVehicle>
               <InfoVehicle label='Giờ vào'>
-                {getHourMinuteFromString(checkInInfo.time.toString())}
+                {getHourMinuteFromString(checkInInfo.time?.toString())}
               </InfoVehicle>
               <InfoVehicle label='Biển số xe'>
                 {showInputPlate ? (

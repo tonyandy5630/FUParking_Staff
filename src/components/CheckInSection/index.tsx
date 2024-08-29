@@ -36,6 +36,7 @@ import { SUBMIT_LEFT_HOTKEY } from "../../hotkeys/key";
 import { HotkeysProvider, useHotkeys } from "react-hotkeys-hook";
 import PAGE from "../../../url";
 import ParkingContainer from "@components/ParkingContainer";
+import { AxiosError, HttpStatusCode } from "axios";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -49,7 +50,7 @@ export type CheckInInfo = {
   cardText: string;
   plateImgSrc: string;
   ImageBodySrc: string;
-  time: Date;
+  time?: Date;
   customerType: GuestType | "";
   message: string;
   isError: boolean;
@@ -61,7 +62,7 @@ const initCheckInInfo: CheckInInfo = {
   cardText: "",
   plateImgSrc: "",
   ImageBodySrc: "",
-  time: new Date(),
+  time: undefined,
   customerType: "",
   message: NEXT_CUSTOMER,
   isError: false,
@@ -85,6 +86,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     defaultValues: {
       GateInId: gateId,
       CardId: "",
+      PlateNumber: "",
     },
   });
 
@@ -128,9 +130,14 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     setOpenDialog((prev) => !prev);
   };
 
+  const handleReset = () => {
+    setCheckInInfo(initCheckInInfo);
+    setFocus("CardId");
+    reset();
+  };
+
   const handleGuestCheckIn = async (checkInBody: any) => {
     try {
-      const { plateImgSrc: imageFile } = checkInInfo;
       await guestCheckInMutation.mutateAsync(checkInBody as any, {
         onSuccess: () => {
           setIsGuest(false);
@@ -138,12 +145,8 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
             ...prev,
             message: "KHÁCH CÓ THỂ VÀO",
           }));
+          setFocus("CardId");
           reset();
-          setCheckInInfo((prev) => ({
-            ...prev,
-            plateImg: imageFile,
-            time: new Date(),
-          }));
         },
       });
     } catch (error) {
@@ -174,6 +177,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       checkInBody.append("ImageBody", bodyFile);
       await handleGuestCheckIn(checkInBody);
     } catch (error) {
+      console.log(error);
       reset();
       setCheckInInfo((prev) => ({ ...prev, message: "Lỗi hệ thống" }));
     }
@@ -182,12 +186,31 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const handleFixPlate = async () => {
     try {
       const checkInBody = new FormData();
+      const plateNumber = watch("PlateNumber")?.toUpperCase() as string;
+      const cardNumber = checkInInfo.cardText;
+      if (cardNumber === "") {
+        setCheckInInfo((prev) => ({
+          ...initCheckInInfo,
+          message: "Chưa quẹt thẻ",
+          isError: true,
+        }));
+        return;
+      }
+
+      if (plateNumber === "") {
+        setCheckInInfo((prev) => ({
+          ...initCheckInInfo,
+          message: "Chưa nhập biển số",
+          isError: true,
+        }));
+        return;
+      }
+
       setCheckInInfo((prev) => ({
         ...prev,
-        plateText: watch("PlateNumber") as string,
+        plateText: plateNumber,
       }));
-
-      checkInBody.append("PlateNumber", (watch("PlateNumber") as string) ?? "");
+      checkInBody.append("PlateNumber", cardNumber);
 
       checkInBody.append("CardNumber", checkInInfo.cardText);
       const plateImageFile = base64StringToFile(
@@ -200,13 +223,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       );
       checkInBody.append("ImageIn", plateImageFile);
       checkInBody.append("GateInId", gateId);
-
-      // if (isGuest) {
-      //   checkInBody.append("ImageBody", bodyImageFile);
-      //   checkInBody.append("VehicleTypeId", checkInInfo.vehicleType ?? "");
-      //   await handleGuestCheckIn(checkInBody);
-      //   return;
-      // }
       checkInBody.append("ImageBodyIn", bodyImageFile);
       await handleCustomerCheckIn(checkInBody);
     } catch (error) {
@@ -217,7 +233,17 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
 
   const handleCheckIn = async (checkInData: CheckIn) => {
     try {
+      //rest before update anything
       setCheckInInfo((prev) => initCheckInInfo);
+      if (checkInInfo.cardText.length > 10) {
+        setCheckInInfo(() => ({
+          ...initCheckInInfo,
+          message: "Thao tác chậm lại",
+          isError: true,
+        }));
+        handleReset();
+        return;
+      }
       if (plateCamRef.current && bodyCamRef.current) {
         const plateNumberBody = new FormData();
         const plateImageSrc = (plateCamRef.current as any).getScreenshot();
@@ -239,22 +265,23 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           onSuccess: async (
             plateDetectionRes: SuccessResponse<LicenseResponse>
           ) => {
-            if (!plateDetectionRes.data.results[0]) {
-              reset();
+            const hasResult = plateDetectionRes.data.results[0];
+            const current = new Date();
+            let plateRead = "";
+            if (!hasResult) {
               setCheckInInfo((prev) => ({
                 ...prev,
                 message: PLATE_NOT_READ,
                 isError: true,
+                plateImg: plateImageSrc,
+                time: current,
               }));
+            } else {
+              plateRead = plateDetectionRes.data.results[0].plate.toUpperCase();
             }
-            checkInData.PlateNumber =
-              plateDetectionRes.data.results[0].plate.toUpperCase();
             checkInData.ImageIn = plateImageSrc;
             const checkInBody = new FormData();
-            checkInBody.append(
-              "PlateNumber",
-              plateDetectionRes.data.results[0].plate.toUpperCase()
-            );
+            checkInBody.append("PlateNumber", plateRead);
             setCheckInInfo((prev) => ({
               ...prev,
               cardText: checkInData.CardId,
@@ -267,14 +294,28 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
             setValue("PlateNumber", checkInData.PlateNumber);
             setCheckInInfo((prev) => ({
               ...prev,
-              plateText: plateDetectionRes.data.results[0].plate.toUpperCase(),
+              plateText: plateRead,
               plateImg: plateImageSrc,
+              time: current,
             }));
             await handleCustomerCheckIn(checkInBody);
           },
         });
       }
     } catch (error) {
+      const err = error as AxiosError;
+      if (err.response) {
+        if (err.response.status === HttpStatusCode.TooManyRequests) {
+          console.log("hi");
+          setCheckInInfo((prev) => ({
+            ...prev,
+            message: "Hãy thao tác chậm lại",
+            isError: true,
+          }));
+          reset();
+          return;
+        }
+      }
       setCheckInInfo((prev) => ({
         ...prev,
         message: "Lỗi hệ thống",
@@ -294,17 +335,15 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
               setOpenDialog(true);
             }
           }
-          setCheckInInfo((prev) => ({
-            ...prev,
-            message: GUEST_CAN_ENTRY,
-          }));
 
           setCheckInInfo((prev) => ({
             ...prev,
             plateImg: checkInInfo.plateImgSrc,
             customerType: SYSTEM_CUSTOMER,
-            time: new Date(),
+            message: GUEST_CAN_ENTRY,
           }));
+          reset();
+          setFocus("CardId");
         },
         onError: (error: any) => {
           if (error.response.data.message === CUSTOMER_NOT_EXIST_ERROR) {
@@ -370,6 +409,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           onVehicleTypeChange={handleVehicleTypeChange}
           checkInInfo={checkInInfo}
           onFixPlate={handleFixPlate}
+          onReset={handleReset}
         />
       </HotkeysProvider>
     </ParkingContainer>

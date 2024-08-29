@@ -14,8 +14,8 @@ export const initCheckOutInfo: CheckOutInfo = {
   checkOutCardText: "",
   customerType: "",
   needPay: false,
-  timeIn: undefined,
-  timeOut: undefined,
+  timeIn: "",
+  timeOut: "",
   message: NEXT_CUSTOMER,
   isError: false,
 };

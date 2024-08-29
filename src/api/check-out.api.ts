@@ -23,9 +23,9 @@ export const checkOutAPI = (data: CheckOut) =>
 export const checkOutPaymentAPI = (CardNumber: string) =>
   http.post(CHECK_OUT_PAYMENT_API_URL + "?CardNumber=" + CardNumber);
 
-export const getCardCheckOutAPI = (cardNumber: string) =>
+export const getCardCheckOutAPI = (cardNumber: string, timeOut: string) =>
   http.get<ErrorResponse<CheckOutCardInfo>>(
-    GET_CARD_CHECK_OUT_API_URL(cardNumber)
+    GET_CARD_CHECK_OUT_API_URL(cardNumber, timeOut)
   );
 
 export const missingCardCheckOutAPI = (body: MissingCardCheckOut) =>
@@ -35,7 +35,10 @@ export const missingCardCheckOutAPI = (body: MissingCardCheckOut) =>
     },
   });
 
-export const getCardCheckOutInfoByPlateAPI = (plateNumber: string) =>
+export const getCardCheckOutInfoByPlateAPI = (
+  plateNumber: string,
+  timeOut: string
+) =>
   http.get<ErrorResponse<CheckOutCardInfo>>(
-    GET_CARD_CHECK_OUT_BY_PLATE_API_URL(plateNumber)
+    GET_CARD_CHECK_OUT_BY_PLATE_API_URL(plateNumber, timeOut)
   );

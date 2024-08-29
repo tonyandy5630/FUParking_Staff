@@ -26,6 +26,9 @@ const dayOption: Intl.DateTimeFormatOptions = {
 
 export function getLocalISOString(date: Date): string {
   // Create a formatter for the specified time zone
+  if (!Date.parse(date.toString())) {
+    return "";
+  }
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: dayjs.tz.guess(),
     year: "numeric",
