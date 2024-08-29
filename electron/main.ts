@@ -170,7 +170,7 @@ ipcMain.handle(GET_GATE_TYPE_CHANNEL, (e) => {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
-  return store.get(GATE_TYPE_KEY);
+  return store.get(GATE_TYPE_KEY, "");
 });
 
 ipcMain.handle(GET_GATE_IN_ID_CHANNEL, (event: any) => {
@@ -178,7 +178,7 @@ ipcMain.handle(GET_GATE_IN_ID_CHANNEL, (event: any) => {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
-  return store.get(GATE_IN_ID_KEY);
+  return store.get(GATE_IN_ID_KEY, "");
 });
 
 ipcMain.handle(GET_GATE_OUT_ID_CHANNEL, (event: any) => {
@@ -186,7 +186,7 @@ ipcMain.handle(GET_GATE_OUT_ID_CHANNEL, (event: any) => {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
-  return store.get(GATE_OUT_ID_KEY);
+  return store.get(GATE_OUT_ID_KEY, "");
 });
 
 ipcMain.on(SET_PARKING_AREA_ID_CHANNEL, (_, parkingId: string) => {

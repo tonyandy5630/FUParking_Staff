@@ -10,3 +10,8 @@ export type ParkingStatistic = {
   totalVehicleParked: number;
   totalLot: number;
 };
+
+export type GateTotalIncome = {
+  totalWalletPayment: number;
+  totalCashPayment: number;
+};
