@@ -13,15 +13,19 @@ import { CheckIn, UpdateVehicleTypeInfo } from "@my_types/check-in";
 import {
   CARD_INACTIVE,
   CUSTOMER_NOT_EXIST_ERROR,
+  PLATE_NUMBER_NOT_MATCHED,
 } from "@constants/error-message.const";
 const UpdateVehicleTypeDialog = lazy(
   () => import("@components/UpdateVehicleTypeDialog")
 );
 import {
+  CARD_NOT_ACTIVE,
   GET_INFORMATION_SUCCESSFULLY,
   GUEST_CAN_ENTRY,
+  PLATE_NOT_MATCH,
   PLATE_NOT_READ,
   PLATE_NOT_VALID,
+  WRONG_NON_PAID_CUSTOMER,
 } from "@constants/message.const";
 import {
   GUEST,
@@ -38,7 +42,15 @@ import { HotkeysProvider, useHotkeys } from "react-hotkeys-hook";
 import PAGE from "../../../url";
 import ParkingContainer from "@components/ParkingContainer";
 import { AxiosError, HttpStatusCode } from "axios";
-import { PLATE_NUMBER_REGEX } from "@constants/regex";
+import {
+  ELECTRIC_PLATE_NUMBER_REGEX,
+  MOTORBIKE_PLATE_NUMBER_REGEX,
+} from "@constants/regex";
+import {
+  setCustomerCheckInData,
+  setGuestCheckInFormData,
+} from "@utils/set-form-data";
+import cropImageToBase64 from "@utils/image";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -57,6 +69,7 @@ export type CheckInInfo = {
   message: string;
   isError: boolean;
   vehicleType: string;
+  croppedPlateImage?: string;
 };
 
 const initCheckInInfo: CheckInInfo = {
@@ -69,6 +82,7 @@ const initCheckInInfo: CheckInInfo = {
   message: NEXT_CUSTOMER,
   isError: false,
   vehicleType: "",
+  croppedPlateImage: "",
 };
 
 function CheckInSection({ cameraSize = "sm", ...props }: Props) {
@@ -146,6 +160,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           setCheckInInfo((prev) => ({
             ...prev,
             message: "KHÁCH CÓ THỂ VÀO",
+            isError: false,
           }));
           setFocus("CardId");
           reset();
@@ -168,7 +183,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         ImageBodySrc,
         time,
       } = checkInInfo;
-      if (!PLATE_NUMBER_REGEX.test(plateText)) {
+      if (!MOTORBIKE_PLATE_NUMBER_REGEX.test(plateText)) {
         setCheckInInfo((prev) => ({
           ...prev,
           message: PLATE_NOT_VALID,
@@ -196,7 +211,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
 
   const handleFixPlate = async () => {
     try {
-      const checkInBody = new FormData();
       const plateNumber = watch("PlateNumber")?.toUpperCase() as string;
       const cardNumber = checkInInfo.cardText;
 
@@ -204,16 +218,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         setCheckInInfo((prev) => ({
           ...initCheckInInfo,
           message: "Chưa quẹt thẻ",
-          isError: true,
-        }));
-        return;
-      }
-
-      if (!PLATE_NUMBER_REGEX.test(plateNumber)) {
-        setCheckInInfo((prev) => ({
-          ...prev,
-          message: PLATE_NOT_VALID,
-          plateText: plateNumber,
           isError: true,
         }));
         return;
@@ -227,14 +231,23 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         }));
         return;
       }
+      const isElectricPlate = ELECTRIC_PLATE_NUMBER_REGEX.test(plateNumber);
+      const isMotorbikePlate = MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber);
+
+      if (!isElectricPlate || !isMotorbikePlate) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: PLATE_NOT_VALID,
+          plateText: plateNumber,
+          isError: true,
+        }));
+        return;
+      }
 
       setCheckInInfo((prev) => ({
         ...prev,
         plateText: plateNumber,
       }));
-      checkInBody.append("PlateNumber", cardNumber);
-
-      checkInBody.append("CardNumber", checkInInfo.cardText);
       const plateImageFile = base64StringToFile(
         checkInInfo.plateImgSrc,
         "uploaded_image.png"
@@ -243,9 +256,14 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         checkInInfo.plateImgSrc,
         "uploaded_image.png"
       );
-      checkInBody.append("ImageIn", plateImageFile);
-      checkInBody.append("GateInId", gateId);
-      checkInBody.append("ImageBodyIn", bodyImageFile);
+      const checkInBody = setCustomerCheckInData({
+        bodyFile: bodyImageFile,
+        plateText: plateNumber,
+        cardText: cardNumber,
+        gateId,
+        ImageIn: plateImageFile,
+      });
+
       await handleCustomerCheckIn(checkInBody);
     } catch (error) {
       reset();
@@ -253,9 +271,75 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     }
   };
 
+  const handlePlateDetection = async () => {
+    let plateRead = "";
+    try {
+      const plateNumberBody = new FormData();
+      //* take vehicle picture
+      const plateImageSrc = (plateCamRef.current as any).getScreenshot();
+      const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
+
+      //* save data for checkin
+      setCheckInInfo((prev) => ({
+        ...prev,
+        plateImgSrc: plateImageSrc,
+        ImageBodySrc: bodyImageSrc,
+      }));
+      const plateFile = base64StringToFile(plateImageSrc, "uploaded_image.png");
+
+      plateNumberBody.append("upload", plateFile);
+      plateNumberBody.append("regions", "vn");
+
+      await plateDetectionMutation.mutateAsync(plateNumberBody, {
+        onSuccess: async (plateDetectionRes) => {
+          const result = plateDetectionRes.data.results[0];
+          if (!result) {
+            setCheckInInfo((prev) => ({
+              ...prev,
+              message: PLATE_NOT_READ,
+              isError: true,
+              plateImg: plateImageSrc,
+            }));
+            return;
+          } else {
+            plateRead = plateDetectionRes.data.results[0].plate.toUpperCase();
+          }
+          const cropCordinates = result.box;
+          const croppedImage = await cropImageToBase64(
+            plateImageSrc,
+            cropCordinates
+          );
+          setCheckInInfo((prev) => ({
+            ...prev,
+            plateText: plateRead,
+            croppedPlateImage: croppedImage,
+          }));
+        },
+      });
+      return plateRead;
+    } catch (error) {
+      setCheckInInfo((prev) => ({
+        ...prev,
+        message: "Lỗi khi đọc biển số",
+        plateText: plateRead,
+        isError: true,
+      }));
+      return plateRead;
+    }
+  };
+
   const handleCheckIn = async (checkInData: CheckIn) => {
     try {
-      //rest before update anything
+      if (!plateCamRef || !bodyCamRef) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: "Không tìm thấy camera",
+          isError: true,
+        }));
+        return;
+      }
+      const current = new Date();
+      //reset before update anything
       setCheckInInfo((prev) => initCheckInInfo);
       if (checkInInfo.cardText.length > 10) {
         setCheckInInfo(() => ({
@@ -266,79 +350,66 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         handleReset();
         return;
       }
-      if (plateCamRef.current && bodyCamRef.current) {
-        const plateNumberBody = new FormData();
-        const plateImageSrc = (plateCamRef.current as any).getScreenshot();
-        const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
+      const plateRead = await handlePlateDetection();
+
+      //* set up data for checkin
+      const plateImageSrc = (plateCamRef.current as any).getScreenshot();
+      const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
+      setCheckInInfo((prev) => ({
+        ...prev,
+        plateImgSrc: plateImageSrc,
+        ImageBodySrc: bodyImageSrc,
+      }));
+      const plateFile = base64StringToFile(plateImageSrc, "uploaded_image.png");
+      const bodyFile = base64StringToFile(bodyImageSrc, "uploaded_image.png");
+
+      let isElectric = false;
+      if (plateRead === "") {
         setCheckInInfo((prev) => ({
           ...prev,
-          plateImgSrc: plateImageSrc,
-          ImageBodySrc: bodyImageSrc,
+          message: PLATE_NOT_READ,
+          plateText: plateRead,
+          time: current,
+          isError: true,
         }));
-        const plateFile = base64StringToFile(
-          plateImageSrc,
-          "uploaded_image.png"
-        );
-        const bodyFile = base64StringToFile(bodyImageSrc, "uploaded_image.png");
-
-        plateNumberBody.append("upload", plateFile);
-        plateNumberBody.append("regions", "vn");
-        await plateDetectionMutation.mutateAsync(plateNumberBody, {
-          onSuccess: async (
-            plateDetectionRes: SuccessResponse<LicenseResponse>
-          ) => {
-            const hasResult = plateDetectionRes.data.results[0];
-            const current = new Date();
-            let plateRead = "";
-            if (!hasResult) {
-              setCheckInInfo((prev) => ({
-                ...prev,
-                message: PLATE_NOT_READ,
-                isError: true,
-                plateImg: plateImageSrc,
-                time: current,
-              }));
-            } else {
-              plateRead = plateDetectionRes.data.results[0].plate.toUpperCase();
-            }
-            checkInData.ImageIn = plateImageSrc;
-            const checkInBody = new FormData();
-            if (!PLATE_NUMBER_REGEX.test(plateRead)) {
-              setCheckInInfo((prev) => ({
-                ...prev,
-                message: PLATE_NOT_VALID,
-                plateText: plateRead,
-                time: current,
-                isError: true,
-              }));
-              return;
-            }
-            checkInBody.append("PlateNumber", plateRead);
-            setCheckInInfo((prev) => ({
-              ...prev,
-              cardText: checkInData.CardId,
-            }));
-            checkInBody.append("CardNumber", checkInData.CardId);
-            checkInBody.append("ImageIn", plateFile);
-            checkInBody.append("ImageBodyIn", bodyFile);
-            checkInBody.append("GateInId", gateId);
-
-            setValue("PlateNumber", checkInData.PlateNumber);
-            setCheckInInfo((prev) => ({
-              ...prev,
-              plateText: plateRead,
-              plateImg: plateImageSrc,
-              time: current,
-            }));
-            await handleCustomerCheckIn(checkInBody);
-          },
-        });
+      } else {
+        isElectric = ELECTRIC_PLATE_NUMBER_REGEX.test(plateRead);
+        const isMotorbike = MOTORBIKE_PLATE_NUMBER_REGEX.test(plateRead);
+        //* test if the palte number match motorbike plate or electric plate
+        if (!isElectric && !isMotorbike) {
+          setCheckInInfo((prev) => ({
+            ...prev,
+            message: PLATE_NOT_VALID,
+            plateText: plateRead,
+            time: current,
+            isError: true,
+          }));
+        }
       }
+      const checkInBody = setCustomerCheckInData({
+        bodyFile,
+        cardText: checkInData.CardId,
+        gateId,
+        ImageIn: plateFile,
+        plateText: plateRead,
+      });
+      setCheckInInfo((prev) => ({
+        ...prev,
+        cardText: checkInData.CardId,
+      }));
+      setValue("PlateNumber", checkInData.PlateNumber);
+      setCheckInInfo((prev) => ({
+        ...prev,
+        plateText: plateRead,
+        plateImg: plateImageSrc,
+        time: current,
+      }));
+
+      await handleCustomerCheckIn(checkInBody);
     } catch (error) {
       const err = error as AxiosError;
       if (err.response) {
         if (err.response.status === HttpStatusCode.TooManyRequests) {
-          console.log("hi");
           setCheckInInfo((prev) => ({
             ...prev,
             message: "Hãy thao tác chậm lại",
@@ -348,6 +419,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           return;
         }
       }
+
       setCheckInInfo((prev) => ({
         ...prev,
         message: "Lỗi hệ thống",
@@ -355,6 +427,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       }));
     }
   };
+
   const handleCustomerCheckIn = async (body: any) => {
     try {
       await customerCheckInMutation.mutateAsync(body as any, {
@@ -390,12 +463,32 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
               ...prev,
               customerType: GUEST,
             }));
+            return;
+          }
+
+          if ((error.response.data as any).PlateNumber[0] === PLATE_NOT_READ) {
+            setCheckInInfo((prev) => ({
+              ...prev,
+              message: "Không có biển số xe",
+              isError: true,
+            }));
+            reset();
+            return;
+          }
+
+          if (error.response.data.message === PLATE_NUMBER_NOT_MATCHED) {
+            setCheckInInfo((prev) => ({
+              ...prev,
+              message: WRONG_NON_PAID_CUSTOMER,
+              isError: true,
+            }));
+            return;
           }
 
           if (error.response.data.message === CARD_INACTIVE) {
             setCheckInInfo((prev) => ({
               ...prev,
-              message: "THẺ KHÔNG TỒN TẠI TRONG HỆ THỐNG",
+              message: CARD_NOT_ACTIVE,
               isError: true,
             }));
           }

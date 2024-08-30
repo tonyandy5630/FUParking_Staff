@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import FormInput from "@components/Form/Input";
 import { GUEST } from "@constants/customer.const";
@@ -24,6 +24,9 @@ import {
   FOCUS_CARD_INPUT_KEY,
 } from "../../../hotkeys/key";
 import { GATE_IN } from "@constants/gate.const";
+import { ELECTRIC_PLATE_NUMBER_REGEX } from "@constants/regex";
+import Image from "@components/Image";
+import { formatPlateNumber } from "@utils/plate-number";
 
 type Props = {
   methods: UseFormReturn<CheckInSchemaType>;
@@ -53,9 +56,11 @@ export default function CheckInVehicleForm({
     setFocus,
   } = methods;
   const [showInputPlate, setShowInputPlate] = useState(false);
+  const isElectric = useRef(false);
   useHotkeys(
     FOCUS_CARD_INPUT_KEY,
     () => {
+      setShowInputPlate(false);
       setFocus("CardId");
     },
     {
@@ -117,6 +122,15 @@ export default function CheckInVehicleForm({
     return [];
   }, [isSuccessVehicleTypes, vehicleTypesData?.data.data]);
 
+  useEffect(() => {
+    const plate = checkInInfo.plateText;
+    if (ELECTRIC_PLATE_NUMBER_REGEX.test(plate)) {
+      isElectric.current = true;
+      return;
+    }
+    isElectric.current = false;
+  }, [checkInInfo.plateText]);
+  console.log(checkInInfo.croppedPlateImage);
   return (
     <>
       <FormProvider {...methods}>
@@ -124,7 +138,7 @@ export default function CheckInVehicleForm({
           <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardId' autoFocus={true} />
           </div>
-          <FormInfoRow className='grid-cols-2'>
+          <FormInfoRow className='grid-cols-[1fr_1fr_auto]'>
             <InfoSection>
               <InfoVehicle label='Ngày vào'>
                 {getDayFromString(checkInInfo.time?.toString())}
@@ -136,7 +150,9 @@ export default function CheckInVehicleForm({
                 {showInputPlate ? (
                   <FormInput name='PlateNumber' />
                 ) : (
-                  <span className='text-red-500'>{checkInInfo.plateText}</span>
+                  <span className='text-red-500'>
+                    {formatPlateNumber(checkInInfo.plateText)}
+                  </span>
                 )}
               </InfoVehicle>
             </InfoSection>
@@ -154,11 +170,21 @@ export default function CheckInVehicleForm({
                 <span className='text-red-500'>{checkInInfo.customerType}</span>
               </InfoVehicle>
             </InfoSection>
-            {/* <InfoSection className='items-center justify-center grid-rows-1'>
-              <div className=' w-[100px] h-full'>
-                <Image src='' isLoading={false} />
+            <InfoSection className='items-center justify-center !grid-rows-1'>
+              <div
+                className={`${
+                  checkInInfo.croppedPlateImage !== "" ||
+                  checkInInfo.croppedPlateImage !== undefined
+                    ? "min-w-40 max-w-40"
+                    : "w-full"
+                }  h-full`}
+              >
+                <Image
+                  src={checkInInfo.croppedPlateImage ?? ""}
+                  isLoading={false}
+                />
               </div>
-            </InfoSection> */}
+            </InfoSection>
           </FormInfoRow>
           <FormNameRow
             isLoading={isLoading}

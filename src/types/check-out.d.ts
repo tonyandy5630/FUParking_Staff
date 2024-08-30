@@ -31,6 +31,7 @@ export type CheckOutInfo = {
   timeOut?: string;
   message: string;
   isError?: boolean;
+  croppedImagePlate: string;
 };
 
 export type CheckOutResponse = {

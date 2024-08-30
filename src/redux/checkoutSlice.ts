@@ -18,6 +18,7 @@ export const initCheckOutInfo: CheckOutInfo = {
   timeOut: "",
   message: NEXT_CUSTOMER,
   isError: false,
+  croppedImagePlate: "",
 };
 
 export const checkoutSlice = createSlice({

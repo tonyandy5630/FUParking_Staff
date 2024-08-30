@@ -14,3 +14,5 @@ export const SLOW_DOWN_ACTION = "Hãy thao tác chậm lại";
 export const PLATE_NOT_VALID = "Biển số không hợp lệ";
 export const PARKING_SESSION = "Đang giữ xe";
 export const CLOSED_SESSION = "Đã kết thúc";
+export const WRONG_NON_PAID_CUSTOMER = "Xe không thuộc thẻ này";
+export const CARD_NOT_ACTIVE = "Thẻ không được hoạt động";

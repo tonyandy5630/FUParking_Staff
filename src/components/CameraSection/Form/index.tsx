@@ -57,7 +57,7 @@ export function FormNameRow({
     >
       <div
         className={`grid items-center justify-center col-span-1 p-2 text-base text-white uppercase w-fit bg-primary ${
-          gateType === GATE_IN ? "bg-blue-500" : ""
+          gateType === GATE_IN ? "!bg-blue-500" : ""
         }`}
       >
         {label}

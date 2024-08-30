@@ -59,7 +59,8 @@ import {
 } from "../../redux/checkoutSlice";
 import ParkingContainer from "@components/ParkingContainer";
 import CardInfoRow from "@components/SessionCard/CardInfo";
-import { PLATE_NUMBER_REGEX } from "@constants/regex";
+import { MOTORBIKE_PLATE_NUMBER_REGEX } from "@constants/regex";
+import cropImageToBase64 from "@utils/image";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -256,7 +257,9 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       plateNumberBody.append("regions", "vn");
 
       plateDetectionMutation.mutate(plateNumberBody, {
-        onSuccess: (plateDetectionRes: SuccessResponse<LicenseResponse>) => {
+        onSuccess: async (
+          plateDetectionRes: SuccessResponse<LicenseResponse>
+        ) => {
           const plateData = plateDetectionRes.data.results[0];
           if (!plateData) {
             dispatch(
@@ -272,6 +275,11 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
             setTriggerInfoByCard(false);
             throw new Error("Plate data not found");
           }
+          const cropCordinates = plateData.box;
+          const croppedImage = await cropImageToBase64(
+            plateImageSrc,
+            cropCordinates
+          );
           setTriggerInfoByCard(false);
           const plateRead = plateData.plate.toUpperCase();
           dispatch(
@@ -281,6 +289,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
               plateImgOut: plateImageSrc,
               plateTextOut: plateRead,
               bodyImgOut: bodyImageSrc,
+              croppedImagePlate: croppedImage,
             })
           );
         },
@@ -328,7 +337,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       return;
     }
 
-    if (!PLATE_NUMBER_REGEX.test(plateNumber)) {
+    if (!MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber)) {
       dispatch(
         setNewCardInfo({
           ...checkOutInfo,
@@ -458,7 +467,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         })
       );
 
-      if (!PLATE_NUMBER_REGEX.test(plateNumber)) {
+      if (!MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber)) {
         dispatch(
           setNewCardInfo({
             ...checkOutInfo,

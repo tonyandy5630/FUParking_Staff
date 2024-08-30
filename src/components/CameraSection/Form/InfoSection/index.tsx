@@ -47,7 +47,7 @@ export function InfoVehicle({
           : "grid-flow-col grid-rows-2"
       } px-2 border border-solid  border-grey-400`}
     >
-      <div className='grid col-span-1 w-fit'>{label}</div>
+      <div className='grid col-span-1 text-sm w-fit'>{label}</div>
       <div className={`font-bold ${col ? " text-center" : "text-start"}`}>
         {children}
       </div>

@@ -18,7 +18,7 @@ export default function CardInfoRow({
   const show = useMemo(() => {
     if (isLoading) return <Skeleton className='w-full h-4' />;
     return children === undefined || children === "" ? (
-      <p className='text-base'>{CARD_NOT_INFO}</p>
+      <p className='text-base'>{children}</p>
     ) : (
       children
     );

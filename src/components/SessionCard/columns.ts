@@ -5,7 +5,7 @@ import { formatPlateNumber } from "@utils/plate-number";
 export const SessionCardColumns: ColumnDef<SessionCard>[] = [
   {
     accessorKey: "index",
-    header: "Số thứ tự",
+    header: "STT",
     size: 10,
   },
   {

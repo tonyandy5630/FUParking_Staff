@@ -11,6 +11,7 @@ import { RootState } from "@utils/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { SessionCard } from "@my_types/session-card";
 import {
+  initSessionCard,
   resetSessionInfo,
   setNewSessionInfo,
   setSessionTableItem,
@@ -19,6 +20,7 @@ import toLocaleDate from "@utils/date";
 import { formatPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 import {
   CLOSED_SESSION_STATUS,
+  MISSING_CARD_STATUS,
   PARKED_SESSION_STATUS,
 } from "@constants/session.const";
 import {
@@ -40,6 +42,7 @@ import {
 } from "@utils/schema/sessionSchema";
 import wrapText from "@utils/text";
 import { watch } from "original-fs";
+import { initCheckOutInfo } from "../../../redux/checkoutSlice";
 
 export default function CardCheckSection() {
   const cardInfo = useSelector((state: RootState) => state.session);
@@ -155,7 +158,16 @@ export default function CardCheckSection() {
     if (cardNumberRef.current) cardNumberRef.current.value = "";
     if (sessionId === null) return;
     if (sessionStatus === CLOSED_SESSION_STATUS) {
-      dispatch(resetSessionInfo());
+      dispatch(
+        setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ trống" })
+      );
+      return;
+    }
+
+    if (status === MISSING_CARD_STATUS) {
+      dispatch(
+        setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ đã bị mất" })
+      );
       return;
     }
 
@@ -196,7 +208,7 @@ export default function CardCheckSection() {
     <div className='grid col-span-1 gap-3 grid-rows-[auto_2fr_auto] '>
       <RectangleContainer>
         <div className='grid items-center justify-center min-w-full text-4xl font-bold uppercase'>
-          <h4>Tra cứu thẻ</h4>
+          <h4>thông tin</h4>
         </div>
         <form
           className='absolute right-0 border opacity-0 top-20'
@@ -257,15 +269,12 @@ export default function CardCheckSection() {
           </CardInfoRow>
         </FormProvider>
 
-        <CardInfoRow isLoading={isLoadingCard} label='Trạng thái thẻ'>
+        <CardInfoRow isLoading={isLoadingCard} label='Trạng thái'>
           {cardInfo.cardStatus}
         </CardInfoRow>
         <div className='flex items-center px-4'>
           <Separator />
         </div>
-        <CardInfoRow isLoading={isLoadingCard} label='Session ID'>
-          {wrapText(20, cardInfo.sessionId)}
-        </CardInfoRow>
         <CardInfoRow isLoading={isLoadingCard} label='Loại xe'>
           {cardInfo.vehicleType}
         </CardInfoRow>

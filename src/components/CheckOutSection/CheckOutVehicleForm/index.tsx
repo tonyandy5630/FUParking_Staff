@@ -167,7 +167,7 @@ export default function CheckOutVehicleForm({
           <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardNumber' autoFocus={true} />
           </div>
-          <FormInfoRow className='grid-cols-2'>
+          <FormInfoRow className='grid-cols-[1.5fr_1fr_auto]'>
             <InfoSection className='grid-cols-2 grid-rows-[repeat(4,30px)]'>
               <InfoVehicle label='Ngày vào'>
                 {getDayFromString(checkOutInfo.timeIn)}
@@ -213,11 +213,21 @@ export default function CheckOutVehicleForm({
                 </span>
               </InfoVehicle>
             </InfoSection>
-            {/* <InfoSection className='items-center justify-center grid-rows-1'>
-              <div className=' w-[100px] h-full'>
-                <Image src='' isLoading={false} />
+            <InfoSection className='items-center justify-center !grid-rows-1'>
+              <div
+                className={`${
+                  checkOutInfo.croppedImagePlate !== "" ||
+                  checkOutInfo.croppedImagePlate !== undefined
+                    ? "max-w-40"
+                    : "w-full"
+                }  h-full`}
+              >
+                <Image
+                  src={checkOutInfo.croppedImagePlate ?? ""}
+                  isLoading={false}
+                />
               </div>
-            </InfoSection> */}
+            </InfoSection>
           </FormInfoRow>
           <FormNameRow
             isLoading={isLoading}

@@ -1,5 +1,5 @@
 import { LENGTH_WARNING } from "@constants/auth.const";
-import { PLATE_NUMBER_REGEX } from "@constants/regex";
+import { MOTORBIKE_PLATE_NUMBER_REGEX } from "@constants/regex";
 import { UseFormGetValues } from "react-hook-form";
 
 export const MAX_CARD_NUMBER_LENGTH = 11;
@@ -21,7 +21,7 @@ const getCheckInRules = (getValues?: UseFormGetValues<any>) => ({
   },
   plateNumber: {
     pattern: {
-      value: PLATE_NUMBER_REGEX,
+      value: MOTORBIKE_PLATE_NUMBER_REGEX,
       message: "Biển số không hợp lệ",
     },
     minLength: {

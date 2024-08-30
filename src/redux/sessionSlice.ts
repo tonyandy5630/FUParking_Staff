@@ -2,7 +2,7 @@ import { SessionCard } from "@my_types/session-card";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-const initState: SessionCard = {
+export const initSessionCard: SessionCard = {
   cardNumber: "",
   cardStatus: "",
   gateIn: "",
@@ -19,13 +19,13 @@ const initSessionTable: SessionCard[] = [];
 
 export const sessionSlice = createSlice({
   name: "session",
-  initialState: initState,
+  initialState: initSessionCard,
   reducers: {
     setNewSessionInfo: (state, { payload }: PayloadAction<SessionCard>) => {
       Object.assign(state, JSON.parse(JSON.stringify(payload)));
     },
     resetSessionInfo: (state) => {
-      Object.assign(state, JSON.parse(JSON.stringify(initState)));
+      Object.assign(state, JSON.parse(JSON.stringify(initSessionCard)));
     },
   },
 });
