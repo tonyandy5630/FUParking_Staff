@@ -1,3 +1,5 @@
+import { SessionStatus } from "@constants/session.const";
+
 type SessionCard = {
   index?: number;
   cardNumber: string;
@@ -25,6 +27,7 @@ export type CardInfo = {
   imageInUrl: string;
   imageInBodyUrl: string;
   sessionId: string;
+  sessionStatus: SessionStatus;
 };
 
 export type Session = {

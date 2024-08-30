@@ -71,7 +71,6 @@ export type Props = {
 
 function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   const { gateId } = useSelectGate(GATE_OUT);
-
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
   const [triggerInfoByCard, setTriggerInfoByCard] = useState(false);

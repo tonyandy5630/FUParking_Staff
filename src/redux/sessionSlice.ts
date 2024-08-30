@@ -24,6 +24,9 @@ export const sessionSlice = createSlice({
     setNewSessionInfo: (state, { payload }: PayloadAction<SessionCard>) => {
       Object.assign(state, JSON.parse(JSON.stringify(payload)));
     },
+    resetSessionInfo: (state) => {
+      Object.assign(state, JSON.parse(JSON.stringify(initState)));
+    },
   },
 });
 
@@ -50,5 +53,5 @@ export const sessionTableSlice = createSlice({
 export const { setNewTable, setSessionTableItem } = sessionTableSlice.actions;
 export const sessionTableReducer = sessionTableSlice.reducer;
 
-export const { setNewSessionInfo } = sessionSlice.actions;
+export const { setNewSessionInfo, resetSessionInfo } = sessionSlice.actions;
 export default sessionSlice.reducer;

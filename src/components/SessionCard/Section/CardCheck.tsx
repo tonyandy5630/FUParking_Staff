@@ -11,6 +11,7 @@ import { RootState } from "@utils/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { SessionCard } from "@my_types/session-card";
 import {
+  resetSessionInfo,
   setNewSessionInfo,
   setSessionTableItem,
 } from "../../../redux/sessionSlice";
@@ -20,7 +21,11 @@ import {
   CLOSED_SESSION_STATUS,
   PARKED_SESSION_STATUS,
 } from "@constants/session.const";
-import { CARD_NOT_INFO } from "@constants/message.const";
+import {
+  CARD_NOT_INFO,
+  CLOSED_SESSION,
+  PARKING_SESSION,
+} from "@constants/message.const";
 import { Button } from "@components/ui/button";
 import FormInput from "@components/Form/Input";
 import {
@@ -137,7 +142,6 @@ export default function CardCheckSection() {
     if (!cardInfoData) return;
 
     const {
-      cardNumber,
       imageInBodyUrl,
       imageInUrl,
       status,
@@ -146,10 +150,14 @@ export default function CardCheckSection() {
       sessionTimeIn,
       sessionVehicleType,
       sessionId,
+      sessionStatus,
     } = cardInfoData;
     if (cardNumberRef.current) cardNumberRef.current.value = "";
     if (sessionId === null) return;
-    // if (status === CLOSED_SESSION_STATUS) return;
+    if (sessionStatus === CLOSED_SESSION_STATUS) {
+      dispatch(resetSessionInfo());
+      return;
+    }
 
     const newCardInfo: SessionCard = {
       gateIn: sessionGateIn,
@@ -161,8 +169,10 @@ export default function CardCheckSection() {
       sessionId: sessionId,
       cardNumber: cardValue,
       cardStatus:
-        status === PARKED_SESSION_STATUS ? "Đang giữ xe" : CARD_NOT_INFO,
-      isClosed: status === CLOSED_SESSION_STATUS || cardInfo.isClosed,
+        sessionStatus === PARKED_SESSION_STATUS
+          ? PARKING_SESSION
+          : CARD_NOT_INFO,
+      isClosed: sessionStatus !== PARKED_SESSION_STATUS && cardInfo.isClosed,
     };
 
     dispatch(setNewSessionInfo(newCardInfo));

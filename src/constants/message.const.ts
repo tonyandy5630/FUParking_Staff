@@ -12,3 +12,5 @@ export const PLEASE_CHECK_OUT = "Hủy hoặc hoàn tất check out xe trươ
 export const CAMERA_NOT_FOUND = "KHÔNG TÌM THẤY CAMERA";
 export const SLOW_DOWN_ACTION = "Hãy thao tác chậm lại";
 export const PLATE_NOT_VALID = "Biển số không hợp lệ";
+export const PARKING_SESSION = "Đang giữ xe";
+export const CLOSED_SESSION = "Đã kết thúc";
