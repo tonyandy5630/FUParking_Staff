@@ -9,10 +9,8 @@ import toLocaleDate, {
   getStartAndEndDatesOfMonth,
   getStartAndEndDatesOfWeek,
 } from "@utils/date";
-import { formatPlateNumber } from "@utils/plate-number";
 import { useDispatch, useSelector } from "react-redux";
 import { setNewSessionInfo, setNewTable } from "../../../redux/sessionSlice";
-import wrapText from "@utils/text";
 import useGetParkingId from "../../../hooks/useGetParkingId";
 import { PARKED_SESSION_STATUS } from "@constants/session.const";
 import { RootState } from "@utils/store";
@@ -21,6 +19,8 @@ import { FITLER_DATE_VALUE, SelectDateFilter } from "@constants/selects.const";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { useDebounce } from "use-debounce";
+import { ReloadIcon } from "@radix-ui/react-icons";
+import { Button } from "@components/ui/button";
 
 function SessionTable() {
   const parkingId = useGetParkingId();
@@ -47,6 +47,9 @@ function SessionTable() {
     isLoading: isLoadingSession,
     isSuccess: isSuccessSession,
     isError: isErrorSession,
+    isRefetching: isRefetchingSession,
+    isRefetchError: isRefetchError,
+    refetch,
   } = useQuery({
     queryKey: [
       "/get-session-parking-area",
@@ -120,35 +123,40 @@ function SessionTable() {
 
   return (
     <div className='grid grid-rows-[auto_1fr] h-full justify-items-end'>
-      <div className='grid max-h-full grid-flow-col gap-2 pb-1 w-fit auto-cols-auto'>
-        <div className='flex items-center w-full'>
-          <Label htmlFor='search-plate-input' className=' min-w-16'>
-            Tìm kiếm
-          </Label>
-          <Input
-            id='search-plate-input'
-            value={plateText}
-            onChange={handlePlateTextChange}
-            placeholder='Nhập biển số'
+      <div className='grid justify-between w-full max-h-full grid-flow-col gap-2 pb-1 auto-cols-auto'>
+        <Button variant='ghost' onClick={() => refetch()}>
+          <ReloadIcon />
+        </Button>
+        <div className='flex gap-2'>
+          <div className='flex items-center min-w-fit'>
+            <Label htmlFor='search-plate-input' className=' min-w-16'>
+              Tìm kiếm
+            </Label>
+            <Input
+              id='search-plate-input'
+              value={plateText}
+              onChange={handlePlateTextChange}
+              placeholder='Nhập biển số'
+            />
+          </div>
+          <MySelect
+            options={SelectDateFilter}
+            label='Thống kê'
+            placeholder='Chọn thời gian'
+            value={dateFilter}
+            onValueChange={handleSetDateFilter}
           />
         </div>
-        <MySelect
-          options={SelectDateFilter}
-          label='Thống kê'
-          placeholder='Chọn thời gian'
-          value={dateFilter}
-          onValueChange={handleSetDateFilter}
-        />
       </div>
       <DataTable
         columns={SessionCardColumns}
         data={sessionTable}
         onRowClick={setCardChecker}
-        isLoading={isLoadingSession}
+        isLoading={isLoadingSession || isRefetchingSession}
         totalRecord={sessionData?.data.totalRecord ?? 0}
         onPaginationChange={onPaginationChange}
         pagination={pagination}
-        isError={isErrorSession}
+        isError={isErrorSession || isRefetchError}
       />
     </div>
   );
