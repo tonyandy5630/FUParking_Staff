@@ -32,19 +32,15 @@ import { GATE_OUT } from "@constants/gate.const";
 import CheckOutVehicleForm from "./CheckOutVehicleForm";
 import { SizeTypes } from "@my_types/my-camera";
 import {
-  CAMERA_NOT_FOUND,
   CARD_NOT_INFO,
-  GUEST_EXIT_SUCCESSFULLY,
   PLATE_MATCH,
   PLATE_NOT_MATCH,
   PLATE_NOT_READ,
   PLATE_NOT_VALID,
-  PLEASE_CHECK_OUT,
   SLOW_DOWN_ACTION,
 } from "@constants/message.const";
 import { getLocalISOString } from "@utils/date";
-import { HotkeysProvider, useHotkeys } from "react-hotkeys-hook";
-import { SUBMIT_LEFT_HOTKEY, SUBMIT_RIGHT_HOTKEY } from "../../hotkeys/key";
+import { HotkeysProvider } from "react-hotkeys-hook";
 import PAGE from "../../../url";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
@@ -58,7 +54,6 @@ import {
   setNewCardInfo,
 } from "../../redux/checkoutSlice";
 import ParkingContainer from "@components/ParkingContainer";
-import CardInfoRow from "@components/SessionCard/CardInfo";
 import cropImageToBase64 from "@utils/image";
 import { isValidPlateNumber } from "@utils/plate-number";
 
@@ -241,17 +236,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           let plateRead = "";
           let croppedImage = "";
           let message = "";
+
           if (!plateData) {
-            // dispatch(
-            //   setNewCardInfo({
-            //     ...checkOutInfo,
-            //     message: PLATE_NOT_READ,
-            //     plateImgOut: plateImageSrc,
-            //     bodyImgOut: bodyImageSrc,
-            //     timeOut: new Date().toString(),
-            //     isError: true,
-            //   })
-            // );
             message = PLATE_NOT_READ;
           } else {
             const cropCordinates = plateData.box;
@@ -261,6 +247,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
               cropCordinates
             );
           }
+
           setTriggerInfoByCard(false);
           dispatch(
             setNewCardInfo({

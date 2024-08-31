@@ -27,10 +27,9 @@ import {
   LOGGED_IN,
 } from "@channels/index";
 import { AxiosError, HttpStatusCode } from "axios";
+import { GATE_IN, GATE_OUT } from "@constants/gate.const";
 
 const IMG_SIZE = 170;
-const GATE_IN = "IN";
-const GATE_OUT = "OUT";
 
 export default function Login(): JSX.Element {
   const methods = useForm({
@@ -99,21 +98,19 @@ export default function Login(): JSX.Element {
       });
     } catch (err: any) {
       const error = err as AxiosError;
-      console.log(error.response?.status);
+      console.log(error.response?.status === HttpStatusCode.Unauthorized);
       if (error.response?.status === HttpStatusCode.Unauthorized) {
-        setError("password", {
-          type: "validate",
-          message: "Sai mật khẩu hoặc tài khoản",
-        });
         setError("email", {
           type: "custom",
           message: "Sai mật khẩu hoặc tài khoản",
         });
         setFocus("email");
       }
-      reset();
+      reset({}, { keepErrors: true });
     }
   };
+
+  console.log(errors);
 
   return (
     <div className='flex flex-col items-center justify-center w-full h-full min-h-full'>
