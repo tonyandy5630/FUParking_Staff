@@ -139,6 +139,21 @@ export default function CheckInVehicleForm({
             <FormInput name='CardId' autoFocus={true} />
           </div>
           <FormInfoRow className='grid-cols-[1fr_1fr_auto]'>
+            <InfoSection className='items-center justify-center !grid-rows-1'>
+              <div
+                className={`${
+                  checkInInfo.croppedPlateImage !== "" ||
+                  checkInInfo.croppedPlateImage !== undefined
+                    ? "min-w-40 max-w-40"
+                    : "w-full"
+                }  h-full`}
+              >
+                <Image
+                  src={checkInInfo.croppedPlateImage ?? ""}
+                  isLoading={false}
+                />
+              </div>
+            </InfoSection>
             <InfoSection>
               <InfoVehicle label='Ngày vào'>
                 {getDayFromString(checkInInfo.time?.toString())}
@@ -156,6 +171,7 @@ export default function CheckInVehicleForm({
                 )}
               </InfoVehicle>
             </InfoSection>
+
             <InfoSection numberOfRow={2}>
               <InfoVehicle label='Loại xe' className='grid-cols-[100px_1fr]'>
                 {checkInInfo.customerType === GUEST && (
@@ -169,21 +185,6 @@ export default function CheckInVehicleForm({
               <InfoVehicle label='Khách hàng' col={true}>
                 <span className='text-red-500'>{checkInInfo.customerType}</span>
               </InfoVehicle>
-            </InfoSection>
-            <InfoSection className='items-center justify-center !grid-rows-1'>
-              <div
-                className={`${
-                  checkInInfo.croppedPlateImage !== "" ||
-                  checkInInfo.croppedPlateImage !== undefined
-                    ? "min-w-40 max-w-40"
-                    : "w-full"
-                }  h-full`}
-              >
-                <Image
-                  src={checkInInfo.croppedPlateImage ?? ""}
-                  isLoading={false}
-                />
-              </div>
             </InfoSection>
           </FormInfoRow>
           <FormNameRow

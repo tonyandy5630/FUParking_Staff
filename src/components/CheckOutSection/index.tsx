@@ -59,7 +59,10 @@ import {
 } from "../../redux/checkoutSlice";
 import ParkingContainer from "@components/ParkingContainer";
 import CardInfoRow from "@components/SessionCard/CardInfo";
-import { MOTORBIKE_PLATE_NUMBER_REGEX } from "@constants/regex";
+import {
+  ELECTRIC_PLATE_NUMBER_REGEX,
+  MOTORBIKE_PLATE_NUMBER_REGEX,
+} from "@constants/regex";
 import cropImageToBase64 from "@utils/image";
 
 export type Props = {
@@ -336,8 +339,10 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (!plateNumber) {
       return;
     }
+    const isMotorbikePlate = MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber);
+    const isElectricMotorPlate = ELECTRIC_PLATE_NUMBER_REGEX.test(plateNumber);
 
-    if (!MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber)) {
+    if (!isMotorbikePlate && !isElectricMotorPlate) {
       dispatch(
         setNewCardInfo({
           ...checkOutInfo,
@@ -467,17 +472,17 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         })
       );
 
-      if (!MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber)) {
-        dispatch(
-          setNewCardInfo({
-            ...checkOutInfo,
-            plateTextOut: plateNumber,
-            message: PLATE_NOT_VALID,
-            isError: true,
-          })
-        );
-        return;
-      }
+      // if (!MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber)) {
+      //   dispatch(
+      //     setNewCardInfo({
+      //       ...checkOutInfo,
+      //       plateTextOut: plateNumber,
+      //       message: PLATE_NOT_VALID,
+      //       isError: true,
+      //     })
+      //   );
+      //   return;
+      // }
 
       const bodyImageFile = base64StringToFile(
         checkOutInfo.bodyImgOut,

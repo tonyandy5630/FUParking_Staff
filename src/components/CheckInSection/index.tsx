@@ -376,7 +376,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         isElectric = ELECTRIC_PLATE_NUMBER_REGEX.test(plateRead);
         const isMotorbike = MOTORBIKE_PLATE_NUMBER_REGEX.test(plateRead);
         //* test if the palte number match motorbike plate or electric plate
-        if (!isElectric && !isMotorbike) {
+        if (!isElectric || !isMotorbike) {
           setCheckInInfo((prev) => ({
             ...prev,
             message: PLATE_NOT_VALID,
