@@ -37,7 +37,6 @@ type Props = {
   onCheckOut: any;
   checkOutInfo: CheckOutInfo;
   isLoading?: boolean;
-  onCashCheckOut: () => void;
   isError?: boolean;
   position: LanePosition;
   onMissingCardCheckOut: () => Promise<void>;
@@ -49,7 +48,6 @@ export default function CheckOutVehicleForm({
   onCheckOut,
   methods,
   isLoading,
-  onCashCheckOut,
   isError,
   position,
   onMissingCardCheckOut,
@@ -167,7 +165,22 @@ export default function CheckOutVehicleForm({
           <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardNumber' autoFocus={true} />
           </div>
-          <FormInfoRow className='grid-cols-[1.5fr_1fr_auto]'>
+          <FormInfoRow className='grid-cols-[auto_1.5fr_1fr]'>
+            <InfoSection className='items-center justify-center !grid-rows-1'>
+              <div
+                className={`${
+                  checkOutInfo.croppedImagePlate !== "" ||
+                  checkOutInfo.croppedImagePlate !== undefined
+                    ? "max-w-32 max-h-32"
+                    : "w-full"
+                }  h-full`}
+              >
+                <Image
+                  src={checkOutInfo.croppedImagePlate ?? ""}
+                  isLoading={false}
+                />
+              </div>
+            </InfoSection>
             <InfoSection className='grid-cols-2 grid-rows-[repeat(4,30px)]'>
               <InfoVehicle label='Ngày vào'>
                 {getDayFromString(checkOutInfo.timeIn)}
@@ -212,21 +225,6 @@ export default function CheckOutVehicleForm({
                   {checkOutInfo.customerType}
                 </span>
               </InfoVehicle>
-            </InfoSection>
-            <InfoSection className='items-center justify-center !grid-rows-1'>
-              <div
-                className={`${
-                  checkOutInfo.croppedImagePlate !== "" ||
-                  checkOutInfo.croppedImagePlate !== undefined
-                    ? "max-w-40"
-                    : "w-full"
-                }  h-full`}
-              >
-                <Image
-                  src={checkOutInfo.croppedImagePlate ?? ""}
-                  isLoading={false}
-                />
-              </div>
             </InfoSection>
           </FormInfoRow>
           <FormNameRow
