@@ -1,4 +1,4 @@
-import { SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
+import { SyntheticEvent, useEffect, useRef, useState } from "react";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import FormInput from "@components/Form/Input";
 import { getDayFromString, getHourMinuteFromString } from "@utils/date";
@@ -9,10 +9,7 @@ import FormContainer, {
 import InfoSection, {
   InfoVehicle,
 } from "@components/CameraSection/Form/InfoSection";
-import { SelectOptions } from "@components/Form/FormSelect";
 import { CheckOutSchemaType } from "@utils/schema/checkoutSchema";
-import { Button } from "@components/ui/button";
-import { getCardCheckOutAPI } from "@apis/check-out.api";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import {
@@ -29,8 +26,7 @@ import { RootState } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
 import { resetCurrentCardInfo } from "../../../redux/checkoutSlice";
-import { getFacetedMinMaxValues } from "@tanstack/react-table";
-import { GATE_IN, GATE_OUT } from "@constants/gate.const";
+import { GATE_OUT } from "@constants/gate.const";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -59,6 +55,7 @@ export default function CheckOutVehicleForm({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dispatch = useDispatch();
   const [showInputPlate, setShowInputPlate] = useState<boolean>(false);
+
   //* submit form
   const handleSubmitCheckOut = () => {
     if (buttonRef.current) {

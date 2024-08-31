@@ -102,6 +102,7 @@ export default function CardCheckSection() {
       sessionId,
       sessionStatus,
     } = cardInfoData;
+
     if (cardNumberRef.current) cardNumberRef.current.value = "";
     if (sessionId === null) return;
     if (sessionStatus === CLOSED_SESSION_STATUS) {

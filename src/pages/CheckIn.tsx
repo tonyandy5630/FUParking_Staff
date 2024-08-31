@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import CheckInSection from "@components/CheckInSection";
 import LaneContainer from "@components/LaneContainer";
 import useGetCamera from "../hooks/useGetCamera";
+import useRefresh from "../hooks/useRefresh";
 export default function CheckInPage() {
   const cameraIds = useGetCamera();
+  useRefresh();
 
   return (
     <>
