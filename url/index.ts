@@ -6,6 +6,7 @@ const PAGE = {
   SELECT_GATE_TYPE: "/select-gate-type",
   CARD_CHECKER: "/card/check",
   MISSING_CARD: "/card/missing",
+  VERIFY_VEHICLE: "/customer/verify",
 };
 
 export default PAGE;

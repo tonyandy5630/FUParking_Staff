@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@components/ui/dialog";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { Button } from "@components/ui/button";
 
@@ -31,8 +31,11 @@ import InfoSection, {
   InfoVehicle,
 } from "@components/CameraSection/Form/InfoSection";
 import Message from "@components/Message";
+import { useHotkeys } from "react-hotkeys-hook";
+import { CANCELED_HOTKEY } from "../../hotkeys/key";
+import PAGE from "../../../url";
 
-const initalInfo: UpdateVehicleTypeInfo = {
+const initialInfo: UpdateVehicleTypeInfo = {
   vehicleType: "",
   createDate: "",
   plateImage: "",
@@ -48,7 +51,7 @@ type Props = {
 
 function UpdateVehicleTypeDialog({
   open = false,
-  info = initalInfo,
+  info = initialInfo,
   onOpenChange,
 }: Props) {
   const [message, setMessage] = useState("");
@@ -59,6 +62,17 @@ function UpdateVehicleTypeDialog({
     createDate: timeRegister,
     vehicleType,
   } = info;
+  const formRef = useRef<HTMLFormElement>(null);
+  useHotkeys(
+    CANCELED_HOTKEY,
+    () => {
+      onOpenChange();
+    },
+    {
+      enableOnFormTags: ["INPUT", "SELECT"],
+      scopes: [PAGE.VERIFY_VEHICLE],
+    }
+  );
 
   const methods = useForm({
     resolver: yupResolver(UpdateVehicleSchema),
@@ -97,6 +111,8 @@ function UpdateVehicleTypeDialog({
   };
 
   const handleOpenChange = () => {
+    setValue("isAccept", false);
+    if (formRef.current) formRef.current.submit();
     onOpenChange();
   };
 
@@ -119,6 +135,7 @@ function UpdateVehicleTypeDialog({
       await updateVehicleTypeMutation.mutateAsync(data, {
         onSuccess: (res) => {
           setMessage("THAY ĐỔI THÀNH CÔNG");
+          onOpenChange();
           toast.success("THAY ĐỔI THÀNH CÔNG");
         },
       });
@@ -137,6 +154,7 @@ function UpdateVehicleTypeDialog({
         <div className='flex justify-center gap-4 py-4'>
           <FormProvider {...methods}>
             <form
+              ref={formRef}
               className='grid items-center justify-center gap-2'
               onSubmit={handleSubmit(handleUpdateVehicle)}
             >
@@ -179,21 +197,12 @@ function UpdateVehicleTypeDialog({
                       </Message>
                     </DialogFooter>
                   </div>
-                  <div className='grid grid-cols-2 gap-2'>
-                    <Button
-                      type='submit'
-                      variant='destructive'
-                      onClick={(e) => setValue("isAccept", false)}
-                    >
-                      Từ chối
-                    </Button>
-                    <Button
-                      type='submit'
-                      onClick={(e) => setValue("isAccept", true)}
-                    >
-                      Đồng ý
-                    </Button>
-                  </div>
+                  <Button
+                    type='submit'
+                    onClick={(e) => setValue("isAccept", true)}
+                  >
+                    Đồng ý
+                  </Button>
                 </InfoSection>
                 <img src={plateImg} className={`aspect-video`} />
               </FormInfoRow>
