@@ -26,7 +26,7 @@ import {
 } from "@constants/error-message.const";
 import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
-import { GuestType } from "@constants/customer.const";
+import { GuestTypeMessage } from "@constants/customer.const";
 import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_OUT } from "@constants/gate.const";
 import CheckOutVehicleForm from "./CheckOutVehicleForm";

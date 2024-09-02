@@ -99,7 +99,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const [checkInInfo, setCheckInInfo] = useState<CheckInInfo>(initCheckInInfo);
   const [openVehicleTypes, setOpenVehicleTypes] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [shouldGetCheckInInfo, setShouldGetCheckInInfo] = useState(false);
   const [updateVehicleInfo, setUpdateVehicleInfo] = useState<
     UpdateVehicleTypeInfo | undefined
   >(undefined);
@@ -417,6 +416,8 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         handleReset();
         return;
       }
+
+      //* check in for guest
       if (isGuest) {
         const checkInBody = setGuestCheckInFormData({
           bodyInSrc: finalCustomerCheckInBody.bodyInSrc,
@@ -430,7 +431,8 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         return;
       }
 
-      //* set up data for checkin
+      //* check in for customer / free customer
+
       const checkInBody = setCustomerCheckInData({
         bodyInSrc: finalCustomerCheckInBody.bodyInSrc,
         cardText: finalCustomerCheckInBody.cardText,
@@ -447,7 +449,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       await handleCustomerCheckIn(checkInBody);
     } catch (error) {
       const err = error as AxiosError;
-      console.log(error);
       if (err.response) {
         if (err.response.status === HttpStatusCode.TooManyRequests) {
           setCheckInInfo((prev) => ({

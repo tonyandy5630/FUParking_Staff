@@ -1,3 +1,5 @@
+import { CustomerType } from "@constants/customer.const";
+
 export type CheckIn = {
   CardId: string;
   GateInId: string;
@@ -13,4 +15,8 @@ export type UpdateVehicleTypeInfo = {
   vehicleType: string;
   statusVehicle: string;
   plateImage: string;
+};
+
+export type CheckInCustomerInfo = {
+  customerType: CustomerType;
 };
