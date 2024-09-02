@@ -21,6 +21,7 @@ const UpdateVehicleTypeDialog = lazy(
   () => import("@components/UpdateVehicleTypeDialog")
 );
 import {
+  CARD_HAS_PREVIOUS_SESSION,
   CARD_NOT_ACTIVE,
   GET_INFORMATION_SUCCESSFULLY,
   GUEST_CAN_ENTRY,
@@ -144,9 +145,15 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     isLoading: isGettingInfoData,
     isError: isErrorGettingInfoData,
   } = useQuery({
-    queryKey: ["/get-info-check-in", checkInInfo.plateText],
-    queryFn: () => getCustomerTypeCheckInAPI(checkInInfo.plateText),
-    enabled: checkInInfo.plateText !== "",
+    queryKey: [
+      "/get-info-check-in",
+      checkInInfo.plateText,
+      watch("CardId").trim(),
+    ],
+    queryFn: () =>
+      getCustomerTypeCheckInAPI(checkInInfo.plateText, watch("CardId").trim()),
+    enabled:
+      checkInInfo.plateText.trim() !== "" && watch("CardId").trim() !== "",
     retry: 0,
     gcTime: 0,
   });
@@ -172,6 +179,18 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     setFocus("CardId");
     reset();
   };
+
+  //* error api get effect
+  useEffect(() => {
+    if (isErrorGettingInfoData) {
+      setCheckInInfo((prev) => ({
+        ...prev,
+        message: "Lỗi hệ thống",
+        isError: true,
+      }));
+      return;
+    }
+  }, [isErrorGettingInfoData]);
 
   const handleGuestCheckIn = async (checkInBody: any) => {
     try {
@@ -361,12 +380,14 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     }
   };
 
+  //* effect get info
   useEffect(() => {
     const customerTypeData = checkInInfoData?.data.data;
 
     if (!customerTypeData) return;
 
-    const { customerType } = customerTypeData;
+    const { customerType, previousSessionInfo } = customerTypeData;
+
     switch (customerType) {
       case PAID_CUSTOMER || FREE_CUSTOMER: {
         setCheckInInfo((prev) => ({ ...prev, customerType: SYSTEM_CUSTOMER }));
@@ -392,6 +413,14 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           isError: true,
         }));
         break;
+    }
+
+    if (previousSessionInfo) {
+      setCheckInInfo((prev) => ({
+        ...prev,
+        message: CARD_HAS_PREVIOUS_SESSION,
+        isError: true,
+      }));
     }
   }, [checkInInfoData?.data.data]);
 

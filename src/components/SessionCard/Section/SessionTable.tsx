@@ -1,7 +1,7 @@
 import { DataTable } from "@components/Table";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import SessionCardColumns from "../columns";
-import { Session, SessionCard } from "@my_types/session-card";
+import { SessionCard } from "@my_types/session-card";
 import { useQuery } from "@tanstack/react-query";
 import { getParkingSession } from "@apis/session.api";
 import usePagination from "../../../hooks/usePagination";
@@ -12,10 +12,14 @@ import toLocaleDate, {
 import { useDispatch, useSelector } from "react-redux";
 import { setNewSessionInfo, setNewTable } from "../../../redux/sessionSlice";
 import useGetParkingId from "../../../hooks/useGetParkingId";
-import { PARKED_SESSION_STATUS } from "@constants/session.const";
+import { ALL_STATUS, PARKED_SESSION_STATUS } from "@constants/session.const";
 import { RootState } from "@utils/store";
 import MySelect from "@components/MySelect";
-import { FITLER_DATE_VALUE, SelectDateFilter } from "@constants/selects.const";
+import {
+  FILTER_DATE_VALUE,
+  SelectDateFilter,
+  SelectSessionStatusFilter,
+} from "@constants/selects.const";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { useDebounce } from "use-debounce";
@@ -27,7 +31,8 @@ function SessionTable() {
   const { pagination, onPaginationChange } = usePagination();
   const sessionTable = useSelector((state: RootState) => state.sessionTable);
   const dispatch = useDispatch();
-  const [dateFilter, setDateFilter] = useState(FITLER_DATE_VALUE.TODAY);
+  const [dateFilter, setDateFilter] = useState(FILTER_DATE_VALUE.TODAY);
+  const [statusFilter, setStatusFilter] = useState("");
   const [plateText, setPlateText] = useState("");
   const [debouncePlateText] = useDebounce(plateText, 750);
   const [apiDateFilter, setApiDateFilter] = useState<{
@@ -60,6 +65,7 @@ function SessionTable() {
       apiDateFilter.startDate,
       apiDateFilter.endDate,
       debouncePlateText,
+      statusFilter,
     ],
     queryFn: () =>
       getParkingSession({
@@ -68,6 +74,7 @@ function SessionTable() {
         startDate: apiDateFilter.startDate as string,
         endDate: apiDateFilter.endDate as string,
         plateNum: debouncePlateText,
+        statusFilter,
       }),
     enabled: parkingId !== "",
   });
@@ -76,20 +83,28 @@ function SessionTable() {
     setPlateText(e.target.value);
   };
 
+  const handleSetStatusFilter = (e: string) => {
+    if (e === ALL_STATUS) {
+      setStatusFilter("");
+      return;
+    }
+    setStatusFilter(e);
+  };
+
   const handleSetDateFilter = (e: string) => {
     setDateFilter(e);
-    if (e === FITLER_DATE_VALUE.TODAY) {
+    if (e === FILTER_DATE_VALUE.TODAY) {
       setApiDateFilter({ startDate: "", endDate: "" });
       return;
     }
 
-    if (e === FITLER_DATE_VALUE.WEEK) {
+    if (e === FILTER_DATE_VALUE.WEEK) {
       const { startDate, endDate } = getStartAndEndDatesOfWeek();
       setApiDateFilter({ startDate, endDate });
       return;
     }
 
-    if (e === FITLER_DATE_VALUE.MONTH) {
+    if (e === FILTER_DATE_VALUE.MONTH) {
       const startEndDate = getStartAndEndDatesOfMonth();
       setApiDateFilter(startEndDate);
       return;
@@ -123,20 +138,35 @@ function SessionTable() {
 
   return (
     <div className='grid grid-rows-[auto_1fr] h-full justify-items-end'>
-      <div className='grid justify-between w-full max-h-full grid-flow-col gap-2 pb-1 auto-cols-auto'>
-        <Button variant='ghost' onClick={() => refetch()}>
+      <div className='grid items-end justify-between w-full max-h-full grid-flow-col gap-2 pb-1 auto-cols-auto'>
+        <Button
+          variant='ghost'
+          size='icon'
+          className='rounded-full'
+          onClick={() => refetch()}
+        >
           <ReloadIcon />
         </Button>
         <div className='flex gap-2'>
-          <div className='flex items-center min-w-fit'>
+          <div className='flex items-center gap-2 min-w-fit'>
             <Label htmlFor='search-plate-input' className=' min-w-16'>
               Tìm kiếm
             </Label>
             <Input
               id='search-plate-input'
               value={plateText}
+              className='h-9'
               onChange={handlePlateTextChange}
               placeholder='Nhập biển số'
+            />
+          </div>
+          <div className='min-w-60'>
+            <MySelect
+              options={SelectSessionStatusFilter}
+              label='Trạng thái phiên'
+              placeholder='Tất cả'
+              value={statusFilter}
+              onValueChange={handleSetStatusFilter}
             />
           </div>
           <MySelect

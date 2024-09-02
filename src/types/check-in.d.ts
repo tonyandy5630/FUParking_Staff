@@ -19,4 +19,5 @@ export type UpdateVehicleTypeInfo = {
 
 export type CheckInCustomerInfo = {
   customerType: CustomerType;
+  previousSessionInfo?: CardInfo;
 };

@@ -33,6 +33,7 @@ import CheckOutVehicleForm from "./CheckOutVehicleForm";
 import { SizeTypes } from "@my_types/my-camera";
 import {
   CARD_NOT_INFO,
+  IS_NOT_ENOUGH_TO_PAY,
   PLATE_MATCH,
   PLATE_NOT_MATCH,
   PLATE_NOT_READ,
@@ -214,11 +215,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   const handlePlateDetection = useCallback(async () => {
     let plateImgOut = "";
     try {
-      // if (!plateCamRef.current || !bodyCamRef.current) {
-      //   dispatch(setInfoMessage({ message: CAMERA_NOT_FOUND, isError: true }));
-      //   return false; // Early return if cameras are not found
-      // }
-
       const plateNumberBody = new FormData();
       const plateImageSrc = (plateCamRef.current as any).getScreenshot();
       const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
@@ -330,22 +326,24 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       );
       return;
     }
-
-    const needPay = cardInfo.isEnoughToPay ?? false;
+    const isEnoughPay = cardInfo.isEnoughToPay ?? true;
     const isPlateMatched = cardInfo.plateNumber === checkOutInfo.plateTextOut;
-    const message =
+    let message =
       checkOutInfo.plateImgOut === ""
         ? PLATE_NOT_READ
         : isPlateMatched
         ? PLATE_MATCH
         : PLATE_NOT_MATCH;
+    if (!isEnoughPay) {
+      message = IS_NOT_ENOUGH_TO_PAY;
+    }
 
     // Check if there's any actual change in state before dispatching
     dispatch(
       setNewCardInfo({
         ...checkOutInfo,
         cashToPay: cardInfo.amount,
-        needPay,
+        needPay: isEnoughPay,
         plateImgIn: cardInfo.imageInUrl,
         timeIn: new Date(cardInfo.timeIn).toString(),
         plateTextIn: cardInfo.plateNumber,
@@ -390,15 +388,20 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       return;
     }
     setTriggerInfoByCard(false);
+    console.log(cardInfo);
 
-    const needPay = cardInfo.isEnoughToPay ?? false;
+    const isEnoughPay = cardInfo.isEnoughToPay ?? true;
     const isPlateMatched = cardInfo.plateNumber === checkOutInfo.plateTextOut;
-    const message =
+    let message =
       checkOutInfo.plateImgOut === ""
         ? PLATE_NOT_READ
         : isPlateMatched
         ? PLATE_MATCH
         : PLATE_NOT_MATCH;
+
+    if (!isEnoughPay) {
+      message = IS_NOT_ENOUGH_TO_PAY;
+    }
 
     // Check if there's any actual change in state before dispatching
 
@@ -406,7 +409,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       setNewCardInfo({
         ...checkOutInfo,
         cashToPay: cardInfo.amount,
-        needPay,
+        needPay: isEnoughPay,
         plateImgIn: cardInfo.imageInUrl,
         timeIn: new Date(cardInfo.timeIn).toString(),
         plateTextIn: cardInfo.plateNumber,
@@ -414,7 +417,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         bodyImgOut: checkOutInfo.bodyImgOut,
         customerType: cardInfo.vehicleType,
         plateTextOut: checkOutInfo.plateTextOut,
-        isError: !isPlateMatched,
+        isError: !isPlateMatched || !isEnoughPay,
         bodyImgIn: cardInfo.imageInBodyUrl,
         message,
       })

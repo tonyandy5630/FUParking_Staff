@@ -27,6 +27,7 @@ import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
 import { resetCurrentCardInfo } from "../../../redux/checkoutSlice";
 import { GATE_OUT } from "@constants/gate.const";
+import { formatPlateNumber } from "@utils/plate-number";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -198,7 +199,7 @@ export default function CheckOutVehicleForm({
                 label='Biển số xe vào'
                 col={true}
               >
-                {checkOutInfo.plateTextIn}
+                {formatPlateNumber(checkOutInfo.plateTextIn)}
               </InfoVehicle>
               <InfoVehicle
                 className='row-span-2'
@@ -208,7 +209,7 @@ export default function CheckOutVehicleForm({
                 {showInputPlate ? (
                   <FormInput name='PlateNumber' />
                 ) : (
-                  checkOutInfo.plateTextOut
+                  formatPlateNumber(checkOutInfo.plateTextOut)
                 )}
               </InfoVehicle>
             </InfoSection>

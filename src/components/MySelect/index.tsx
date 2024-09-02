@@ -19,6 +19,7 @@ interface Props extends HTMLAttributes<HTMLSelectElement> {
   col?: boolean;
   defaultValue?: string;
   disabled?: boolean;
+  selectClassName?: string;
 }
 export default function MySelect({
   options,
@@ -29,6 +30,7 @@ export default function MySelect({
   col,
   disabled,
   defaultValue,
+  selectClassName,
   ...props
 }: Props) {
   const selectOptions = useMemo(() => {
@@ -41,20 +43,22 @@ export default function MySelect({
 
   return (
     <div
-      className={`flex ${
+      className={`flex  ${
         col
           ? " flex-col gap-2 items-start justify-center"
-          : "items-center justify-between"
+          : "gap-1 items-center justify-between"
       }    w-full`}
     >
-      {label && <Label className='min-w-16'>{label}</Label>}
+      {label && <Label className='min-w-fit'>{label}</Label>}
       <Select
         defaultValue={defaultValue}
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
       >
-        <SelectTrigger className='border-gray-200 rounded-sm h-9'>
+        <SelectTrigger
+          className={`${selectClassName} border-gray-200 rounded-sm h-9`}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

@@ -34,7 +34,10 @@ export const GuestCheckInAPI = (data: CheckInSchemaType) => {
   });
 };
 
-export const getCustomerTypeCheckInAPI = (plateNumber: string) =>
+export const getCustomerTypeCheckInAPI = (
+  plateNumber: string,
+  cardNumber: string
+) =>
   http.get<ErrorResponse<CheckInCustomerInfo>>(
-    GET_CUSTOMER_TYPE_CHECK_IN_API_URL(plateNumber)
+    GET_CUSTOMER_TYPE_CHECK_IN_API_URL(plateNumber, cardNumber)
   );

@@ -76,6 +76,7 @@ export default function CheckInVehicleForm({
     () => {
       setShowInputPlate(false);
       setFocus("CardId");
+      reset();
     },
     {
       scopes: [PAGE.CHECK_IN],
@@ -149,7 +150,7 @@ export default function CheckInVehicleForm({
     <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onGetCheckInInfo)}>
-          <div className='absolute bottom-0 right-0 opacity-1'>
+          <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardId' autoFocus={true} />
           </div>
           <FormInfoRow className='grid-cols-[auto_1fr_1fr]'>
