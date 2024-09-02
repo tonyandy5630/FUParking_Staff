@@ -1,4 +1,8 @@
 import { CARD_NOT_INFO } from "@constants/message.const";
+import {
+  ELECTRIC_PLATE_NUMBER_REGEX,
+  MOTORBIKE_PLATE_NUMBER_REGEX,
+} from "@constants/regex";
 
 const REGION_ID_END_POSITION = 4;
 
@@ -39,4 +43,15 @@ export const unFormatPlateNumber = (plate?: string) => {
   const plateAfterSplit = plate.split("-");
   //* 2 parts in formatted plate number
   return plateAfterSplit[0] + plateAfterSplit[1];
+};
+
+export const isValidPlateNumber = (plate?: string): boolean => {
+  if (!plate || plate.trim().length === 0) {
+    return false;
+  }
+  const isElectricPlate = ELECTRIC_PLATE_NUMBER_REGEX.test(plate);
+  const isOtherPlate = MOTORBIKE_PLATE_NUMBER_REGEX.test(plate);
+
+  //* true if one the the 2 regex is matched
+  return isElectricPlate || isOtherPlate;
 };
