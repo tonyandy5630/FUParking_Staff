@@ -168,7 +168,7 @@ export default function CheckOutVehicleForm({
                 className={`${
                   checkOutInfo.croppedImagePlate !== "" ||
                   checkOutInfo.croppedImagePlate !== undefined
-                    ? "max-w-32 max-h-32"
+                    ? "max-w-40 max-h-40"
                     : "w-full"
                 }  h-full`}
               >
