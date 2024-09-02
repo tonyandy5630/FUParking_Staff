@@ -122,6 +122,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     setValue,
     watch,
     setFocus,
+    getValues,
   } = methods;
 
   const plateDetectionMutation = useMutation({
@@ -204,13 +205,15 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     }
   };
 
-  const handleFixPlate = async () => {
+  const handleFixPlate = () => {
     try {
       const plateNumber = watch("PlateNumber")?.toUpperCase() as string;
-      const cardNumber = checkInInfo.cardText;
+      const cardNumber = getValues("CardId");
       if (cardNumber === "") {
+        handleReset();
         setCheckInInfo((prev) => ({
           ...initCheckInInfo,
+          cardText: cardNumber,
           message: "Chưa quẹt thẻ",
           isError: true,
         }));
@@ -225,10 +228,9 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         }));
         return;
       }
-      const isElectricPlate = ELECTRIC_PLATE_NUMBER_REGEX.test(plateNumber);
-      const isMotorbikePlate = MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber);
+      const isValidPlate = isValidPlateNumber(plateNumber);
 
-      if (!isElectricPlate && !isMotorbikePlate) {
+      if (!isValidPlate) {
         setCheckInInfo((prev) => ({
           ...prev,
           message: PLATE_NOT_VALID,
@@ -247,19 +249,13 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         ...prev,
         plateText: plateNumber,
       }));
-
-      const checkInBody = setCustomerCheckInData({
-        bodyInSrc: checkInInfo.plateImgSrc,
-        plateText: plateNumber,
-        cardText: cardNumber,
-        gateId,
-        imageInSrc: checkInInfo.plateImgSrc,
-      });
-
-      await handleCustomerCheckIn(checkInBody);
     } catch (error) {
-      reset();
-      console.log(error);
+      handleReset();
+      setCheckInInfo({
+        ...initCheckInInfo,
+        message: "Lỗi hệ thống",
+        isError: true,
+      });
     }
   };
 

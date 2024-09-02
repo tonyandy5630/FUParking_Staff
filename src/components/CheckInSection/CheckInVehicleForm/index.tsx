@@ -36,7 +36,7 @@ type Props = {
   checkInInfo: CheckInInfo;
   isLoading?: boolean;
   onCheckIn: () => Promise<void>;
-  onFixPlate: () => Promise<void>;
+  onFixPlate: () => void;
   onReset: () => void;
 };
 
@@ -85,8 +85,9 @@ export default function CheckInVehicleForm({
   useHotkeys(
     FIX_PLATE_NUMBER_KEY,
     async () => {
+      //* already show plate then set the new plate to form
       if (showInputPlate) {
-        await onFixPlate();
+        onFixPlate();
       }
       setShowInputPlate((prev) => !prev);
     },
@@ -148,7 +149,7 @@ export default function CheckInVehicleForm({
     <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onGetCheckInInfo)}>
-          <div className='absolute bottom-0 right-0 opacity-0'>
+          <div className='absolute bottom-0 right-0 opacity-1'>
             <FormInput name='CardId' autoFocus={true} />
           </div>
           <FormInfoRow className='grid-cols-[auto_1fr_1fr]'>
