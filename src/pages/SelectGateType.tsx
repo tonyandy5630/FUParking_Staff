@@ -12,27 +12,30 @@ import {
 } from "@channels/index";
 import FormItem from "@components/CameraSection/Form/FormItem";
 import { Button } from "@components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@components/ui/select";
 import { useQuery } from "@tanstack/react-query";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PAGE from "../../url";
 import { GATE_IN, GATE_OUT } from "@constants/gate.const";
 import { GateType } from "@my_types/gate";
+import useGetParkingId from "../hooks/useGetParkingId";
+import { SelectOptions } from "@components/Form/FormSelect";
+import MySelect from "@components/MySelect";
+import useSelectGate from "../hooks/useSelectGate";
 
 export default function SelectGateTypePage() {
+  const parkingId = useGetParkingId();
+  const { gateId: gateInId } = useSelectGate(GATE_IN);
+  const { gateId: gateOutId } = useSelectGate(GATE_OUT);
   const [selectedParkingId, setSelectedParkingId] = useState<string>("");
-  const [selectedGateId, setSelectedGateId] = useState<string>("");
+
+  const [selectedGateInId, setSelectedGateInId] = useState<string>();
+  const [selectedGateOutId, setSelectedGateOutId] = useState<string>();
+  const [parkingAreaGateAmount, setParkingAreaGateAmount] = useState(0);
   const navigate = useNavigate();
+
   const {
     data: gatesData,
     isLoading: isLoadingGates,
@@ -52,35 +55,71 @@ export default function SelectGateTypePage() {
     setSelectedParkingId(value);
   };
 
-  const gateSelects = useMemo(() => {
-    const gates = gatesData?.data.data;
+  const allGateOptions = useCallback(
+    (gateType: GateType): SelectOptions[] => {
+      const gates = gatesData?.data.data;
 
-    if (!gates) return [];
+      if (!gates) {
+        setParkingAreaGateAmount(0);
+        return [];
+      }
 
-    return gates.map((item) => {
-      return (
-        <SelectItem key={item.id} value={item.id}>
-          {item.name}
-        </SelectItem>
-      );
-    });
-  }, [gatesData?.data.data]);
+      setParkingAreaGateAmount(gates.length);
+      return gates
+        .filter((item) => item.gateType === gateType)
+        .map((item) => {
+          return {
+            name: item.name,
+            value: item.id,
+          };
+        });
+    },
+    [gatesData?.data.data, setParkingAreaGateAmount]
+  );
 
-  const parkingAreaSelects = useMemo(() => {
+  const gateInSelects: SelectOptions[] = useMemo(() => {
+    const gates = allGateOptions(GATE_IN);
+
+    if (!gates) {
+      return [];
+    }
+
+    const systemSelectedGate = gates.find((item) => item.value === gateInId);
+    if (systemSelectedGate) setSelectedGateInId(systemSelectedGate.value);
+
+    return gates;
+  }, [allGateOptions, gateInId, setSelectedGateInId]);
+
+  const gateOutSelects: SelectOptions[] = useMemo(() => {
+    const gates = allGateOptions(GATE_OUT);
+
+    if (!gates) {
+      return [];
+    }
+    const systemSelectedGate = gates.find((item) => item.value === gateOutId);
+    if (systemSelectedGate) setSelectedGateOutId(systemSelectedGate.value);
+    return gates;
+  }, [allGateOptions, gateOutId]);
+
+  const parkingAreaSelects: SelectOptions[] = useMemo(() => {
     const parkingAreas = parkingAreasData?.data.data;
     if (!parkingAreas) return [];
+    if (parkingId !== "") setSelectedParkingId(parkingId);
 
     return parkingAreas.map((item) => {
-      return (
-        <SelectItem key={item.id} value={item.id}>
-          {item.name}
-        </SelectItem>
-      );
+      return {
+        name: item.name,
+        value: item.id,
+      };
     });
-  }, [parkingAreasData?.data.data]);
+  }, [parkingAreasData?.data.data, parkingId, setSelectedParkingId]);
 
-  const handleGateChange = (value: string) => {
-    setSelectedGateId(value);
+  const handleGateInChange = (value: string) => {
+    setSelectedGateInId(value);
+  };
+
+  const handleGateOutChange = (value: string) => {
+    setSelectedGateOutId(value);
   };
 
   const handleConfirmGate = async () => {
@@ -90,7 +129,7 @@ export default function SelectGateTypePage() {
 
       if (gates.length === 0) return;
 
-      const currentGate = gates.find((item) => item.id === selectedGateId);
+      const currentGate = gates.find((item) => item.id === selectedGateInId);
       if (!currentGate) {
         return;
       }
@@ -98,7 +137,7 @@ export default function SelectGateTypePage() {
       const gateType = currentGate.gateType;
 
       window.ipcRenderer.send(SET_GATE_CHANNEL, {
-        id: selectedGateId,
+        id: selectedGateInId,
         type: gateType,
       });
       window.ipcRenderer.send(SET_PARKING_AREA_ID_CHANNEL, selectedParkingId);
@@ -164,48 +203,65 @@ export default function SelectGateTypePage() {
     <>
       <main className='flex flex-col items-center justify-center min-h-full gap-y-10 min-w-screen'>
         <div className='flex items-center justify-center min-w-full p-3 text-4xl font-bold'>
-          <h3>Select Gate</h3>
+          <h3 className='uppercase '>Cài đặt cổng</h3>
         </div>
         <div className='grid w-1/4 h-full grid-rows-3 gap-3'>
           <div className='grid grid-rows-[1fr_auto]'>
-            <p className='mb-1'>Bãi giữ xe</p>
-            <Select
+            <MySelect
+              label='Bãi giữ xe'
+              col={true}
+              value={selectedParkingId}
+              placeholder={
+                isLoadingParkingArea ? "Đang tải dữ liệu" : "Chọn Bãi giữ xe"
+              }
               onValueChange={handleParkingAreaIdChange}
-              disabled={isLoadingGates}
-            >
-              <SelectTrigger className='min-w-full'>
-                <SelectValue placeholder='Chọn Bãi giữ xe' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>{parkingAreaSelects}</SelectGroup>
-              </SelectContent>
-            </Select>
+              disabled={isLoadingParkingArea}
+              options={parkingAreaSelects}
+            />
             <div className='grid'>
-              {!selectedParkingId && (
+              {selectedParkingId === "" && !isLoadingParkingArea ? (
                 <p className='text-destructive'>Hãy chọn bãi giữ xe </p>
+              ) : (
+                <p>
+                  Bãi xe này có{" "}
+                  <span className='font-bold'>{parkingAreaGateAmount}</span>{" "}
+                  cổng
+                </p>
               )}
             </div>
           </div>
-          <div className='grid'>
-            <p className='mb-1'>Cổng</p>
-            <Select
-              onValueChange={handleGateChange}
-              disabled={isLoadingGates || selectedParkingId === ""}
-            >
-              <SelectTrigger className='min-w-full'>
-                <SelectValue
-                  placeholder={isLoadingGates ? "Loading..." : "Chọn cổng"}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>{gateSelects}</SelectGroup>
-              </SelectContent>
-            </Select>
+          <div className='grid gap-2'>
+            <MySelect
+              label='Chọn cổng vào'
+              col={true}
+              value={selectedGateInId}
+              onValueChange={handleGateInChange}
+              options={gateInSelects}
+              placeholder='Chọn cổng vào'
+              disabled={
+                isLoadingGates ||
+                selectedParkingId === "" ||
+                parkingAreaGateAmount === 0
+              }
+            />
+            <MySelect
+              label='Chọn cổng ra'
+              col={true}
+              value={selectedGateOutId}
+              onValueChange={handleGateOutChange}
+              options={gateOutSelects}
+              placeholder='Chọn cổng vào'
+              disabled={
+                isLoadingGates ||
+                selectedParkingId === "" ||
+                parkingAreaGateAmount === 0
+              }
+            />
           </div>
           <div className='grid grid-cols-2 gap-1'>
             <Button variant='destructive'>Hủy</Button>
             <Button
-              disabled={selectedGateId === ""}
+              disabled={selectedGateInId === ""}
               onClick={async () => await handleConfirmGate()}
             >
               Xác nhận

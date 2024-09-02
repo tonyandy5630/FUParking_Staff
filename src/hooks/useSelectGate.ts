@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import PAGE from "../../url";
 
 /**
- *  Getting the gateId that being passed to
+ *  Getting the gateId that type being passed to
  * @param gateType
  * @param shouldNavigate optional, to decide whether redirect if not getting gateId
  * @returns gateId
@@ -41,7 +41,7 @@ export default function useSelectGate(
       default:
         navigate("/");
     }
-  }, []);
+  }, [gateType]);
 
   return {
     gateId,

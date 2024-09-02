@@ -19,15 +19,7 @@ const getRules = (getValues?: UseFormGetValues<any>) => ({
   email: {
     pattern: {
       value: EMAIL_REGEX,
-      message: `Not a valid email format`,
-    },
-    minLength: {
-      value: MIN_EMAIL,
-      message: EMAIL_LENGTH_WARNING,
-    },
-    maxLength: {
-      value: MAX_EMAIL,
-      message: EMAIL_LENGTH_WARNING,
+      message: `Sai định dạng email`,
     },
   },
   name: {
@@ -38,16 +30,6 @@ const getRules = (getValues?: UseFormGetValues<any>) => ({
     minLength: {
       value: MIN_NAME,
       message: NAME_LENGTH_WARNING,
-    },
-  },
-  pwd: {
-    minLength: {
-      value: MIN_PWD,
-      message: PWD_LENGTH_WARNING,
-    },
-    maxLength: {
-      value: MAX_PWD,
-      message: PWD_LENGTH_WARNING,
     },
   },
   rePwd: {

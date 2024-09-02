@@ -18,10 +18,17 @@ function loginMenuItems(win: BrowserWindow, store: ElectronStore | null): any {
             ElectronRedirect(win, PAGE.DEVICE_SET_UP);
           },
         },
+        {
+          label: "Cổng",
+          enabled: true,
+          click: () => {
+            ElectronRedirect(win, PAGE.SELECT_GATE_TYPE);
+          },
+        },
       ],
     },
     {
-      label: "Đổi cổng",
+      label: "Cổng",
       submenu: [
         {
           label: "Cổng vào",
@@ -49,13 +56,6 @@ function loginMenuItems(win: BrowserWindow, store: ElectronStore | null): any {
           enabled: false,
           click: () => {
             ElectronRedirect(win, PAGE.CARD_CHECKER);
-          },
-        },
-        {
-          label: "Báo mất thẻ",
-          enabled: false,
-          click: () => {
-            ElectronRedirect(win, PAGE.MISSING_CARD);
           },
         },
       ],

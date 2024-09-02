@@ -22,6 +22,7 @@ import {
   CANCELED_HOTKEY,
   FIX_PLATE_NUMBER_KEY,
   FOCUS_CARD_INPUT_KEY,
+  SUBMIT_LEFT_HOTKEY,
 } from "../../../hotkeys/key";
 import { GATE_IN } from "@constants/gate.const";
 import { ELECTRIC_PLATE_NUMBER_REGEX } from "@constants/regex";
@@ -30,22 +31,24 @@ import { formatPlateNumber } from "@utils/plate-number";
 
 type Props = {
   methods: UseFormReturn<CheckInSchemaType>;
-  onCheckIn: any;
+  onGetCheckInInfo: any;
   onVehicleTypeChange: any;
   checkInInfo: CheckInInfo;
   isLoading?: boolean;
-  onFixPlate: () => Promise<void>;
+  onCheckIn: () => Promise<void>;
+  onFixPlate: () => void;
   onReset: () => void;
 };
 
 export default function CheckInVehicleForm({
-  onCheckIn,
+  onGetCheckInInfo,
   onVehicleTypeChange,
   checkInInfo,
   methods,
   isLoading,
   onFixPlate,
   onReset,
+  onCheckIn,
 }: Props) {
   const {
     formState: { errors },
@@ -57,6 +60,17 @@ export default function CheckInVehicleForm({
   } = methods;
   const [showInputPlate, setShowInputPlate] = useState(false);
   const isElectric = useRef(false);
+
+  useHotkeys(
+    SUBMIT_LEFT_HOTKEY,
+    async () => {
+      await onCheckIn();
+    },
+    {
+      scopes: [PAGE.CHECK_IN],
+      enableOnFormTags: ["input", "select", "textarea"],
+    }
+  );
   useHotkeys(
     FOCUS_CARD_INPUT_KEY,
     () => {
@@ -71,8 +85,9 @@ export default function CheckInVehicleForm({
   useHotkeys(
     FIX_PLATE_NUMBER_KEY,
     async () => {
+      //* already show plate then set the new plate to form
       if (showInputPlate) {
-        await onFixPlate();
+        onFixPlate();
       }
       setShowInputPlate((prev) => !prev);
     },
@@ -130,15 +145,29 @@ export default function CheckInVehicleForm({
     }
     isElectric.current = false;
   }, [checkInInfo.plateText]);
-  console.log(checkInInfo.croppedPlateImage);
   return (
     <>
       <FormProvider {...methods}>
-        <FormContainer onSubmit={handleSubmit(onCheckIn)}>
-          <div className='absolute bottom-0 right-0 opacity-0'>
+        <FormContainer onSubmit={handleSubmit(onGetCheckInInfo)}>
+          <div className='absolute bottom-0 right-0 opacity-1'>
             <FormInput name='CardId' autoFocus={true} />
           </div>
-          <FormInfoRow className='grid-cols-[1fr_1fr_auto]'>
+          <FormInfoRow className='grid-cols-[auto_1fr_1fr]'>
+            <InfoSection className='items-center justify-center !grid-rows-1'>
+              <div
+                className={`${
+                  checkInInfo.croppedPlateImage !== "" ||
+                  checkInInfo.croppedPlateImage !== undefined
+                    ? "min-w-40 max-h-40"
+                    : "w-full"
+                }  h-full`}
+              >
+                <Image
+                  src={checkInInfo.croppedPlateImage ?? ""}
+                  isLoading={false}
+                />
+              </div>
+            </InfoSection>
             <InfoSection>
               <InfoVehicle label='Ngày vào'>
                 {getDayFromString(checkInInfo.time?.toString())}
@@ -169,21 +198,6 @@ export default function CheckInVehicleForm({
               <InfoVehicle label='Khách hàng' col={true}>
                 <span className='text-red-500'>{checkInInfo.customerType}</span>
               </InfoVehicle>
-            </InfoSection>
-            <InfoSection className='items-center justify-center !grid-rows-1'>
-              <div
-                className={`${
-                  checkInInfo.croppedPlateImage !== "" ||
-                  checkInInfo.croppedPlateImage !== undefined
-                    ? "min-w-40 max-w-40"
-                    : "w-full"
-                }  h-full`}
-              >
-                <Image
-                  src={checkInInfo.croppedPlateImage ?? ""}
-                  isLoading={false}
-                />
-              </div>
             </InfoSection>
           </FormInfoRow>
           <FormNameRow

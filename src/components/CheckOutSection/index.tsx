@@ -26,25 +26,21 @@ import {
 } from "@constants/error-message.const";
 import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
-import { GuestType } from "@constants/customer.const";
+import { GuestTypeMessage } from "@constants/customer.const";
 import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_OUT } from "@constants/gate.const";
 import CheckOutVehicleForm from "./CheckOutVehicleForm";
 import { SizeTypes } from "@my_types/my-camera";
 import {
-  CAMERA_NOT_FOUND,
   CARD_NOT_INFO,
-  GUEST_EXIT_SUCCESSFULLY,
   PLATE_MATCH,
   PLATE_NOT_MATCH,
   PLATE_NOT_READ,
   PLATE_NOT_VALID,
-  PLEASE_CHECK_OUT,
   SLOW_DOWN_ACTION,
 } from "@constants/message.const";
 import { getLocalISOString } from "@utils/date";
-import { HotkeysProvider, useHotkeys } from "react-hotkeys-hook";
-import { SUBMIT_LEFT_HOTKEY, SUBMIT_RIGHT_HOTKEY } from "../../hotkeys/key";
+import { HotkeysProvider } from "react-hotkeys-hook";
 import PAGE from "../../../url";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
@@ -58,9 +54,8 @@ import {
   setNewCardInfo,
 } from "../../redux/checkoutSlice";
 import ParkingContainer from "@components/ParkingContainer";
-import CardInfoRow from "@components/SessionCard/CardInfo";
-import { MOTORBIKE_PLATE_NUMBER_REGEX } from "@constants/regex";
 import cropImageToBase64 from "@utils/image";
+import { isValidPlateNumber } from "@utils/plate-number";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -216,30 +211,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       );
   }, [error]);
 
-  const handleCheckOutPayment = useCallback(async () => {
-    try {
-      const data = watch("CardNumber") as string;
-      await paymentMutation.mutateAsync(data, {
-        onSuccess: (res) => {
-          reset({ CardNumber: "" });
-          // resetInfo();
-          dispatch(resetCurrentCardInfo());
-        },
-      });
-    } catch (error) {
-      dispatch(
-        setNewCardInfo({
-          ...checkOutInfo,
-          plateTextOut: "",
-          cashToPay: 0,
-          message: "Lỗi hệ thống",
-          isError: true,
-        })
-      );
-    }
-  }, [checkOutInfo, watch("CardNumber")]);
-
-  const handlePlateDetection = useCallback(() => {
+  const handlePlateDetection = useCallback(async () => {
     let plateImgOut = "";
     try {
       // if (!plateCamRef.current || !bodyCamRef.current) {
@@ -256,32 +228,27 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       plateNumberBody.append("upload", plateFile);
       plateNumberBody.append("regions", "vn");
 
-      plateDetectionMutation.mutate(plateNumberBody, {
+      await plateDetectionMutation.mutateAsync(plateNumberBody, {
         onSuccess: async (
           plateDetectionRes: SuccessResponse<LicenseResponse>
         ) => {
           const plateData = plateDetectionRes.data.results[0];
+          let plateRead = "";
+          let croppedImage = "";
+          let message = "";
+
           if (!plateData) {
-            dispatch(
-              setNewCardInfo({
-                ...initCheckOutInfo,
-                message: PLATE_NOT_READ,
-                plateImgOut: plateImageSrc,
-                bodyImgOut: bodyImageSrc,
-                timeOut: new Date().toString(),
-                isError: true,
-              })
+            message = PLATE_NOT_READ;
+          } else {
+            const cropCordinates = plateData.box;
+            plateRead = plateData.plate.toUpperCase();
+            croppedImage = await cropImageToBase64(
+              plateImageSrc,
+              cropCordinates
             );
-            setTriggerInfoByCard(false);
-            throw new Error("Plate data not found");
           }
-          const cropCordinates = plateData.box;
-          const croppedImage = await cropImageToBase64(
-            plateImageSrc,
-            cropCordinates
-          );
+
           setTriggerInfoByCard(false);
-          const plateRead = plateData.plate.toUpperCase();
           dispatch(
             setNewCardInfo({
               ...checkOutInfo,
@@ -294,8 +261,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           );
         },
       });
-
-      return true;
     } catch (error) {
       const err = error as AxiosError;
       if (err.response) {
@@ -313,7 +278,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       }
       return false;
     }
-  }, [dispatch, plateCamRef, bodyCamRef, checkOutInfo]);
+  }, [dispatch, plateCamRef, bodyCamRef, setTriggerInfoByCard]);
   // Effect for plate detection
   useEffect(() => {
     if (!cardData?.data?.data && !cardByPlateData?.data.data) {
@@ -332,12 +297,17 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
 
   // Effect for updating card info based on cardByPlate
   useEffect(() => {
-    const plateNumber = watch("PlateNumber");
+    const plateNumber = watch("PlateNumber")?.toUpperCase();
+
     if (!plateNumber) {
       return;
     }
+    if (plateNumber.trim().length < 8) {
+      return;
+    }
+    const isValidPlate = isValidPlateNumber(plateNumber);
 
-    if (!MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber)) {
+    if (!isValidPlate) {
       dispatch(
         setNewCardInfo({
           ...checkOutInfo,
@@ -371,7 +341,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         : PLATE_NOT_MATCH;
 
     // Check if there's any actual change in state before dispatching
-
     dispatch(
       setNewCardInfo({
         ...checkOutInfo,
@@ -388,12 +357,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       })
     );
     // }
-  }, [
-    cardByPlateData?.data?.data,
-    checkOutInfo,
-    dispatch,
-    watch("PlateNumber"),
-  ]);
+  }, [cardByPlateData?.data?.data, dispatch, watch("PlateNumber")]);
   // Effect for updating card info based on cardData
   useEffect(() => {
     const cardNumber = watch("CardNumber")?.toString();
@@ -459,15 +423,10 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   }, [cardData?.data?.data, checkOutInfo, dispatch, watch("CardNumber")]);
   const handleCheckOutMissingCard = async () => {
     try {
-      const plateNumber = watch("PlateNumber") as string;
-      dispatch(
-        setNewCardInfo({
-          ...checkOutInfo,
-          plateTextOut: plateNumber,
-        })
-      );
+      const plateNumber = watch("PlateNumber")?.toUpperCase() as string;
 
-      if (!MOTORBIKE_PLATE_NUMBER_REGEX.test(plateNumber)) {
+      const isValidPlate = isValidPlateNumber(plateNumber);
+      if (!isValidPlate) {
         dispatch(
           setNewCardInfo({
             ...checkOutInfo,
@@ -620,7 +579,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           }
           onCheckOut={onCheckOut}
           checkOutInfo={checkOutInfo}
-          onCashCheckOut={handleCheckOutPayment}
           isError={checkOutInfo.isError}
           position={props.position}
           onMissingCardCheckOut={handleCheckOutMissingCard}

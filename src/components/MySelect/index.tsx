@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
-import React, { HTMLAttributes, useMemo } from "react";
+import React, { HTMLAttributes, useMemo, useState } from "react";
 
 interface Props extends HTMLAttributes<HTMLSelectElement> {
   options: SelectOptions[];
@@ -18,6 +18,7 @@ interface Props extends HTMLAttributes<HTMLSelectElement> {
   placeholder: string;
   col?: boolean;
   defaultValue?: string;
+  disabled?: boolean;
 }
 export default function MySelect({
   options,
@@ -26,6 +27,7 @@ export default function MySelect({
   label,
   placeholder,
   col,
+  disabled,
   defaultValue,
   ...props
 }: Props) {
@@ -35,7 +37,7 @@ export default function MySelect({
         {item.name}
       </SelectItem>
     ));
-  }, [options.length]);
+  }, [options]);
 
   return (
     <div
@@ -50,6 +52,7 @@ export default function MySelect({
         defaultValue={defaultValue}
         value={value}
         onValueChange={onValueChange}
+        disabled={disabled}
       >
         <SelectTrigger className='border-gray-200 rounded-sm h-9'>
           <SelectValue placeholder={placeholder} />

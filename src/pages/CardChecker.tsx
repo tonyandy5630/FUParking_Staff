@@ -3,8 +3,10 @@ import ParkingSection from "@components/SessionCard/Section/ParkingAreaStatistic
 import { HotkeysProvider } from "react-hotkeys-hook";
 import PAGE from "../../url";
 import SessionTable from "@components/SessionCard/Section/SessionTable";
+import useRefresh from "../hooks/useRefresh";
 
 export default function CardCheckerPage() {
+  useRefresh();
   return (
     <HotkeysProvider initiallyActiveScopes={[PAGE.CARD_CHECKER]}>
       <div className='flex justify-center h-full max-h-screen'>

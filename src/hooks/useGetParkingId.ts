@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PAGE from "../../url";
 
-export default function useGetParkingId() {
+export default function useGetParkingId(shouldNavigate?: boolean) {
   const [parkingId, setParkingId] = useState("");
   const navigate = useNavigate();
 
@@ -11,7 +11,9 @@ export default function useGetParkingId() {
     window.ipcRenderer
       .invoke(GET_PARKING_AREA_ID_CHANNEL)
       .then((res) => {
-        if (!res || res.length === 0) navigate(PAGE.SELECT_GATE_TYPE);
+        if (!res || res.length === 0) {
+          if (shouldNavigate) navigate(PAGE.SELECT_GATE_TYPE);
+        }
         setParkingId(res);
       })
       .catch((error) => {

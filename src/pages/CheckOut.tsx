@@ -3,9 +3,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import LANE from "@constants/lane.const";
 import LaneContainer from "@components/LaneContainer";
 import useGetCamera from "../hooks/useGetCamera";
+import useRefresh from "../hooks/useRefresh";
 
 export default function CheckOutPage() {
   const cameraIds = useGetCamera();
+  useRefresh();
   return (
     <>
       <div className='flex w-full min-h-full'>

@@ -23,6 +23,7 @@ const cropImageToBase64 = (src: string, crop?: Crop): Promise<string> => {
       if (ctx) {
         const width = crop.xmax - crop.xmin;
         const height = crop.ymax - crop.ymin;
+        ctx.imageSmoothingQuality = "high";
 
         // Set canvas dimensions to the size of the cropped area
         canvas.width = width;

@@ -1,4 +1,4 @@
-import { SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
+import { SyntheticEvent, useEffect, useRef, useState } from "react";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import FormInput from "@components/Form/Input";
 import { getDayFromString, getHourMinuteFromString } from "@utils/date";
@@ -9,10 +9,7 @@ import FormContainer, {
 import InfoSection, {
   InfoVehicle,
 } from "@components/CameraSection/Form/InfoSection";
-import { SelectOptions } from "@components/Form/FormSelect";
 import { CheckOutSchemaType } from "@utils/schema/checkoutSchema";
-import { Button } from "@components/ui/button";
-import { getCardCheckOutAPI } from "@apis/check-out.api";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import {
@@ -29,15 +26,13 @@ import { RootState } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
 import { resetCurrentCardInfo } from "../../../redux/checkoutSlice";
-import { getFacetedMinMaxValues } from "@tanstack/react-table";
-import { GATE_IN, GATE_OUT } from "@constants/gate.const";
+import { GATE_OUT } from "@constants/gate.const";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
   onCheckOut: any;
   checkOutInfo: CheckOutInfo;
   isLoading?: boolean;
-  onCashCheckOut: () => void;
   isError?: boolean;
   position: LanePosition;
   onMissingCardCheckOut: () => Promise<void>;
@@ -49,7 +44,6 @@ export default function CheckOutVehicleForm({
   onCheckOut,
   methods,
   isLoading,
-  onCashCheckOut,
   isError,
   position,
   onMissingCardCheckOut,
@@ -61,6 +55,7 @@ export default function CheckOutVehicleForm({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dispatch = useDispatch();
   const [showInputPlate, setShowInputPlate] = useState<boolean>(false);
+
   //* submit form
   const handleSubmitCheckOut = () => {
     if (buttonRef.current) {
@@ -167,7 +162,22 @@ export default function CheckOutVehicleForm({
           <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardNumber' autoFocus={true} />
           </div>
-          <FormInfoRow className='grid-cols-[1.5fr_1fr_auto]'>
+          <FormInfoRow className='grid-cols-[auto_1.5fr_1fr]'>
+            <InfoSection className='items-center justify-center !grid-rows-1'>
+              <div
+                className={`${
+                  checkOutInfo.croppedImagePlate !== "" ||
+                  checkOutInfo.croppedImagePlate !== undefined
+                    ? "max-w-32 max-h-32"
+                    : "w-full"
+                }  h-full`}
+              >
+                <Image
+                  src={checkOutInfo.croppedImagePlate ?? ""}
+                  isLoading={false}
+                />
+              </div>
+            </InfoSection>
             <InfoSection className='grid-cols-2 grid-rows-[repeat(4,30px)]'>
               <InfoVehicle label='Ngày vào'>
                 {getDayFromString(checkOutInfo.timeIn)}
@@ -212,21 +222,6 @@ export default function CheckOutVehicleForm({
                   {checkOutInfo.customerType}
                 </span>
               </InfoVehicle>
-            </InfoSection>
-            <InfoSection className='items-center justify-center !grid-rows-1'>
-              <div
-                className={`${
-                  checkOutInfo.croppedImagePlate !== "" ||
-                  checkOutInfo.croppedImagePlate !== undefined
-                    ? "max-w-40"
-                    : "w-full"
-                }  h-full`}
-              >
-                <Image
-                  src={checkOutInfo.croppedImagePlate ?? ""}
-                  isLoading={false}
-                />
-              </div>
             </InfoSection>
           </FormInfoRow>
           <FormNameRow
