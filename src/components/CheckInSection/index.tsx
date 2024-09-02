@@ -50,7 +50,8 @@ import {
   MOTORBIKE_PLATE_NUMBER_REGEX,
 } from "@constants/regex";
 import {
-  CustomerCheckInBodyData,
+  CheckInBodyData,
+  initCheckInBody,
   setCustomerCheckInData,
   setGuestCheckInFormData,
 } from "@utils/set-form-data";
@@ -102,9 +103,8 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const [updateVehicleInfo, setUpdateVehicleInfo] = useState<
     UpdateVehicleTypeInfo | undefined
   >(undefined);
-  const [finalCustomerCheckInBody, setFinalCustomerCheckInBody] = useState<
-    CustomerCheckInBodyData | undefined
-  >(undefined);
+  const [finalCustomerCheckInBody, setFinalCustomerCheckInBody] =
+    useState<CheckInBodyData>(initCheckInBody);
 
   const methods = useForm({
     resolver: yupResolver(CheckInSchema),
@@ -183,48 +183,23 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
             message: "KHÁCH CÓ THỂ VÀO",
             isError: false,
           }));
-          setFocus("CardId");
-          reset();
+          handleReset();
         },
       });
     } catch (error) {
-      reset();
       setCheckInInfo((prev) => ({ ...prev, message: "Lỗi hệ thống" }));
     }
   };
 
-  const handleVehicleTypeChange = async (vehicleType: string) => {
+  const handleVehicleTypeChange = (vehicleType: string) => {
     try {
       setCheckInInfo((prev) => ({ ...prev, vehicleType }));
-
-      const {
-        plateImgSrc: imageFile,
-        cardText,
-        plateText,
-        ImageBodySrc,
-        time,
-      } = checkInInfo;
-      if (!MOTORBIKE_PLATE_NUMBER_REGEX.test(plateText)) {
-        setCheckInInfo((prev) => ({
-          ...prev,
-          message: PLATE_NOT_VALID,
-          plateText: plateText,
-          isError: true,
-        }));
-        return;
-      }
-      const checkInBody = setGuestCheckInFormData({
-        bodyInSrc: checkInInfo.ImageBodySrc,
-        cardText: checkInInfo.cardText,
-        gateId,
-        imageInSrc: checkInInfo.plateImgSrc,
-        plateText: checkInInfo.plateText,
-        vehicleType: vehicleType,
-      });
-      await handleGuestCheckIn(checkInBody);
+      setFinalCustomerCheckInBody((prev) => ({
+        ...prev,
+        vehicleType,
+      }));
     } catch (error) {
-      console.log(error);
-      reset();
+      handleReset();
       setCheckInInfo((prev) => ({ ...prev, message: "Lỗi hệ thống" }));
     }
   };
@@ -267,8 +242,14 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         ...prev,
         plateText: plateNumber,
       }));
+
+      setFinalCustomerCheckInBody((prev) => ({
+        ...prev,
+        plateText: plateNumber,
+      }));
+
       const checkInBody = setCustomerCheckInData({
-        bodyImageSrc: checkInInfo.plateImgSrc,
+        bodyInSrc: checkInInfo.plateImgSrc,
         plateText: plateNumber,
         cardText: cardNumber,
         gateId,
@@ -334,7 +315,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         imageInSrc: plateImageSrc,
         cardText: checkInData.CardId,
         gateId,
-        bodyImageSrc: bodyImageSrc,
+        bodyInSrc: bodyImageSrc,
         plateText: plateRead,
       }));
 
@@ -387,10 +368,24 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         break;
       }
       case GUEST_CUSTOMER:
-        setCheckInInfo((prev) => ({ ...prev, customerType: GUEST }));
+        setIsGuest(true);
+        setOpenVehicleTypes(true);
+        setCheckInInfo((prev) => ({
+          ...prev,
+          customerType: GUEST,
+          message: "Chọn loại xe",
+          isError: true,
+        }));
         break;
       default:
-        setCheckInInfo((prev) => ({ ...prev, customerType: GUEST }));
+        setIsGuest(true);
+        setOpenVehicleTypes(true);
+        setCheckInInfo((prev) => ({
+          ...prev,
+          customerType: GUEST,
+          message: "Chọn loại xe",
+          isError: true,
+        }));
         break;
     }
   }, [checkInInfoData?.data.data]);
@@ -426,11 +421,22 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         handleReset();
         return;
       }
+      if (isGuest) {
+        const checkInBody = setGuestCheckInFormData({
+          bodyInSrc: finalCustomerCheckInBody.bodyInSrc,
+          cardText: finalCustomerCheckInBody.cardText,
+          gateId,
+          imageInSrc: finalCustomerCheckInBody.imageInSrc,
+          plateText: finalCustomerCheckInBody.plateText,
+          vehicleType: finalCustomerCheckInBody.vehicleType,
+        });
+        await handleGuestCheckIn(checkInBody);
+        return;
+      }
 
       //* set up data for checkin
-
       const checkInBody = setCustomerCheckInData({
-        bodyImageSrc: finalCustomerCheckInBody.bodyImageSrc,
+        bodyInSrc: finalCustomerCheckInBody.bodyInSrc,
         cardText: finalCustomerCheckInBody.cardText,
         gateId,
         imageInSrc: finalCustomerCheckInBody.imageInSrc,
@@ -445,6 +451,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       await handleCustomerCheckIn(checkInBody);
     } catch (error) {
       const err = error as AxiosError;
+      console.log(error);
       if (err.response) {
         if (err.response.status === HttpStatusCode.TooManyRequests) {
           setCheckInInfo((prev) => ({
@@ -463,7 +470,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         isError: true,
       }));
     }
-  }, [finalCustomerCheckInBody]);
+  }, [finalCustomerCheckInBody, isGuest]);
 
   const handleCustomerCheckIn = async (body: any) => {
     try {
@@ -472,22 +479,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           handleReset();
         },
         onError: (error: any) => {
-          if (error.response.data.message === CUSTOMER_NOT_EXIST_ERROR) {
-            setIsGuest(true);
-            setOpenVehicleTypes(true);
-            setCheckInInfo((prev) => ({
-              ...prev,
-              message: "Chọn loại xe",
-              isError: true,
-            }));
-
-            setCheckInInfo((prev) => ({
-              ...prev,
-              customerType: GUEST,
-            }));
-            return;
-          }
-
           if (error.response.data.message === PLATE_NUMBER_NOT_MATCHED) {
             setCheckInInfo((prev) => ({
               ...prev,
