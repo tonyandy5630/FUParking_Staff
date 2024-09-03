@@ -25,9 +25,7 @@ import {
 import { app, BrowserWindow, Menu, dialog, ipcMain, MenuItem } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import dotenv from "dotenv";
 import loginMenuItems from "./menu/loginMenuItems";
-import dotenvExpand from "dotenv-expand";
 import PAGE from "../url";
 import { loadURL } from "./utils/electron_utils";
 import Store from "electron-store";
@@ -46,11 +44,11 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-if (process.resourcesPath) {
-  dotenvExpand.expand(
-    dotenv.config({ path: path.join(process.resourcesPath, ".env") })
-  );
-}
+// if (process.resourcesPath) {
+//   dotenvExpand.expand(
+//     dotenv.config({ path: path.join(process.resourcesPath, ".env") })
+//   );
+// }
 // The built directory structure
 //
 // ├─┬─┬ dist
@@ -61,12 +59,13 @@ if (process.resourcesPath) {
 // │ │ └── preload.mjs
 // │
 process.env.APP_ROOT = path.join(__dirname, "..");
+const PORT = import.meta.env.VITE_PORT;
 
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 export const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
-export const BASE_URL = "http://localhost:" + process.env.PORT;
+export const BASE_URL = "http://localhost:" + PORT;
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, "public")

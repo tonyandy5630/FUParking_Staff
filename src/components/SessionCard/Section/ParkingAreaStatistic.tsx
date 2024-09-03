@@ -91,7 +91,7 @@ function ParkingSection() {
                 title='Qua Ví'
                 isLoading={isLoadingIncome}
               >
-                {formatVNCurrency(incomeData?.data.data.totalCashPayment)}
+                {formatVNCurrency(incomeData?.data.data.totalWalletPayment)}
               </Rectangle>
               {/* <div className='max-w-1'> */}
               <Separator orientation='vertical' className='p-0' />

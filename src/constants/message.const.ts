@@ -19,3 +19,5 @@ export const WRONG_NON_PAID_CUSTOMER = "Xe không thuộc thẻ này";
 export const CARD_NOT_ACTIVE = "Thẻ không được hoạt động";
 export const IS_NOT_ENOUGH_TO_PAY = "Tài khoản không đủ tiền";
 export const CARD_HAS_PREVIOUS_SESSION = "Thẻ đã chứa phiên giữ xe";
+export const SELECT_VEHICLE_TYPE = "Chọn loại xe";
+export const CARD_NOT_IN_SYSTEM = "Thẻ không thuộc hệ thống";

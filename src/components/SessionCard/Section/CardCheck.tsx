@@ -21,7 +21,11 @@ import {
   MISSING_CARD_STATUS,
   PARKED_SESSION_STATUS,
 } from "@constants/session.const";
-import { CARD_NOT_INFO, PARKING_SESSION } from "@constants/message.const";
+import {
+  CARD_NOT_IN_SYSTEM,
+  CARD_NOT_INFO,
+  PARKING_SESSION,
+} from "@constants/message.const";
 import {
   getCardSessionInfoAPI,
   updateSessionPlateNumberAPI,
@@ -29,6 +33,8 @@ import {
 import { FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { updateSessionPlateNumberSchema } from "@utils/schema/sessionSchema";
+import { AxiosError, HttpStatusCode } from "axios";
+import { ErrorResponseAPI } from "@my_types/index";
 
 export default function CardCheckSection() {
   const cardInfo = useSelector((state: RootState) => state.session);
@@ -41,6 +47,8 @@ export default function CardCheckSection() {
     data: cardData,
     isLoading: isLoadingCard,
     isError: isErrorCard,
+    error,
+    failureReason,
   } = useQuery({
     queryKey: ["/get-card-session-by-number", cardValue],
     queryFn: () => getCardSessionInfoAPI(cardValue),
@@ -86,9 +94,28 @@ export default function CardCheckSection() {
       enableOnFormTags: ["INPUT"],
     }
   );
-
   useEffect(() => {
     const cardInfoData = cardData?.data.data;
+
+    if (isErrorCard) {
+      const axiosErr = error as AxiosError<ErrorResponseAPI>;
+      const errorResponse = axiosErr.response;
+      if (!errorResponse) {
+        dispatch(
+          setNewSessionInfo({ ...initSessionCard, cardStatus: "Lỗi hệ thống" })
+        );
+      }
+
+      if (errorResponse?.status === HttpStatusCode.NotFound) {
+        dispatch(
+          setNewSessionInfo({
+            ...initSessionCard,
+            cardStatus: CARD_NOT_IN_SYSTEM,
+          })
+        );
+      }
+    }
+
     if (!cardInfoData) return;
 
     const {
@@ -104,8 +131,14 @@ export default function CardCheckSection() {
     } = cardInfoData;
 
     if (cardNumberRef.current) cardNumberRef.current.value = "";
-    if (sessionId === null) return;
-    if (sessionStatus === CLOSED_SESSION_STATUS) {
+    if (sessionId === null) {
+      dispatch(
+        setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ trống" })
+      );
+      return;
+    }
+
+    if (sessionStatus === CLOSED_SESSION_STATUS || sessionStatus === null) {
       dispatch(
         setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ trống" })
       );
@@ -114,7 +147,20 @@ export default function CardCheckSection() {
 
     if (status === MISSING_CARD_STATUS) {
       dispatch(
-        setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ đã bị mất" })
+        setNewSessionInfo({
+          ...initSessionCard,
+          cardStatus: "Thẻ đã bị mất",
+          gateIn: sessionGateIn,
+          imageInBodyUrl: imageInBodyUrl,
+          imageInUrl,
+          timeIn: toLocaleDate(new Date(sessionTimeIn)),
+          vehicleType: sessionVehicleType,
+          plateNumber: sessionPlateNumber,
+          sessionId: sessionId,
+          cardNumber: cardValue,
+          isClosed:
+            sessionStatus !== PARKED_SESSION_STATUS && cardInfo.isClosed,
+        })
       );
       return;
     }
@@ -136,7 +182,7 @@ export default function CardCheckSection() {
     };
 
     dispatch(setNewSessionInfo(newCardInfo));
-  }, [cardData?.data.data]);
+  }, [cardData?.data.data, isErrorCard]);
 
   const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCardValue(e.target.value);

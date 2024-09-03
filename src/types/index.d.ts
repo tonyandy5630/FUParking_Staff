@@ -15,6 +15,11 @@ export type ErrorResponse<Data> = {
 };
 
 export type ErrorResponseAPI = {
+  message?: string;
+  data?: Data;
+};
+
+export type ErrorResponseAPI = {
   data?: any;
   message: string;
   totalRecord?: number;

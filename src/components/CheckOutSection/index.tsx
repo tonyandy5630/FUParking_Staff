@@ -12,7 +12,7 @@ import {
   getCardCheckOutInfoByPlateAPI,
   missingCardCheckOutAPI,
 } from "@apis/check-out.api";
-import { CheckOut, CheckOutInfo, CheckOutResponse } from "@my_types/check-out";
+import { CheckOut, CheckOutResponse } from "@my_types/check-out";
 import { base64StringToFile } from "@utils/file";
 import {
   ErrorResponse,
@@ -67,7 +67,7 @@ export type Props = {
 };
 
 function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
-  const { gateId } = useSelectGate(GATE_OUT);
+  const { gateId } = useSelectGate(GATE_OUT, true);
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
   const [triggerInfoByCard, setTriggerInfoByCard] = useState(false);
@@ -355,7 +355,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       })
     );
     // }
-  }, [cardByPlateData?.data?.data, dispatch, watch("PlateNumber")]);
+  }, [
+    cardByPlateData?.data?.data,
+    dispatch,
+    watch("PlateNumber"),
+    checkOutInfo,
+  ]);
   // Effect for updating card info based on cardData
   useEffect(() => {
     const cardNumber = watch("CardNumber")?.toString();

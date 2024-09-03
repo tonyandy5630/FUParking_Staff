@@ -10,11 +10,11 @@ import {
 } from "@apis/check-in.api";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import CheckInSchema, { CheckInSchemaType } from "@utils/schema/checkinSchema";
+import CheckInSchema from "@utils/schema/checkinSchema";
 import { CheckIn, UpdateVehicleTypeInfo } from "@my_types/check-in";
 import {
   CARD_INACTIVE,
-  CUSTOMER_NOT_EXIST_ERROR,
+  CARD_NOT_EXISTED_ERROR,
   PLATE_NUMBER_NOT_MATCHED,
 } from "@constants/error-message.const";
 const UpdateVehicleTypeDialog = lazy(
@@ -23,10 +23,11 @@ const UpdateVehicleTypeDialog = lazy(
 import {
   CARD_HAS_PREVIOUS_SESSION,
   CARD_NOT_ACTIVE,
-  GET_INFORMATION_SUCCESSFULLY,
+  CARD_NOT_IN_SYSTEM,
   GUEST_CAN_ENTRY,
   PLATE_NOT_READ,
   PLATE_NOT_VALID,
+  SELECT_VEHICLE_TYPE,
   WRONG_NON_PAID_CUSTOMER,
 } from "@constants/message.const";
 import {
@@ -42,14 +43,10 @@ import useSelectGate from "../../hooks/useSelectGate";
 import { GATE_IN } from "@constants/gate.const";
 import CameraSection from "@components/CameraSection";
 import CheckInVehicleForm from "./CheckInVehicleForm";
-import { HotkeysProvider, useHotkeys } from "react-hotkeys-hook";
+import { HotkeysProvider } from "react-hotkeys-hook";
 import PAGE from "../../../url";
 import ParkingContainer from "@components/ParkingContainer";
 import { AxiosError, HttpStatusCode } from "axios";
-import {
-  ELECTRIC_PLATE_NUMBER_REGEX,
-  MOTORBIKE_PLATE_NUMBER_REGEX,
-} from "@constants/regex";
 import {
   CheckInBodyData,
   initCheckInBody,
@@ -58,6 +55,7 @@ import {
 } from "@utils/set-form-data";
 import cropImageToBase64 from "@utils/image";
 import { isValidPlateNumber } from "@utils/plate-number";
+import { ErrorResponseAPI } from "@my_types/index";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -95,7 +93,7 @@ const initCheckInInfo: CheckInInfo = {
 function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
-  const { gateId } = useSelectGate(GATE_IN);
+  const { gateId } = useSelectGate(GATE_IN, true);
   const [isGuest, setIsGuest] = useState(false);
   const [checkInInfo, setCheckInInfo] = useState<CheckInInfo>(initCheckInInfo);
   const [openVehicleTypes, setOpenVehicleTypes] = useState(false);
@@ -176,6 +174,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
 
   const handleReset = () => {
     setCheckInInfo(initCheckInInfo);
+    setIsGuest(false);
     setFocus("CardId");
     reset();
   };
@@ -205,15 +204,32 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           handleReset();
         },
       });
-    } catch (error: any) {
-      console.log(error);
+    } catch (err: unknown) {
+      const error = err as AxiosError<ErrorResponseAPI>;
+      if (!error?.response?.data || !error?.response) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: "Lỗi hệ thống",
+          isError: true,
+        }));
+        return;
+      }
+
+      if (error.response.status === HttpStatusCode.NotFound) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: CARD_NOT_IN_SYSTEM,
+          isError: true,
+        }));
+        return;
+      }
+
       if (error.response.data.message === PLATE_NUMBER_NOT_MATCHED) {
         setCheckInInfo((prev) => ({
           ...prev,
           message: WRONG_NON_PAID_CUSTOMER,
           isError: true,
         }));
-        handleReset();
         return;
       }
       setCheckInInfo((prev) => ({ ...prev, message: "Lỗi hệ thống" }));
@@ -399,7 +415,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         setCheckInInfo((prev) => ({
           ...prev,
           customerType: GUEST,
-          message: "Chọn loại xe",
+          message: SELECT_VEHICLE_TYPE,
           isError: true,
         }));
         break;
@@ -409,7 +425,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         setCheckInInfo((prev) => ({
           ...prev,
           customerType: GUEST,
-          message: "Chọn loại xe",
+          message: SELECT_VEHICLE_TYPE,
           isError: true,
         }));
         break;
@@ -466,6 +482,18 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           plateText: finalCustomerCheckInBody.plateText,
           vehicleType: finalCustomerCheckInBody.vehicleType,
         });
+
+        if (
+          !finalCustomerCheckInBody.vehicleType ||
+          finalCustomerCheckInBody.vehicleType === ""
+        ) {
+          setCheckInInfo((prev) => ({
+            ...prev,
+            message: SELECT_VEHICLE_TYPE,
+            isError: true,
+          }));
+          return;
+        }
         await handleGuestCheckIn(checkInBody);
         return;
       }
@@ -514,14 +542,32 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         onSuccess: (res) => {
           handleReset();
         },
-        onError: (error: any) => {
+        onError: (err: any) => {
+          const error = err as AxiosError<ErrorResponseAPI>;
+          if (!error?.response?.data || !error?.response) {
+            setCheckInInfo((prev) => ({
+              ...prev,
+              message: "Lỗi hệ thống",
+              isError: true,
+            }));
+            return;
+          }
+
+          if (error.response.data.message === CARD_NOT_EXISTED_ERROR) {
+            setCheckInInfo((prev) => ({
+              ...prev,
+              message: CARD_NOT_IN_SYSTEM,
+              isError: true,
+            }));
+            return;
+          }
+
           if (error.response.data.message === PLATE_NUMBER_NOT_MATCHED) {
             setCheckInInfo((prev) => ({
               ...prev,
               message: WRONG_NON_PAID_CUSTOMER,
               isError: true,
             }));
-            handleReset();
             return;
           }
 
