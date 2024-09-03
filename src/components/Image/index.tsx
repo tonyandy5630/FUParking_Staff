@@ -14,7 +14,7 @@ export default function Image({ src, isLoading = false, className }: Props) {
       loading='lazy'
       src={isLoading ? loading : src === "" ? logo : src}
       className={`aspect-auto ${className} w-full h-full ${
-        src === "" ? "object-contain" : "object-cover"
+        src === "" ? "object-contain" : "object-fill"
       }`}
     />
   );

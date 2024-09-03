@@ -186,7 +186,17 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           handleReset();
         },
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.log(error);
+      if (error.response.data.message === PLATE_NUMBER_NOT_MATCHED) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: WRONG_NON_PAID_CUSTOMER,
+          isError: true,
+        }));
+        handleReset();
+        return;
+      }
       setCheckInInfo((prev) => ({ ...prev, message: "Lỗi hệ thống" }));
     }
   };

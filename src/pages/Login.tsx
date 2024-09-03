@@ -98,7 +98,6 @@ export default function Login(): JSX.Element {
       });
     } catch (err: any) {
       const error = err as AxiosError;
-      console.log(error.response?.status === HttpStatusCode.Unauthorized);
       if (error.response?.status === HttpStatusCode.Unauthorized) {
         setError("email", {
           type: "custom",
@@ -109,8 +108,6 @@ export default function Login(): JSX.Element {
       reset({}, { keepErrors: true });
     }
   };
-
-  console.log(errors);
 
   return (
     <div className='flex flex-col items-center justify-center w-full h-full min-h-full'>
