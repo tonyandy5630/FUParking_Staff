@@ -3,6 +3,7 @@ import {
   GET_ALL_PARKING_AREA_API_URL,
   GET_GATE_INCOME_API_URL,
   GET_PARKING_AREA_STATISTIC_API_URL,
+  IncomeParams,
 } from "./url/parking-area";
 import { ErrorResponse, SuccessResponse } from "@my_types/index";
 import {
@@ -19,5 +20,5 @@ export const getParkingAreaStatisticAPI = (parkingId: string) =>
     GET_PARKING_AREA_STATISTIC_API_URL(parkingId)
   );
 
-export const getGateTotalIncomeAPI = (gateId: string) =>
-  http.get<SuccessResponse<GateTotalIncome>>(GET_GATE_INCOME_API_URL(gateId));
+export const getGateTotalIncomeAPI = (params: IncomeParams) =>
+  http.get<SuccessResponse<GateTotalIncome>>(GET_GATE_INCOME_API_URL(params));

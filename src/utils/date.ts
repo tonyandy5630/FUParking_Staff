@@ -24,7 +24,10 @@ const dayOption: Intl.DateTimeFormatOptions = {
   day: "numeric",
 };
 
-export function getLocalISOString(date: Date): string {
+export function getLocalISOString(date?: Date): string {
+  if (!date) {
+    return "";
+  }
   // Create a formatter for the specified time zone
   if (!Date.parse(date.toString())) {
     return "";

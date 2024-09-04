@@ -11,23 +11,41 @@ import {
 } from "./message.const";
 
 export const FILTER_DATE_VALUE = {
-  TODAY: "today",
-  WEEK: "week",
+  TODAY: {
+    string: "today",
+    number: "0",
+  },
+  WEEK: {
+    string: "week",
+    number: "7",
+  },
   MONTH: "month",
+  CUSTOM: "CUSTOM",
 };
 
 export const SelectDateFilter: SelectOptions[] = [
   {
     name: "Trong ngày",
-    value: FILTER_DATE_VALUE.TODAY,
+    value: FILTER_DATE_VALUE.TODAY.string,
   },
   {
     name: "Trong tuần",
-    value: FILTER_DATE_VALUE.WEEK,
+    value: FILTER_DATE_VALUE.WEEK.string,
   },
   {
     name: "Trong tháng",
     value: FILTER_DATE_VALUE.MONTH,
+  },
+];
+
+export const SelectDateWithCustomFilter: SelectOptions[] = [
+  {
+    name: "Trong ngày",
+    value: FILTER_DATE_VALUE.TODAY.number.toString(),
+  },
+  {
+    name: "Hôm qua",
+    value: "-1",
   },
 ];
 

@@ -193,7 +193,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         }));
         return;
       }
-
       if (errRes.data.message === CARD_NOT_EXISTED_ERROR) {
         setCheckInInfo((prev) => ({
           ...prev,

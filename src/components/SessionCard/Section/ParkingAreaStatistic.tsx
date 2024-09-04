@@ -4,18 +4,35 @@ import {
   getGateTotalIncomeAPI,
   getParkingAreaStatisticAPI,
 } from "@apis/parking-area.api";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import useGetParkingId from "../../../hooks/useGetParkingId";
 import { Separator } from "@components/ui/separator";
 import useSelectGate from "../../../hooks/useSelectGate";
 import { GATE_OUT } from "@constants/gate.const";
 import { formatVNCurrency } from "@utils/currency";
+import { SelectOptions } from "@components/Form/FormSelect";
+import {
+  FILTER_DATE_VALUE,
+  SelectDateFilter,
+  SelectDateWithCustomFilter,
+  SelectSessionStatusFilter,
+} from "@constants/selects.const";
+import {
+  getStartAndEndDatesOfMonth,
+  getStartAndEndDatesOfWeek,
+} from "@utils/date";
+import MySelect from "@components/MySelect";
+import { DatePicker } from "@components/DatePicker";
 
-function ParkingSection() {
+function ParkingStatistic() {
   const [parkingStats, setParkingStats] = useState({
     vehicleIn: 0,
     vehicleOut: 0,
     parkingCapacity: "0/0",
+  });
+  const [apiDateFilter, setApiDateFilter] = useState({
+    startDate: "",
+    endDate: "",
   });
   const parkingId = useGetParkingId();
   const { gateId: gateOutId } = useSelectGate(GATE_OUT, false);
@@ -41,12 +58,29 @@ function ParkingSection() {
         enabled: parkingId !== "",
       },
       {
-        queryKey: ["/get-gate-income", gateOutId],
-        queryFn: () => getGateTotalIncomeAPI(gateOutId),
+        queryKey: [
+          "/get-gate-income",
+          gateOutId,
+          apiDateFilter.startDate,
+          apiDateFilter.endDate,
+        ],
+        queryFn: () =>
+          getGateTotalIncomeAPI({
+            gate: gateOutId,
+            startDate: apiDateFilter.startDate,
+            endDate: apiDateFilter.endDate,
+          }),
         enabled: gateOutId !== "",
       },
     ],
   });
+
+  const handleDateFilterChange = (date: string) => {
+    setApiDateFilter((prev) => ({
+      startDate: date,
+      endDate: date,
+    }));
+  };
 
   useEffect(() => {
     if (parkingId === "") return;
@@ -67,11 +101,10 @@ function ParkingSection() {
   }, [statisticData?.data.data, parkingId]);
 
   return (
-    <RectangleContainer className='grid-rows-[auto_1fr]'>
+    <RectangleContainer className=' grid-rows-[auto_1fr]'>
+      {/* <Input /> */}
       <RectangleContainer
-        className={` grid-rows-[auto_1fr] ${
-          gateOutId !== "" ? "grid-cols-4" : "grid-cols-3"
-        }`}
+        className={`  ${gateOutId !== "" ? "grid-cols-4" : "grid-cols-3"}`}
       >
         <Rectangle isLoading={isLoadingStatistic} title='Tổng xe vào hôm nay'>
           {parkingStats.vehicleIn}
@@ -83,8 +116,16 @@ function ParkingSection() {
           {parkingStats.parkingCapacity}
         </Rectangle>
         {gateOutId !== "" && (
-          <Rectangle isLoading={isLoadingStatistic} title='Tổng tiền hôm nay'>
-            {/* {parkingStats.parkingCapacity} */}
+          <Rectangle
+            isLoading={isLoadingStatistic}
+            className='min-w-full'
+            title={
+              <>
+                <span className='min-w-20'>Tổng tiền</span>{" "}
+                <DatePicker onValueChange={handleDateFilterChange} />
+              </>
+            }
+          >
             <RectangleContainer className='grid-cols-[1fr_auto_1fr] gap-x-2 h-fit'>
               <Rectangle
                 className='text-sm font-normal border-none'
@@ -93,9 +134,7 @@ function ParkingSection() {
               >
                 {formatVNCurrency(incomeData?.data.data.totalWalletPayment)}
               </Rectangle>
-              {/* <div className='max-w-1'> */}
               <Separator orientation='vertical' className='p-0' />
-              {/* </div> */}
               <Rectangle
                 className='text-sm font-normal border-none'
                 title='Khác'
@@ -111,4 +150,4 @@ function ParkingSection() {
   );
 }
 
-export default React.memo(ParkingSection);
+export default React.memo(ParkingStatistic);

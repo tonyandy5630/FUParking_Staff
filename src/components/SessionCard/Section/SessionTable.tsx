@@ -31,7 +31,7 @@ function SessionTable() {
   const { pagination, onPaginationChange } = usePagination();
   const sessionTable = useSelector((state: RootState) => state.sessionTable);
   const dispatch = useDispatch();
-  const [dateFilter, setDateFilter] = useState(FILTER_DATE_VALUE.TODAY);
+  const [dateFilter, setDateFilter] = useState(FILTER_DATE_VALUE.TODAY.string);
   const [statusFilter, setStatusFilter] = useState("");
   const [plateText, setPlateText] = useState("");
   const [debouncePlateText] = useDebounce(plateText, 750);
@@ -93,12 +93,12 @@ function SessionTable() {
 
   const handleSetDateFilter = (e: string) => {
     setDateFilter(e);
-    if (e === FILTER_DATE_VALUE.TODAY) {
+    if (e === FILTER_DATE_VALUE.TODAY.string) {
       setApiDateFilter({ startDate: "", endDate: "" });
       return;
     }
 
-    if (e === FILTER_DATE_VALUE.WEEK) {
+    if (e === FILTER_DATE_VALUE.WEEK.string) {
       const { startDate, endDate } = getStartAndEndDatesOfWeek();
       setApiDateFilter({ startDate, endDate });
       return;
