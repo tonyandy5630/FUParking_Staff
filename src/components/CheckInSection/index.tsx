@@ -142,6 +142,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     data: checkInInfoData,
     isLoading: isGettingInfoData,
     isError: isErrorGettingInfoData,
+    error,
   } = useQuery({
     queryKey: [
       "/get-info-check-in",
@@ -182,11 +183,26 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   //* error api get effect
   useEffect(() => {
     if (isErrorGettingInfoData) {
-      setCheckInInfo((prev) => ({
-        ...prev,
-        message: "Lỗi hệ thống",
-        isError: true,
-      }));
+      const err = error as AxiosError<ErrorResponseAPI>;
+      const errRes = err.response;
+      if (!errRes) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: "Lỗi hệ thống",
+          isError: true,
+        }));
+        return;
+      }
+
+      if (errRes.data.message === CARD_NOT_EXISTED_ERROR) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: CARD_NOT_IN_SYSTEM,
+          isError: true,
+        }));
+        return;
+      }
+
       return;
     }
   }, [isErrorGettingInfoData]);
