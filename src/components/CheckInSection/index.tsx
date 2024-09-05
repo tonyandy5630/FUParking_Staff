@@ -14,6 +14,7 @@ import CheckInSchema from "@utils/schema/checkinSchema";
 import { CheckIn, UpdateVehicleTypeInfo } from "@my_types/check-in";
 import {
   CARD_INACTIVE,
+  CARD_IS_MISSING_ERROR,
   CARD_NOT_EXISTED_ERROR,
   PLATE_NUMBER_NOT_MATCHED,
 } from "@constants/error-message.const";
@@ -22,12 +23,14 @@ const UpdateVehicleTypeDialog = lazy(
 );
 import {
   CARD_HAS_PREVIOUS_SESSION,
+  CARD_MISSING,
   CARD_NOT_ACTIVE,
   CARD_NOT_IN_SYSTEM,
   GUEST_CAN_ENTRY,
   PLATE_NOT_READ,
   PLATE_NOT_VALID,
   SELECT_VEHICLE_TYPE,
+  VERIFYING,
   WRONG_NON_PAID_CUSTOMER,
 } from "@constants/message.const";
 import {
@@ -56,6 +59,7 @@ import {
 import cropImageToBase64 from "@utils/image";
 import { isValidPlateNumber } from "@utils/plate-number";
 import { ErrorResponseAPI } from "@my_types/index";
+import { PENDING_VEHICLE } from "@constants/vehicle.const";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -180,7 +184,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     reset();
   };
 
-  //* error api get effect
+  //* error api effect
   useEffect(() => {
     if (isErrorGettingInfoData) {
       const err = error as AxiosError<ErrorResponseAPI>;
@@ -193,7 +197,19 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         }));
         return;
       }
-      if (errRes.data.message === CARD_NOT_EXISTED_ERROR) {
+
+      const message = errRes.data.message;
+
+      if (message === CARD_IS_MISSING_ERROR) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: CARD_MISSING,
+          isError: true,
+        }));
+        return;
+      }
+
+      if (message === CARD_NOT_EXISTED_ERROR) {
         setCheckInInfo((prev) => ({
           ...prev,
           message: CARD_NOT_IN_SYSTEM,
@@ -417,11 +433,26 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
 
     if (!customerTypeData) return;
 
-    const { customerType, previousSessionInfo } = customerTypeData;
+    const { customerType, previousSessionInfo, informationVehicle } =
+      customerTypeData;
+
+    if (
+      informationVehicle !== null &&
+      informationVehicle.statusVehicle === PENDING_VEHICLE
+    ) {
+      setUpdateVehicleInfo(informationVehicle);
+      handleOpenDialogChange();
+      return;
+    }
 
     switch (customerType) {
       case PAID_CUSTOMER || FREE_CUSTOMER: {
-        setCheckInInfo((prev) => ({ ...prev, customerType: SYSTEM_CUSTOMER }));
+        setCheckInInfo((prev) => ({
+          ...prev,
+          customerType: SYSTEM_CUSTOMER,
+          message: VERIFYING,
+          isError: true,
+        }));
         break;
       }
       case GUEST_CUSTOMER:

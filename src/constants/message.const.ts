@@ -21,3 +21,6 @@ export const IS_NOT_ENOUGH_TO_PAY = "Tài khoản không đủ tiền";
 export const CARD_HAS_PREVIOUS_SESSION = "Thẻ đã chứa phiên giữ xe";
 export const SELECT_VEHICLE_TYPE = "Chọn loại xe";
 export const CARD_NOT_IN_SYSTEM = "Thẻ không thuộc hệ thống";
+export const CARD_MISSING = "Thẻ đã bị mất. Liên hệ quản lí để tái kích hoạt";
+export const VERIFYING = "Đang xác thực";
+export const WAITING_APPROVAL = "Đang chờ xác nhận";

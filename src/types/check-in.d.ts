@@ -1,4 +1,5 @@
 import { CustomerType } from "@constants/customer.const";
+import { VehicleStatus } from "./vehicle";
 
 export type CheckIn = {
   CardId: string;
@@ -19,5 +20,6 @@ export type UpdateVehicleTypeInfo = {
 
 export type CheckInCustomerInfo = {
   customerType: CustomerType;
-  previousSessionInfo?: CardInfo;
+  previousSessionInfo: CardInfo | null;
+  informationVehicle: UpdateVehicleTypeInfo | null;
 };

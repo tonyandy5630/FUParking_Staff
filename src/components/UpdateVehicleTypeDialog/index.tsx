@@ -34,6 +34,10 @@ import Message from "@components/Message";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CANCELED_HOTKEY } from "../../hotkeys/key";
 import PAGE from "../../../url";
+import { Label } from "@components/ui/label";
+import { PENDING_VEHICLE } from "@constants/vehicle.const";
+import { WAITING_APPROVAL } from "@constants/message.const";
+import ConfirmDialog from "../../ConfirmDialog";
 
 const initialInfo: UpdateVehicleTypeInfo = {
   vehicleType: "",
@@ -55,6 +59,8 @@ function UpdateVehicleTypeDialog({
   onOpenChange,
 }: Props) {
   const [message, setMessage] = useState("");
+  const rejectButtonRef = useRef<HTMLButtonElement>(null);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const {
     plateImage: plateImg,
     plateNumber: plateText,
@@ -62,7 +68,6 @@ function UpdateVehicleTypeDialog({
     createDate: timeRegister,
     vehicleType,
   } = info;
-  const formRef = useRef<HTMLFormElement>(null);
   useHotkeys(
     CANCELED_HOTKEY,
     () => {
@@ -106,14 +111,19 @@ function UpdateVehicleTypeDialog({
     queryFn: getVehicleTypesAPI,
   });
 
+  const handleOpenConfirmDialogChange = () => {
+    setOpenConfirmDialog((prev) => !prev);
+  };
+
   const handleVehicleTypeChange = (e: string) => {
     setValue("vehicleType", e);
   };
 
-  const handleOpenChange = () => {
+  const handleRejectVehicle = () => {
     setValue("isAccept", false);
-    if (formRef.current) formRef.current.submit();
-    onOpenChange();
+    if (rejectButtonRef.current) {
+      rejectButtonRef.current.click();
+    }
   };
 
   const vehicleTypesSelects = useMemo(() => {
@@ -122,7 +132,7 @@ function UpdateVehicleTypeDialog({
       return types.map((item) => (
         <SelectItem key={item.id} value={item.id}>
           <div className='flex items-center justify-around gap-x-3'>
-            {item.name}
+            {item.description}
           </div>
         </SelectItem>
       ));
@@ -135,8 +145,7 @@ function UpdateVehicleTypeDialog({
       await updateVehicleTypeMutation.mutateAsync(data, {
         onSuccess: (res) => {
           setMessage("THAY ĐỔI THÀNH CÔNG");
-          onOpenChange();
-          toast.success("THAY ĐỔI THÀNH CÔNG");
+          onOpenChange(); //* close the dialog
         },
       });
     } catch (error) {
@@ -146,71 +155,93 @@ function UpdateVehicleTypeDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className='min-w-fit'>
-        <DialogHeader>
-          <DialogTitle>Xác nhận xe khách hàng</DialogTitle>
-        </DialogHeader>
-        <div className='flex justify-center gap-4 py-4'>
-          <FormProvider {...methods}>
-            <form
-              ref={formRef}
-              className='grid items-center justify-center gap-2'
-              onSubmit={handleSubmit(handleUpdateVehicle)}
-            >
-              <FormInfoRow>
-                <InfoSection numberOfRow={5}>
-                  <InfoVehicle label='Thời gian đăng kí'>
-                    {toLocaleDate(new Date(timeRegister))}
-                  </InfoVehicle>
-                  <InfoVehicle label='Loại xe'>
-                    <Controller
-                      name='vehicleType'
-                      control={control}
-                      render={(fields) => (
-                        <Select
-                          onValueChange={handleVehicleTypeChange}
-                          defaultValue={vehicleType}
-                          {...fields}
+    <>
+      {openConfirmDialog && (
+        <ConfirmDialog
+          onConfirmSubmit={handleRejectVehicle}
+          open={openConfirmDialog}
+          onOpenChange={handleOpenConfirmDialogChange}
+          title='Từ chối xe khách hàng'
+          text='Bấm xác nhận sẽ từ chối xe khách hàng'
+        />
+      )}
+      <Dialog open={open} onOpenChange={handleOpenConfirmDialogChange}>
+        <DialogContent className='min-w-fit'>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xe khách hàng</DialogTitle>
+          </DialogHeader>
+          <div className='flex justify-center gap-4 py-4'>
+            <FormProvider {...methods}>
+              <form
+                className='grid items-center justify-center gap-2'
+                onSubmit={handleSubmit(handleUpdateVehicle)}
+              >
+                <FormInfoRow>
+                  <InfoSection numberOfRow={5}>
+                    <InfoVehicle label='Thời gian đăng kí'>
+                      {toLocaleDate(new Date(timeRegister))}
+                    </InfoVehicle>
+                    <InfoVehicle label='Loại xe'>
+                      <Controller
+                        name='vehicleType'
+                        control={control}
+                        render={(fields) => (
+                          <Select
+                            onValueChange={handleVehicleTypeChange}
+                            defaultValue={vehicleType}
+                            {...fields}
+                          >
+                            <SelectTrigger className='min-w-full'>
+                              <SelectValue placeholder='Chọn loại xe' />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>{vehicleTypesSelects}</SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </InfoVehicle>
+                    <InfoVehicle label='Trạng thái'>
+                      {status === PENDING_VEHICLE
+                        ? WAITING_APPROVAL
+                        : "Không hợp lệ"}
+                    </InfoVehicle>
+                    <div className='grid items-center justify-center border border-solid border-gray-50000'>
+                      <DialogFooter className='flex justify-center w-full'>
+                        <Message
+                          error={updateVehicleTypeMutation.isError}
+                          success={updateVehicleTypeMutation.isSuccess}
+                          pending={updateVehicleTypeMutation.isPending}
                         >
-                          <SelectTrigger className='min-w-full'>
-                            <SelectValue placeholder='Chọn loại xe' />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>{vehicleTypesSelects}</SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      )}
+                          {updateVehicleTypeMutation.isPending
+                            ? "Đang xác nhận"
+                            : message}
+                        </Message>
+                      </DialogFooter>
+                    </div>
+                    <Button
+                      type='submit'
+                      onClick={(e) => setValue("isAccept", true)}
+                    >
+                      Đồng ý
+                    </Button>
+                    <button
+                      type='submit'
+                      onClick={(e) => setValue("isAccept", false)}
+                      ref={rejectButtonRef}
                     />
-                  </InfoVehicle>
-                  <InfoVehicle label='Trạng thái'>{status}</InfoVehicle>
-                  <div className='grid items-center justify-center border border-solid border-gray-50000'>
-                    <DialogFooter className='flex justify-center w-full'>
-                      <Message
-                        error={updateVehicleTypeMutation.isError}
-                        success={updateVehicleTypeMutation.isSuccess}
-                        pending={updateVehicleTypeMutation.isPending}
-                      >
-                        {updateVehicleTypeMutation.isPending
-                          ? "Đang xác nhận"
-                          : message}
-                      </Message>
-                    </DialogFooter>
+                  </InfoSection>
+                  <div>
+                    <Label>Hình ảnh xe đăng kí trên ứng dụng</Label>
+                    <img src={plateImg} className={`aspect-video`} />
                   </div>
-                  <Button
-                    type='submit'
-                    onClick={(e) => setValue("isAccept", true)}
-                  >
-                    Đồng ý
-                  </Button>
-                </InfoSection>
-                <img src={plateImg} className={`aspect-video`} />
-              </FormInfoRow>
-            </form>
-          </FormProvider>
-        </div>
-      </DialogContent>
-    </Dialog>
+                </FormInfoRow>
+              </form>
+            </FormProvider>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

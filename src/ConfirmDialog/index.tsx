@@ -10,7 +10,7 @@ import React, { PropsWithChildren, useState } from "react";
 
 interface Props extends PropsWithChildren {
   title: string;
-  onConfirmSubmit: () => Promise<void>;
+  onConfirmSubmit: () => void | Promise<void>;
   onCancel?: () => void;
   text?: string;
   open: boolean;
@@ -31,7 +31,6 @@ export default function ConfirmDialog({
 
   const handleCancel = (e: any) => {
     onOpenChange();
-
     if (onCancel) onCancel();
   };
 
@@ -46,9 +45,9 @@ export default function ConfirmDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        {text}
+        <p className='font-bold text-muted-foreground'>{text}</p>
         <DialogFooter className='grid grid-cols-2'>
-          <Button variant='destructive' onClick={handleCancel}>
+          <Button variant='destructive' onClick={handleCancel} autoFocus>
             Hủy
           </Button>
           <Button onClick={handleSubmit}>Xác nhận</Button>

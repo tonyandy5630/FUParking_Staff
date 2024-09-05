@@ -6,3 +6,4 @@ export const CARD_INACTIVE = "Card is inactive";
 export const CONFLICT_ERROR = "Request failed with status code 409";
 export const NO_PLATE_ERROR = "Must have PlateNumber";
 export const CARD_NOT_EXISTED_ERROR = "Card is not exist in system";
+export const CARD_IS_MISSING_ERROR = "Card is missing";

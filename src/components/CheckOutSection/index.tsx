@@ -393,8 +393,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       return;
     }
     setTriggerInfoByCard(false);
-    console.log(cardInfo);
-
     const isEnoughPay = cardInfo.isEnoughToPay ?? true;
     const isPlateMatched = cardInfo.plateNumber === checkOutInfo.plateTextOut;
     let message =

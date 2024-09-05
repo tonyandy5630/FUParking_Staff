@@ -138,29 +138,19 @@ export default function CardCheckSection() {
       return;
     }
 
-    if (sessionStatus === CLOSED_SESSION_STATUS || sessionStatus === null) {
-      dispatch(
-        setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ trống" })
-      );
-      return;
-    }
-
     if (status === MISSING_CARD_STATUS) {
       dispatch(
         setNewSessionInfo({
           ...initSessionCard,
           cardStatus: "Thẻ đã bị mất",
-          gateIn: sessionGateIn,
-          imageInBodyUrl: imageInBodyUrl,
-          imageInUrl,
-          timeIn: toLocaleDate(new Date(sessionTimeIn)),
-          vehicleType: sessionVehicleType,
-          plateNumber: sessionPlateNumber,
-          sessionId: sessionId,
-          cardNumber: cardValue,
-          isClosed:
-            sessionStatus !== PARKED_SESSION_STATUS && cardInfo.isClosed,
         })
+      );
+      return;
+    }
+
+    if (sessionStatus === CLOSED_SESSION_STATUS || sessionStatus === null) {
+      dispatch(
+        setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ trống" })
       );
       return;
     }

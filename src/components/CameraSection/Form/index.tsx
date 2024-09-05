@@ -1,4 +1,5 @@
 import { GATE_IN } from "@constants/gate.const";
+import { VERIFYING } from "@constants/message.const";
 import { GateType } from "@my_types/gate";
 import { FormHTMLAttributes, HTMLAttributes, PropsWithChildren } from "react";
 
@@ -68,7 +69,7 @@ export function FormNameRow({
           error ? "text-red-500" : "text-green-500"
         }`}
       >
-        {isLoading ? "Đang xác thực" : message}
+        {isLoading ? VERIFYING : message}
       </div>
       <div>{children}</div>
     </div>
