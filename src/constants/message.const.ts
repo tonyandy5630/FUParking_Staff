@@ -18,7 +18,8 @@ export const CLOSED_SESSION = "Đã kết thúc";
 export const WRONG_NON_PAID_CUSTOMER = "Xe không thuộc thẻ này";
 export const CARD_NOT_ACTIVE = "Thẻ không được hoạt động";
 export const IS_NOT_ENOUGH_TO_PAY = "Tài khoản không đủ tiền";
-export const CARD_HAS_PREVIOUS_SESSION = "Thẻ đã chứa phiên giữ xe";
+export const CARD_HAS_PREVIOUS_SESSION =
+  "Thẻ đã chứa phiên giữ xe. Hãy sử dụng thẻ khác";
 export const SELECT_VEHICLE_TYPE = "Chọn loại xe";
 export const CARD_NOT_IN_SYSTEM = "Thẻ không thuộc hệ thống";
 export const CARD_MISSING = "Thẻ đã bị mất. Liên hệ quản lí để tái kích hoạt";

@@ -17,6 +17,7 @@ export type CheckOut = {
 };
 
 export type CheckOutInfo = {
+  id: string;
   plateImgIn: string;
   plateImgOut: string;
   bodyImgIn: string;
@@ -46,6 +47,7 @@ export type CheckOutResponse = {
 };
 
 export type CheckOutCardInfo = {
+  id: string;
   cardId: string;
   gateIn: string;
   gateOut: string;

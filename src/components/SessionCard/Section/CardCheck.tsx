@@ -26,10 +26,7 @@ import {
   CARD_NOT_INFO,
   PARKING_SESSION,
 } from "@constants/message.const";
-import {
-  getCardSessionInfoAPI,
-  updateSessionPlateNumberAPI,
-} from "@apis/session.api";
+import { getCardSessionInfoAPI } from "@apis/session.api";
 import { FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { updateSessionPlateNumberSchema } from "@utils/schema/sessionSchema";

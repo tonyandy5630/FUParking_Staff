@@ -1,4 +1,5 @@
 export const SYSTEM_CUSTOMER = "KHÁCH HÀNG";
+export const APP_CUSTOMER = "Khách hàng sử dụng ví";
 export const GUEST = "KHÁCH VÃNG LAI";
 export const NEXT_CUSTOMER = "KHÁCH HÀNG TIẾP THEO";
 

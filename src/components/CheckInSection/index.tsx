@@ -430,7 +430,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   //* effect get info
   useEffect(() => {
     const customerTypeData = checkInInfoData?.data.data;
-
     if (!customerTypeData) return;
 
     const { customerType, previousSessionInfo, informationVehicle } =
@@ -445,44 +444,47 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       return;
     }
 
-    switch (customerType) {
-      case PAID_CUSTOMER || FREE_CUSTOMER: {
-        setCheckInInfo((prev) => ({
-          ...prev,
-          customerType: SYSTEM_CUSTOMER,
-          message: VERIFYING,
-          isError: true,
-        }));
-        break;
+    if (customerType !== null) {
+      switch (customerType) {
+        case PAID_CUSTOMER || FREE_CUSTOMER: {
+          setCheckInInfo((prev) => ({
+            ...prev,
+            customerType: SYSTEM_CUSTOMER,
+            message: GUEST_CAN_ENTRY,
+            isError: false,
+          }));
+          break;
+        }
+        case GUEST_CUSTOMER:
+          setIsGuest(true);
+          setOpenVehicleTypes(true);
+          setCheckInInfo((prev) => ({
+            ...prev,
+            customerType: GUEST,
+            message: SELECT_VEHICLE_TYPE,
+            isError: true,
+          }));
+          break;
+        default:
+          setIsGuest(true);
+          setOpenVehicleTypes(true);
+          setCheckInInfo((prev) => ({
+            ...prev,
+            customerType: GUEST,
+            message: SELECT_VEHICLE_TYPE,
+            isError: true,
+          }));
+          break;
       }
-      case GUEST_CUSTOMER:
-        setIsGuest(true);
-        setOpenVehicleTypes(true);
-        setCheckInInfo((prev) => ({
-          ...prev,
-          customerType: GUEST,
-          message: SELECT_VEHICLE_TYPE,
-          isError: true,
-        }));
-        break;
-      default:
-        setIsGuest(true);
-        setOpenVehicleTypes(true);
-        setCheckInInfo((prev) => ({
-          ...prev,
-          customerType: GUEST,
-          message: SELECT_VEHICLE_TYPE,
-          isError: true,
-        }));
-        break;
     }
 
-    if (previousSessionInfo) {
-      setCheckInInfo((prev) => ({
-        ...prev,
+    if (previousSessionInfo !== null && previousSessionInfo) {
+      setCheckInInfo({
+        ...initCheckInInfo,
         message: CARD_HAS_PREVIOUS_SESSION,
         isError: true,
-      }));
+      });
+      reset({ CardId: "" });
     }
   }, [checkInInfoData?.data.data]);
 

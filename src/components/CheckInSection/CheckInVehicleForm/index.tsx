@@ -131,7 +131,7 @@ export default function CheckInVehicleForm({
     const types = vehicleTypesData?.data.data;
     if (isSuccessVehicleTypes && types) {
       return types.map((item) => ({
-        name: item.name,
+        name: item.description,
         value: item.id,
       }));
     }
