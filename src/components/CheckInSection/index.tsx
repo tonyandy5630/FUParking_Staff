@@ -17,6 +17,7 @@ import {
   CARD_IS_MISSING_ERROR,
   CARD_NOT_EXISTED_ERROR,
   PLATE_NUMBER_NOT_MATCHED,
+  VEHICLE_IN_PARKING_ERROR,
 } from "@constants/error-message.const";
 const UpdateVehicleTypeDialog = lazy(
   () => import("@components/UpdateVehicleTypeDialog")
@@ -30,6 +31,7 @@ import {
   PLATE_NOT_READ,
   PLATE_NOT_VALID,
   SELECT_VEHICLE_TYPE,
+  VEHICLE_IS_PARKING,
   VERIFYING,
   WRONG_NON_PAID_CUSTOMER,
 } from "@constants/message.const";
@@ -57,7 +59,7 @@ import {
   setGuestCheckInFormData,
 } from "@utils/set-form-data";
 import cropImageToBase64 from "@utils/image";
-import { isValidPlateNumber } from "@utils/plate-number";
+import { isValidPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 import { ErrorResponseAPI } from "@my_types/index";
 import { PENDING_VEHICLE } from "@constants/vehicle.const";
 
@@ -88,7 +90,7 @@ const initCheckInInfo: CheckInInfo = {
   ImageBodySrc: "",
   time: undefined,
   customerType: "",
-  message: NEXT_CUSTOMER,
+  message: "",
   isError: false,
   vehicleType: "",
   croppedPlateImage: "",
@@ -184,6 +186,11 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     reset();
   };
 
+  const handleResetCardText = () => {
+    setFocus("CardId");
+    reset({ CardId: "" });
+  };
+
   //* error api effect
   useEffect(() => {
     if (isErrorGettingInfoData) {
@@ -199,22 +206,34 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       }
 
       const message = errRes.data.message;
+      if (message === VEHICLE_IN_PARKING_ERROR) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: VEHICLE_IS_PARKING,
+          isError: true,
+        }));
+        handleResetCardText();
+
+        return;
+      }
 
       if (message === CARD_IS_MISSING_ERROR) {
         setCheckInInfo((prev) => ({
-          ...prev,
+          ...initCheckInInfo,
           message: CARD_MISSING,
           isError: true,
         }));
+        handleResetCardText();
         return;
       }
 
       if (message === CARD_NOT_EXISTED_ERROR) {
         setCheckInInfo((prev) => ({
-          ...prev,
+          ...initCheckInInfo,
           message: CARD_NOT_IN_SYSTEM,
           isError: true,
         }));
+        handleResetCardText();
         return;
       }
 
@@ -282,7 +301,9 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
 
   const handleFixPlate = () => {
     try {
-      const plateNumber = watch("PlateNumber")?.toUpperCase() as string;
+      const plateNumber = unFormatPlateNumber(
+        watch("PlateNumber")?.toUpperCase() as string
+      );
       const cardNumber = getValues("CardId");
       if (cardNumber === "") {
         handleReset();
@@ -444,10 +465,29 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       return;
     }
 
+    if (previousSessionInfo !== null && previousSessionInfo) {
+      const { cardOrPlateNumber } = previousSessionInfo;
+      if (cardOrPlateNumber === "CARD") {
+        setCheckInInfo({
+          ...initCheckInInfo,
+          message: CARD_HAS_PREVIOUS_SESSION,
+          isError: true,
+        });
+      } else {
+        setCheckInInfo({
+          ...initCheckInInfo,
+          message: VEHICLE_IS_PARKING,
+          isError: true,
+        });
+      }
+      handleResetCardText();
+      return;
+    }
+
     if (customerType !== null) {
-      console.log(customerType);
       switch (customerType) {
         case FREE_CUSTOMER: {
+          setIsGuest(false);
           setCheckInInfo((prev) => ({
             ...prev,
             customerType: SYSTEM_CUSTOMER,
@@ -457,6 +497,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           break;
         }
         case PAID_CUSTOMER: {
+          setIsGuest(false);
           setCheckInInfo((prev) => ({
             ...prev,
             customerType: SYSTEM_CUSTOMER,
@@ -486,15 +527,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           }));
           break;
       }
-    }
-
-    if (previousSessionInfo !== null && previousSessionInfo) {
-      setCheckInInfo({
-        ...initCheckInInfo,
-        message: CARD_HAS_PREVIOUS_SESSION,
-        isError: true,
-      });
-      reset({ CardId: "" });
     }
   }, [checkInInfoData?.data.data]);
 

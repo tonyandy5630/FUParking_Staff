@@ -28,7 +28,9 @@ import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
 import {
   APP_CUSTOMER,
+  FREE_CUSTOMER,
   GuestTypeMessage,
+  PAID_CUSTOMER,
   SYSTEM_CUSTOMER,
 } from "@constants/customer.const";
 import useSelectGate from "../../hooks/useSelectGate";
@@ -60,7 +62,7 @@ import {
 } from "../../redux/checkoutSlice";
 import ParkingContainer from "@components/ParkingContainer";
 import cropImageToBase64 from "@utils/image";
-import { isValidPlateNumber } from "@utils/plate-number";
+import { isValidPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -74,9 +76,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   const { gateId } = useSelectGate(GATE_OUT, true);
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
-  const [triggerInfoByCard, setTriggerInfoByCard] = useState(false);
-  const [triggerGetInfoByPlateNumber, setTriggerGetInfoByPlateNumber] =
-    useState<boolean>(false);
+  const triggerInfoByCard = useRef(false);
+  const triggerGetInfoByPlateNumber = useRef<boolean>(false);
   const [timeOut, setTimeOut] = useState("");
   const checkOutInfo = useAppSelector((cardInfo) => cardInfo.checkOutCard);
   const dispatch = useDispatch();
@@ -102,7 +103,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
 
   const handleResetForm = () => {
     setTimeOut("");
-    setTriggerInfoByCard(false);
+    triggerInfoByCard.current = false;
     dispatch(resetCurrentCardInfo());
     setFocus("CardNumber");
     reset();
@@ -122,10 +123,10 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     ],
     queryFn: () =>
       getCardCheckOutInfoByPlateAPI(
-        watch("PlateNumber") ?? "",
+        unFormatPlateNumber(watch("PlateNumber") ?? ""),
         getLocalISOString(new Date(timeOut))
       ),
-    enabled: triggerGetInfoByPlateNumber,
+    enabled: triggerGetInfoByPlateNumber.current,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     retry: 0,
@@ -150,7 +151,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         watch("CardNumber") ?? "",
         getLocalISOString(new Date(timeOut))
       ),
-    enabled: triggerInfoByCard,
+    enabled: triggerInfoByCard.current,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     retry: 0,
@@ -160,7 +161,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   const handleTriggerGetInfoByPlate = () => {
     const current = new Date();
     setTimeOut(current.toString());
-    setTriggerGetInfoByPlateNumber((prev) => !prev);
+    triggerGetInfoByPlateNumber.current = true;
   };
 
   useEffect(() => {
@@ -168,13 +169,13 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (isValidCard) {
       const current = new Date();
       setTimeOut(current.toString());
-      setTriggerInfoByCard(true);
+      triggerInfoByCard.current = true;
       dispatch(
         setNewCardInfo({ ...checkOutInfo, timeOut: current.toString() })
       );
       return;
     }
-    setTriggerInfoByCard(false);
+    triggerInfoByCard.current = false;
   }, [watch("CardNumber")?.length]);
 
   const checkOutMutation = useMutation({
@@ -219,6 +220,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   const handlePlateDetection = useCallback(async () => {
     let plateImgOut = "";
     try {
+      dispatch(resetCurrentCardInfo());
       const plateNumberBody = new FormData();
       const plateImageSrc = (plateCamRef.current as any).getScreenshot();
       const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
@@ -248,7 +250,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
             );
           }
 
-          setTriggerInfoByCard(false);
+          triggerInfoByCard.current = false;
           dispatch(
             setNewCardInfo({
               ...checkOutInfo,
@@ -278,7 +280,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       }
       return false;
     }
-  }, [dispatch, plateCamRef, bodyCamRef, setTriggerInfoByCard]);
+  }, [dispatch, plateCamRef, bodyCamRef, triggerInfoByCard]);
   // Effect for plate detection
   useEffect(() => {
     if (!cardData?.data?.data && !cardByPlateData?.data.data) {
@@ -289,9 +291,19 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
 
   useEffect(() => {
     if (isErrorCardInfo || isErrorCardByPlate) {
-      setTriggerGetInfoByPlateNumber(false);
-      setTriggerInfoByCard(false);
+      triggerInfoByCard.current = false;
+      triggerGetInfoByPlateNumber.current = false;
       const cardByPlateError = error as AxiosError<ErrorResponseAPI>;
+      if (cardByPlateError == null || !cardByPlateError) {
+        dispatch(
+          setNewCardInfo({
+            ...initCheckOutInfo,
+            message: "Lỗi hệ thống",
+            isError: true,
+          })
+        );
+        return;
+      }
       const cardByPlateErrorResponse = cardByPlateError.response;
       if (!cardByPlateErrorResponse) {
         dispatch(
@@ -314,15 +326,22 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       }
       reset();
     }
-  }, [isErrorCardInfo, isErrorCardByPlate]);
+  }, [
+    isErrorCardInfo,
+    isErrorCardByPlate,
+    triggerGetInfoByPlateNumber.current,
+    triggerInfoByCard.current,
+  ]);
 
   // Effect for updating card info based on cardByPlate
   useEffect(() => {
-    const plateNumber = watch("PlateNumber")?.toUpperCase();
-
+    const plateNumber = unFormatPlateNumber(
+      watch("PlateNumber")?.toUpperCase()
+    );
     if (!plateNumber) {
       return;
     }
+
     if (plateNumber.trim().length < 8) {
       return;
     }
@@ -365,7 +384,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       message = IS_NOT_ENOUGH_TO_PAY;
     }
 
-    if (cardInfo.isEnoughToPay === true) {
+    if (cardInfo.isEnoughToPay === false) {
       customerType = APP_CUSTOMER;
     }
 
@@ -393,7 +412,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     watch("PlateNumber"),
     checkOutInfo,
   ]);
-  // Effect for updating card info based on cardData
+  //Effect for updating card info based on cardData
   useEffect(() => {
     const cardNumber = watch("CardNumber")?.toString();
 
@@ -424,7 +443,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       );
       return;
     }
-    setTriggerInfoByCard(false);
+    triggerInfoByCard.current = true;
     const isEnoughPay = cardInfo.isEnoughToPay ?? true;
     const isPlateMatched = cardInfo.plateNumber === checkOutInfo.plateTextOut;
     let message =
@@ -440,7 +459,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
 
     let customerType = cardInfo.vehicleType;
 
-    if (cardInfo.isEnoughToPay === true) {
+    if (cardInfo.isEnoughToPay === false || cardInfo.amount === 0) {
       customerType = APP_CUSTOMER;
     }
 
@@ -465,11 +484,18 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         message,
       })
     );
-    // }
-  }, [cardData?.data?.data, checkOutInfo, dispatch, watch("CardNumber")]);
+  }, [
+    cardData?.data?.data,
+    checkOutInfo.id,
+    checkOutInfo.plateImgOut,
+    watch("CardNumber"),
+  ]);
+
   const handleCheckOutMissingCard = async () => {
     try {
-      const plateNumber = watch("PlateNumber")?.toUpperCase() as string;
+      const plateNumber = unFormatPlateNumber(
+        watch("PlateNumber")?.toUpperCase() as string
+      );
 
       const isValidPlate = isValidPlateNumber(plateNumber);
       if (!isValidPlate) {
@@ -506,9 +532,9 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       checkOutBody.append("GateId", gateId);
       await mutateMissingCardAsync(checkOutBody as any, {
         onSuccess: (res) => {
-          reset({ PlateNumber: "" });
+          triggerGetInfoByPlateNumber.current = false;
           dispatch(resetCurrentCardInfo());
-          setTriggerGetInfoByPlateNumber(false);
+          reset({ PlateNumber: "" });
         },
       });
     } catch (err: unknown) {
@@ -549,8 +575,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       checkOutBody.append("GateOutId", gateId);
       await checkOutMutation.mutateAsync(checkOutBody as any, {
         onSuccess: async (res: ErrorResponse<CheckOutResponse>) => {
-          setTriggerInfoByCard(false);
-
+          triggerInfoByCard.current = false;
           reset({ CardNumber: "" });
           dispatch(resetCurrentCardInfo());
         },

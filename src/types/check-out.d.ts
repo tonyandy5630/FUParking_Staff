@@ -1,3 +1,4 @@
+import { CustomerType } from "@constants/customer.const";
 import { ErrorResponse } from ".";
 
 export type MissingCardCheckOut = {

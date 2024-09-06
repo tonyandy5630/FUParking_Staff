@@ -60,6 +60,7 @@ export default function CheckInVehicleForm({
   } = methods;
   const [showInputPlate, setShowInputPlate] = useState(false);
   const isElectric = useRef(false);
+  const enableActionKey = useRef(true);
 
   useHotkeys(
     SUBMIT_LEFT_HOTKEY,
@@ -69,6 +70,7 @@ export default function CheckInVehicleForm({
     {
       scopes: [PAGE.CHECK_IN],
       enableOnFormTags: ["input", "select", "textarea"],
+      enabled: enableActionKey.current,
     }
   );
   useHotkeys(
@@ -81,6 +83,7 @@ export default function CheckInVehicleForm({
     {
       scopes: [PAGE.CHECK_IN],
       enableOnFormTags: ["input", "select", "textarea"],
+      enabled: enableActionKey.current,
     }
   );
   useHotkeys(
@@ -88,8 +91,12 @@ export default function CheckInVehicleForm({
     async () => {
       //* already show plate then set the new plate to form
       if (showInputPlate) {
+        enableActionKey.current = true;
         onFixPlate();
+        setShowInputPlate((prev) => !prev);
+        return;
       }
+      enableActionKey.current = false;
       setShowInputPlate((prev) => !prev);
     },
     {
@@ -102,6 +109,7 @@ export default function CheckInVehicleForm({
     () => {
       onReset();
       setShowInputPlate(false);
+      enableActionKey.current = true;
     },
     {
       scopes: [PAGE.CHECK_IN],
@@ -150,7 +158,7 @@ export default function CheckInVehicleForm({
     <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onGetCheckInInfo)}>
-          <div className='absolute bottom-0 right-0 opacity-1'>
+          <div className='absolute bottom-0 right-0 opacity-0'>
             <FormInput name='CardId' autoFocus={true} />
           </div>
           <FormInfoRow className='grid-cols-[auto_1fr_1fr]'>

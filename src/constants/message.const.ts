@@ -25,3 +25,5 @@ export const CARD_NOT_IN_SYSTEM = "Thẻ không thuộc hệ thống";
 export const CARD_MISSING = "Thẻ đã bị mất. Liên hệ quản lí để tái kích hoạt";
 export const VERIFYING = "Đang xác thực";
 export const WAITING_APPROVAL = "Đang chờ xác nhận";
+export const VEHICLE_IS_PARKING =
+  "Không thực hiện check in. lý do: xe đang gửi trong bãi";

@@ -17,7 +17,7 @@ export const initCheckOutInfo: CheckOutInfo = {
   needPay: false,
   timeIn: "",
   timeOut: "",
-  message: NEXT_CUSTOMER,
+  message: "",
   isError: false,
   croppedImagePlate: "",
 };

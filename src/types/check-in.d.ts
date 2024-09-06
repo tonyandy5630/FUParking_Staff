@@ -21,6 +21,8 @@ export type UpdateVehicleTypeInfo = {
 
 export type CheckInCustomerInfo = {
   customerType: CustomerType;
-  previousSessionInfo: boolean | null;
+  previousSessionInfo: {
+    cardOrPlateNumber: "CARD" | "PLATENUMBER";
+  } | null;
   informationVehicle: UpdateVehicleTypeInfo | null;
 };

@@ -30,7 +30,7 @@ import {
   setNewCardInfo,
 } from "../../../redux/checkoutSlice";
 import { GATE_OUT } from "@constants/gate.const";
-import { formatPlateNumber } from "@utils/plate-number";
+import { formatPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 import { Input } from "@components/ui/input";
 import { updateSessionPlateNumberAPI } from "@apis/session.api";
 import { useMutation } from "@tanstack/react-query";
@@ -67,8 +67,7 @@ export default function CheckOutVehicleForm({
   const [showInputPlateIn, setShowInputPlateIn] = useState<boolean>(false);
   const [plateNumberIn, setPlateNumberIn] = useState("");
   const plateInputRef = useRef<HTMLInputElement>(null);
-  const [enabledSubmit, setEnabledSubmit] = useState(true);
-
+  const enableActionKey = useRef(true);
   const {
     mutateAsync: updatePlateAsync,
     isPending: isPendingUpdatePlate,
@@ -91,21 +90,7 @@ export default function CheckOutVehicleForm({
     {
       scopes: [PAGE.CHECK_OUT, position],
       enableOnFormTags: ["input", "select"],
-      enabled: enabledSubmit,
-    }
-  );
-
-  useHotkeys(
-    CANCELED_HOTKEY,
-    () => {
-      pressPlateCount.current = 0;
-      onReset();
-      setShowInputPlateOut(false);
-      setShowInputPlateIn(false);
-    },
-    {
-      scopes: [PAGE.CHECK_OUT],
-      enableOnFormTags: ["input", "select", "textarea"],
+      enabled: enableActionKey.current,
     }
   );
 
@@ -128,16 +113,19 @@ export default function CheckOutVehicleForm({
     {
       scopes: [PAGE.CHECK_OUT, position],
       enableOnFormTags: ["input", "select", "textarea"],
+      enabled: enableActionKey.current,
     }
   );
 
   useHotkeys(
     CANCELED_HOTKEY,
     () => {
-      reset({ CardNumber: "" });
-      dispatch(resetCurrentCardInfo());
       pressPlateCount.current = 0;
-      setEnabledSubmit(true);
+      onReset();
+      setShowInputPlateOut(false);
+      setShowInputPlateIn(false);
+      dispatch(resetCurrentCardInfo());
+      enableActionKey.current = true;
     },
     {
       scopes: [PAGE.CHECK_OUT, position],
@@ -153,7 +141,7 @@ export default function CheckOutVehicleForm({
     FIX_PLATE_NUMBER_KEY,
     async () => {
       pressPlateCount.current++;
-      setEnabledSubmit(false);
+      enableActionKey.current = false;
       const plateNumber = checkOutInfo.checkOutCardText;
       if (plateNumber !== "") {
         //* first press set value
@@ -163,7 +151,7 @@ export default function CheckOutVehicleForm({
         //* second press confirm and submit
         if (pressPlateCount.current === 2) {
           pressPlateCount.current = 0;
-          setEnabledSubmit(true);
+          enableActionKey.current = true;
           await handleUpdatePlateNumberIn();
           return;
         }
@@ -174,8 +162,7 @@ export default function CheckOutVehicleForm({
       //* final press send checkout
       if (pressPlateCount.current === 3) {
         pressPlateCount.current = 0;
-        setEnabledSubmit(true);
-        5;
+        enableActionKey.current = true;
         await onMissingCardCheckOut();
       }
       //* second press get info
@@ -195,8 +182,7 @@ export default function CheckOutVehicleForm({
   const handleUpdatePlateNumberIn = async () => {
     try {
       const updatePlateBody = new FormData();
-      console.log(plateNumberIn);
-      updatePlateBody.append("PlateNumber", plateNumberIn);
+      updatePlateBody.append("PlateNumber", unFormatPlateNumber(plateNumberIn));
       updatePlateBody.append("SessionId", checkOutInfo.id);
 
       await updatePlateAsync(updatePlateBody as any, {

@@ -29,6 +29,7 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import { Button } from "@components/ui/button";
 import moment, { Moment } from "moment";
 import MyTimePicker from "@components/TimePicker";
+import { unFormatPlateNumber } from "@utils/plate-number";
 
 function SessionTable() {
   const parkingId = useGetParkingId();
@@ -79,7 +80,7 @@ function SessionTable() {
         parkingId,
         startDate: apiDateFilter.startDate as string,
         endDate: apiDateFilter.endDate as string,
-        plateNum: debouncePlateText,
+        plateNum: unFormatPlateNumber(debouncePlateText),
         statusFilter,
       }),
     enabled: parkingId !== "",
