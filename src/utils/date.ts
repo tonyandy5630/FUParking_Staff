@@ -118,7 +118,7 @@ export function getStartAndEndDatesOfMonth() {
 
 export function setTimeToDateMoment(date?: string, addHours?: Moment): string {
   if (date === null || date === undefined) {
-    return "";
+    date = new Date().toString();
   }
 
   if (!moment(date) || !moment(addHours) || !addHours) {

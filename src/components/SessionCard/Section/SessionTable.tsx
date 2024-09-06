@@ -102,7 +102,7 @@ function SessionTable() {
     const newStartDate = setTimeToDateMoment(apiDateFilter.startDate, addHours);
     setApiHourFilter((prev) => ({ ...prev, startHour: addHours }));
     setApiDateFilter((prev) => ({
-      prev,
+      ...prev,
       startDate: newStartDate,
     }));
   };
@@ -119,8 +119,8 @@ function SessionTable() {
     const newEndDate = setTimeToDateMoment(apiDateFilter.endDate, addHours);
     setApiHourFilter((prev) => ({ ...prev, endHour: addHours }));
     setApiDateFilter((prev) => ({
-      prev,
-      startDate: newEndDate,
+      ...prev,
+      endDate: newEndDate,
     }));
   };
 
@@ -221,10 +221,10 @@ function SessionTable() {
             label='Từ'
           />
           <MyTimePicker
-            minTime={moment(apiHourFilter.startHour)}
             value={apiHourFilter.endHour}
+            minTime={moment(apiHourFilter.startHour)}
             onValueChange={handleToHourChange}
-            label='Tới'
+            label='Đến'
           />
           <div className='min-w-32'>
             <MySelect

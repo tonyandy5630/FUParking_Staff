@@ -142,8 +142,9 @@ export default function CheckOutVehicleForm({
     async () => {
       pressPlateCount.current++;
       enableActionKey.current = false;
-      const plateNumber = checkOutInfo.checkOutCardText;
-      if (plateNumber !== "") {
+      const cardText = checkOutInfo.checkOutCardText;
+      console.log(cardText);
+      if (cardText !== "") {
         //* first press set value
         if (pressPlateCount.current === 1) {
           setPlateNumberIn(checkOutInfo.plateTextIn);

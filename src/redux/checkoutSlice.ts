@@ -14,7 +14,6 @@ export const initCheckOutInfo: CheckOutInfo = {
   bodyImgIn: "",
   checkOutCardText: "",
   customerType: "",
-  needPay: false,
   timeIn: "",
   timeOut: "",
   message: "",

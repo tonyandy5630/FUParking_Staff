@@ -246,12 +246,12 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       await guestCheckInMutation.mutateAsync(checkInBody as any, {
         onSuccess: () => {
           setIsGuest(false);
+          handleReset();
           setCheckInInfo((prev) => ({
             ...prev,
             message: "KHÁCH CÓ THỂ VÀO",
             isError: false,
           }));
-          handleReset();
         },
       });
     } catch (err: unknown) {
@@ -631,6 +631,11 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       await customerCheckInMutation.mutateAsync(body as any, {
         onSuccess: (res) => {
           handleReset();
+          setCheckInInfo((prev) => ({
+            ...prev,
+            message: NEXT_CUSTOMER,
+            isError: false,
+          }));
         },
         onError: (err: any) => {
           const error = err as AxiosError<ErrorResponseAPI>;

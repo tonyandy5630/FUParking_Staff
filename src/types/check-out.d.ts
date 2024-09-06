@@ -28,7 +28,6 @@ export type CheckOutInfo = {
   cashToPay?: number;
   checkOutCardText: string;
   customerType: string;
-  needPay: boolean;
   timeIn?: string;
   timeOut?: string;
   message: string;
@@ -57,9 +56,9 @@ export type CheckOutCardInfo = {
   imageInBodyUrl: string;
   timeIn: string;
   vehicleType: string;
-  isEnoughToPay: boolean | null;
   status: string;
   amount: number;
+  customerType: CustomerType;
 };
 
 export type ResponseCheckOut = ErrorResponse<CheckOutResponse>;
