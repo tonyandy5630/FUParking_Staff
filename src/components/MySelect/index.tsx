@@ -32,6 +32,7 @@ export default function MySelect({
   disabled,
   defaultValue,
   selectClassName,
+  className,
   popover,
   ...props
 }: Props) {
@@ -45,9 +46,9 @@ export default function MySelect({
 
   return (
     <div
-      className={`flex ${
+      className={`flex ${className} ${
         col
-          ? " flex-col gap-2 items-start justify-center"
+          ? " flex-col gap-1 items-start justify-center"
           : "gap-1 items-center justify-between"
       }    w-full`}
     >

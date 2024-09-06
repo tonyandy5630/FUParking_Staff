@@ -22,7 +22,7 @@ import PAGE from "../../../../url";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CheckOutInfo } from "@my_types/check-out";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@utils/store";
+import { RootState, useAppSelector } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
 import {
@@ -59,7 +59,7 @@ export default function CheckOutVehicleForm({
   onReset,
   refetchCardInfo,
 }: Props) {
-  const checkOutInfo = useSelector((state: RootState) => state.checkOutCard);
+  const checkOutInfo = useAppSelector((state) => state.checkOutCard);
   const pressPlateCount = useRef<number>(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dispatch = useDispatch();

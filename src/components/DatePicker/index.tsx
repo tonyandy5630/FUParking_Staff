@@ -44,7 +44,7 @@ export function DatePicker({ onValueChange }: Props) {
       <PopoverTrigger className='p-2 py-1 border ' asChild>
         <Button
           variant={"ghost"}
-          className={cn(" justify-start text-left font-normal")}
+          className={cn(" justify-start text-left font-normal rounded-sm")}
         >
           {date ? getDayFromString(date.toString()) : <span>Hôm nay</span>}
         </Button>

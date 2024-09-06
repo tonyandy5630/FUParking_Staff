@@ -6,14 +6,16 @@ import { useQuery } from "@tanstack/react-query";
 import { getParkingSession } from "@apis/session.api";
 import usePagination from "../../../hooks/usePagination";
 import toLocaleDate, {
+  getLocalISOString,
   getStartAndEndDatesOfMonth,
   getStartAndEndDatesOfWeek,
+  setTimeToDateMoment,
 } from "@utils/date";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setNewSessionInfo, setNewTable } from "../../../redux/sessionSlice";
 import useGetParkingId from "../../../hooks/useGetParkingId";
 import { ALL_STATUS, PARKED_SESSION_STATUS } from "@constants/session.const";
-import { RootState } from "@utils/store";
+import { useAppSelector } from "@utils/store";
 import MySelect from "@components/MySelect";
 import {
   FILTER_DATE_VALUE,
@@ -25,28 +27,32 @@ import { Label } from "@components/ui/label";
 import { useDebounce } from "use-debounce";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { Button } from "@components/ui/button";
+import { Moment } from "moment";
+import MyTimePicker from "@components/TimePicker";
 
 function SessionTable() {
   const parkingId = useGetParkingId();
   const { pagination, onPaginationChange } = usePagination();
-  const sessionTable = useSelector((state: RootState) => state.sessionTable);
+  const sessionTable = useAppSelector((state) => state.sessionTable);
   const dispatch = useDispatch();
   const [dateFilter, setDateFilter] = useState(FILTER_DATE_VALUE.TODAY.string);
   const [statusFilter, setStatusFilter] = useState("");
   const [plateText, setPlateText] = useState("");
   const [debouncePlateText] = useDebounce(plateText, 750);
   const [apiDateFilter, setApiDateFilter] = useState<{
-    startDate?: string | null;
-    endDate?: string | null;
+    startDate?: string;
+    endDate?: string;
   }>({
-    startDate: "",
-    endDate: "",
+    startDate: getLocalISOString(new Date()),
+    endDate: getLocalISOString(new Date()),
   });
-
-  const setCardChecker = (cardInfo: SessionCard) => {
-    dispatch(setNewSessionInfo(cardInfo));
-  };
-
+  const [apiHourFilter, setApiHourFilter] = useState<{
+    startHour: Moment | null;
+    endHour: Moment | null;
+  }>({
+    startHour: null,
+    endHour: null,
+  });
   const {
     data: sessionData,
     isLoading: isLoadingSession,
@@ -78,6 +84,34 @@ function SessionTable() {
       }),
     enabled: parkingId !== "",
   });
+
+  const setCardChecker = (cardInfo: SessionCard) => {
+    dispatch(setNewSessionInfo(cardInfo));
+  };
+
+  const handleFromHourChange = (addHours: Moment | null) => {
+    if (addHours === null) {
+      return;
+    }
+    const newStartDate = setTimeToDateMoment(apiDateFilter.startDate, addHours);
+    setApiHourFilter((prev) => ({ ...prev, startHour: addHours }));
+    setApiDateFilter((prev) => ({
+      prev,
+      startDate: newStartDate,
+    }));
+  };
+
+  const handleToHourChange = (addHours: Moment | null) => {
+    if (addHours === null) {
+      return;
+    }
+    const newEndDate = setTimeToDateMoment(apiDateFilter.endDate, addHours);
+    setApiHourFilter((prev) => ({ ...prev, endHour: addHours }));
+    setApiDateFilter((prev) => ({
+      prev,
+      startDate: newEndDate,
+    }));
+  };
 
   const handlePlateTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPlateText(e.target.value);
@@ -147,8 +181,8 @@ function SessionTable() {
         >
           <ReloadIcon />
         </Button>
-        <div className='flex gap-2'>
-          <div className='flex items-center gap-2 min-w-fit'>
+        <div className='flex items-end gap-2'>
+          <div className='flex flex-col items-start gap-2 min-w-fit'>
             <Label htmlFor='search-plate-input' className=' min-w-16'>
               Tìm kiếm
             </Label>
@@ -160,8 +194,28 @@ function SessionTable() {
               placeholder='Nhập biển số'
             />
           </div>
-          <div className='min-w-60'>
+          <MySelect
+            col={true}
+            options={SelectDateFilter}
+            label='Thống kê'
+            className='w-[7rem]'
+            placeholder='Chọn thời gian'
+            value={dateFilter}
+            onValueChange={handleSetDateFilter}
+          />
+          <MyTimePicker
+            value={apiHourFilter.startHour}
+            onValueChange={handleFromHourChange}
+            label='Từ'
+          />
+          <MyTimePicker
+            value={apiHourFilter.endHour}
+            onValueChange={handleToHourChange}
+            label='Tới'
+          />
+          <div className='min-w-32'>
             <MySelect
+              col={true}
               options={SelectSessionStatusFilter}
               label='Trạng thái phiên'
               placeholder='Tất cả'
@@ -169,13 +223,6 @@ function SessionTable() {
               onValueChange={handleSetStatusFilter}
             />
           </div>
-          <MySelect
-            options={SelectDateFilter}
-            label='Thống kê'
-            placeholder='Chọn thời gian'
-            value={dateFilter}
-            onValueChange={handleSetDateFilter}
-          />
         </div>
       </div>
       <DataTable

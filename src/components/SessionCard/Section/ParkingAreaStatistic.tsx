@@ -102,7 +102,6 @@ function ParkingStatistic() {
 
   return (
     <RectangleContainer className=' grid-rows-[auto_1fr]'>
-      {/* <Input /> */}
       <RectangleContainer
         className={`  ${gateOutId !== "" ? "grid-cols-4" : "grid-cols-3"}`}
       >

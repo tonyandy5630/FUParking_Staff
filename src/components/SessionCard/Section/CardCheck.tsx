@@ -1,14 +1,14 @@
 import RectangleContainer from "@components/Rectangle";
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, useEffect, useRef, useState } from "react";
 import CardInfoRow from "../CardInfo";
 import Image from "@components/Image";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CANCELED_HOTKEY, FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import PAGE from "../../../../url";
 import { Separator } from "@components/ui/separator";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@utils/store";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import { useAppSelector } from "@utils/store";
+import { useQuery } from "@tanstack/react-query";
 import { SessionCard } from "@my_types/session-card";
 import {
   initSessionCard,
@@ -32,9 +32,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { updateSessionPlateNumberSchema } from "@utils/schema/sessionSchema";
 import { AxiosError, HttpStatusCode } from "axios";
 import { ErrorResponseAPI } from "@my_types/index";
+import { Button } from "@components/ui/button";
+import { CopyIcon } from "@radix-ui/react-icons";
+const CustomTooltip = lazy(() => import("@components/Tooltip"));
 
 export default function CardCheckSection() {
-  const cardInfo = useSelector((state: RootState) => state.session);
+  const cardInfo = useAppSelector((state) => state.session);
   const cardNumberRef = useRef<HTMLInputElement>(null);
   const [cardValue, setCardValue] = useState<string>("");
   const [showPlateInput, setShowPlateInput] = useState(false);
@@ -205,10 +208,25 @@ export default function CardCheckSection() {
       <RectangleContainer className='min-h-full border rounded-md grid-rows-7'>
         <FormProvider {...methods}>
           <CardInfoRow isLoading={isLoadingCard} label='Biển số xe'>
-            {formatPlateNumber(cardInfo.plateNumber)}
+            {cardInfo.plateNumber !== "" && (
+              <div className='flex items-center gap-1'>
+                <span>{formatPlateNumber(cardInfo.plateNumber)}</span>
+                <CustomTooltip tooltip='Copy'>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    tooltip='Copy'
+                    onClick={() =>
+                      navigator.clipboard.writeText(cardInfo.plateNumber)
+                    }
+                  >
+                    <CopyIcon />
+                  </Button>
+                </CustomTooltip>
+              </div>
+            )}
           </CardInfoRow>
         </FormProvider>
-
         <CardInfoRow isLoading={isLoadingCard} label='Trạng thái'>
           {cardInfo.cardStatus}
         </CardInfoRow>

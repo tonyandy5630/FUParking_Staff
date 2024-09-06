@@ -107,7 +107,7 @@ export function DataTable<TData, TValue>({
     );
   }, [table.getRowModel().rows, isLoading]);
   return (
-    <div className='max-h-[30rem] min-h-full relative min-w-full flex flex-col justify-between border rounded-md '>
+    <div className='max-h-[20rem] min-h-full relative min-w-full flex flex-col justify-between border rounded-md '>
       <ScrollArea className='w-full h-full '>
         <Table>
           <TableHeader>

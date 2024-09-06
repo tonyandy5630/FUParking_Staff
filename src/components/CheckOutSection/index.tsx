@@ -51,7 +51,7 @@ import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import { AxiosError, HttpStatusCode } from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@utils/store";
+import { RootState, useAppSelector } from "@utils/store";
 import {
   initCheckOutInfo,
   resetCurrentCardInfo,
@@ -61,7 +61,6 @@ import {
 import ParkingContainer from "@components/ParkingContainer";
 import cropImageToBase64 from "@utils/image";
 import { isValidPlateNumber } from "@utils/plate-number";
-import { updateSessionPlateNumberAPI } from "@apis/session.api";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -79,9 +78,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   const [triggerGetInfoByPlateNumber, setTriggerGetInfoByPlateNumber] =
     useState<boolean>(false);
   const [timeOut, setTimeOut] = useState("");
-  const checkOutInfo = useSelector(
-    (cardInfo: RootState) => cardInfo.checkOutCard
-  );
+  const checkOutInfo = useAppSelector((cardInfo) => cardInfo.checkOutCard);
   const dispatch = useDispatch();
   const methods = useForm({
     resolver: yupResolver(CheckOutSchema),
