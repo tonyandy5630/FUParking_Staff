@@ -27,7 +27,7 @@ import { Label } from "@components/ui/label";
 import { useDebounce } from "use-debounce";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { Button } from "@components/ui/button";
-import { Moment } from "moment";
+import moment, { Moment } from "moment";
 import MyTimePicker from "@components/TimePicker";
 
 function SessionTable() {
@@ -91,6 +91,11 @@ function SessionTable() {
 
   const handleFromHourChange = (addHours: Moment | null) => {
     if (addHours === null) {
+      setApiHourFilter((prev) => ({ ...prev, startHour: null }));
+      setApiDateFilter((prev) => ({
+        prev,
+        startDate: getLocalISOString(new Date()),
+      }));
       return;
     }
     const newStartDate = setTimeToDateMoment(apiDateFilter.startDate, addHours);
@@ -103,6 +108,11 @@ function SessionTable() {
 
   const handleToHourChange = (addHours: Moment | null) => {
     if (addHours === null) {
+      setApiHourFilter((prev) => ({ ...prev, endHour: null }));
+      setApiDateFilter((prev) => ({
+        prev,
+        endDate: getLocalISOString(new Date()),
+      }));
       return;
     }
     const newEndDate = setTimeToDateMoment(apiDateFilter.endDate, addHours);
@@ -205,10 +215,12 @@ function SessionTable() {
           />
           <MyTimePicker
             value={apiHourFilter.startHour}
+            maxTime={moment(apiHourFilter.endHour)}
             onValueChange={handleFromHourChange}
             label='Từ'
           />
           <MyTimePicker
+            minTime={moment(apiHourFilter.startHour)}
             value={apiHourFilter.endHour}
             onValueChange={handleToHourChange}
             label='Tới'

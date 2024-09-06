@@ -445,8 +445,18 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     }
 
     if (customerType !== null) {
+      console.log(customerType);
       switch (customerType) {
-        case PAID_CUSTOMER || FREE_CUSTOMER: {
+        case FREE_CUSTOMER: {
+          setCheckInInfo((prev) => ({
+            ...prev,
+            customerType: SYSTEM_CUSTOMER,
+            message: GUEST_CAN_ENTRY,
+            isError: false,
+          }));
+          break;
+        }
+        case PAID_CUSTOMER: {
           setCheckInInfo((prev) => ({
             ...prev,
             customerType: SYSTEM_CUSTOMER,

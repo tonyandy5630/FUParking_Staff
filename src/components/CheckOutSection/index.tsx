@@ -50,8 +50,8 @@ import PAGE from "../../../url";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import { AxiosError, HttpStatusCode } from "axios";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, useAppSelector } from "@utils/store";
+import { useDispatch } from "react-redux";
+import { useAppSelector } from "@utils/store";
 import {
   initCheckOutInfo,
   resetCurrentCardInfo,
@@ -291,7 +291,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (isErrorCardInfo || isErrorCardByPlate) {
       setTriggerGetInfoByPlateNumber(false);
       setTriggerInfoByCard(false);
-      const cardByPlateError = errorCardByPlate as AxiosError<ErrorResponseAPI>;
+      const cardByPlateError = error as AxiosError<ErrorResponseAPI>;
       const cardByPlateErrorResponse = cardByPlateError.response;
       if (!cardByPlateErrorResponse) {
         dispatch(
