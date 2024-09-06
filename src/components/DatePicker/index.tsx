@@ -1,6 +1,5 @@
 import * as React from "react";
-import { addDays } from "date-fns";
-
+import moment from "moment";
 import { cn } from "@utils/utils";
 import { Button } from "@components/ui/button";
 import { Calendar } from "@components/ui/calendar";
@@ -9,7 +8,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@components/ui/popover";
-
 import MySelect from "@components/MySelect";
 import {
   FILTER_DATE_VALUE,
@@ -28,7 +26,7 @@ export function DatePicker({ onValueChange }: Props) {
   );
 
   const handleValueChange = (value: any) => {
-    const newDate = addDays(new Date(), parseInt(value));
+    const newDate = moment().add(parseInt(value), "days").toDate();
     setDate(newDate);
     setDateFilter(value);
     onValueChange(getLocalISOString(newDate));
@@ -41,7 +39,7 @@ export function DatePicker({ onValueChange }: Props) {
 
   return (
     <Popover>
-      <PopoverTrigger className='p-2 py-1 border ' asChild>
+      <PopoverTrigger className='p-2 py-1 border' asChild>
         <Button
           variant={"ghost"}
           className={cn(" justify-start text-left font-normal rounded-sm")}
