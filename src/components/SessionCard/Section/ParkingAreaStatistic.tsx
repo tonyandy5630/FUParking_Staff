@@ -1,27 +1,15 @@
 import RectangleContainer, { Rectangle } from "@components/Rectangle";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import {
   getGateTotalIncomeAPI,
   getParkingAreaStatisticAPI,
 } from "@apis/parking-area.api";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useGetParkingId from "../../../hooks/useGetParkingId";
 import { Separator } from "@components/ui/separator";
 import useSelectGate from "../../../hooks/useSelectGate";
 import { GATE_OUT } from "@constants/gate.const";
 import { formatVNCurrency } from "@utils/currency";
-import { SelectOptions } from "@components/Form/FormSelect";
-import {
-  FILTER_DATE_VALUE,
-  SelectDateFilter,
-  SelectDateWithCustomFilter,
-  SelectSessionStatusFilter,
-} from "@constants/selects.const";
-import {
-  getStartAndEndDatesOfMonth,
-  getStartAndEndDatesOfWeek,
-} from "@utils/date";
-import MySelect from "@components/MySelect";
 import { DatePicker } from "@components/DatePicker";
 
 function ParkingStatistic() {
