@@ -1,8 +1,4 @@
-import dayjs from "dayjs";
-import tz from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-dayjs.extend(tz);
-dayjs.extend(utc);
+import moment, { Moment } from "moment-timezone";
 
 const localDateOption: Intl.DateTimeFormatOptions = {
   hour: "2-digit",
@@ -24,13 +20,16 @@ const dayOption: Intl.DateTimeFormatOptions = {
   day: "numeric",
 };
 
-export function getLocalISOString(date: Date): string {
+export function getLocalISOString(date?: Date): string {
+  if (!date) {
+    return "";
+  }
   // Create a formatter for the specified time zone
   if (!Date.parse(date.toString())) {
     return "";
   }
   const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: dayjs.tz.guess(),
+    timeZone: moment.tz.guess(),
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -115,4 +114,22 @@ export function getStartAndEndDatesOfMonth() {
     startDate: getLocalISOString(startDate),
     endDate: getLocalISOString(endDate),
   };
+}
+
+export function setTimeToDateMoment(date?: string, addHours?: Moment): string {
+  if (date === null || date === undefined) {
+    return "";
+  }
+
+  if (!moment(date) || !moment(addHours) || !addHours) {
+    return "";
+  }
+  const hours = addHours.hours();
+  const minutes = addHours.minutes();
+
+  //* add hours and minutes to the original date
+  const newDate = moment(date).set("h", hours).set("minutes", minutes);
+  const addedDate = getLocalISOString(new Date(newDate.toString()));
+
+  return addedDate;
 }

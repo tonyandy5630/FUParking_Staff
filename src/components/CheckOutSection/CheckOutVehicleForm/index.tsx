@@ -22,11 +22,18 @@ import PAGE from "../../../../url";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CheckOutInfo } from "@my_types/check-out";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@utils/store";
+import { RootState, useAppSelector } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
-import { resetCurrentCardInfo } from "../../../redux/checkoutSlice";
+import {
+  resetCurrentCardInfo,
+  setNewCardInfo,
+} from "../../../redux/checkoutSlice";
 import { GATE_OUT } from "@constants/gate.const";
+import { formatPlateNumber } from "@utils/plate-number";
+import { Input } from "@components/ui/input";
+import { updateSessionPlateNumberAPI } from "@apis/session.api";
+import { useMutation } from "@tanstack/react-query";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -38,6 +45,7 @@ type Props = {
   onMissingCardCheckOut: () => Promise<void>;
   onTriggerGetInfoByPlate: () => void;
   onReset: () => void;
+  refetchCardInfo: any;
 };
 
 export default function CheckOutVehicleForm({
@@ -49,12 +57,26 @@ export default function CheckOutVehicleForm({
   onMissingCardCheckOut,
   onTriggerGetInfoByPlate,
   onReset,
+  refetchCardInfo,
 }: Props) {
-  const checkOutInfo = useSelector((state: RootState) => state.checkOutCard);
+  const checkOutInfo = useAppSelector((state) => state.checkOutCard);
   const pressPlateCount = useRef<number>(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dispatch = useDispatch();
-  const [showInputPlate, setShowInputPlate] = useState<boolean>(false);
+  const [showInputPlateOut, setShowInputPlateOut] = useState<boolean>(false);
+  const [showInputPlateIn, setShowInputPlateIn] = useState<boolean>(false);
+  const [plateNumberIn, setPlateNumberIn] = useState("");
+  const plateInputRef = useRef<HTMLInputElement>(null);
+  const [enabledSubmit, setEnabledSubmit] = useState(true);
+
+  const {
+    mutateAsync: updatePlateAsync,
+    isPending: isPendingUpdatePlate,
+    isError: isErrorUpdatePlate,
+  } = useMutation({
+    mutationKey: ["update-plate-numeber-checkout"],
+    mutationFn: updateSessionPlateNumberAPI,
+  });
 
   //* submit form
   const handleSubmitCheckOut = () => {
@@ -68,7 +90,8 @@ export default function CheckOutVehicleForm({
     handleSubmitCheckOut,
     {
       scopes: [PAGE.CHECK_OUT, position],
-      enableOnFormTags: ["input", "select", "textarea"],
+      enableOnFormTags: ["input", "select"],
+      enabled: enabledSubmit,
     }
   );
 
@@ -77,7 +100,8 @@ export default function CheckOutVehicleForm({
     () => {
       pressPlateCount.current = 0;
       onReset();
-      setShowInputPlate(false);
+      setShowInputPlateOut(false);
+      setShowInputPlateIn(false);
     },
     {
       scopes: [PAGE.CHECK_OUT],
@@ -112,6 +136,8 @@ export default function CheckOutVehicleForm({
     () => {
       reset({ CardNumber: "" });
       dispatch(resetCurrentCardInfo());
+      pressPlateCount.current = 0;
+      setEnabledSubmit(true);
     },
     {
       scopes: [PAGE.CHECK_OUT, position],
@@ -119,13 +145,37 @@ export default function CheckOutVehicleForm({
     }
   );
 
+  const handleChangePlateInputIn = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPlateNumberIn(e.target.value);
+  };
+
   useHotkeys(
     FIX_PLATE_NUMBER_KEY,
     async () => {
       pressPlateCount.current++;
+      setEnabledSubmit(false);
+      const plateNumber = checkOutInfo.checkOutCardText;
+      if (plateNumber !== "") {
+        //* first press set value
+        if (pressPlateCount.current === 1) {
+          setPlateNumberIn(checkOutInfo.plateTextIn);
+        }
+        //* second press confirm and submit
+        if (pressPlateCount.current === 2) {
+          pressPlateCount.current = 0;
+          setEnabledSubmit(true);
+          await handleUpdatePlateNumberIn();
+          return;
+        }
+        setShowInputPlateIn((prev) => !prev);
+        return;
+      }
+
       //* final press send checkout
       if (pressPlateCount.current === 3) {
         pressPlateCount.current = 0;
+        setEnabledSubmit(true);
+        5;
         await onMissingCardCheckOut();
       }
       //* second press get info
@@ -134,7 +184,7 @@ export default function CheckOutVehicleForm({
         return;
       }
 
-      setShowInputPlate((prev) => !prev);
+      setShowInputPlateOut((prev) => !prev);
     },
     {
       scopes: [PAGE.CHECK_OUT],
@@ -142,11 +192,41 @@ export default function CheckOutVehicleForm({
     }
   );
 
+  const handleUpdatePlateNumberIn = async () => {
+    try {
+      const updatePlateBody = new FormData();
+      console.log(plateNumberIn);
+      updatePlateBody.append("PlateNumber", plateNumberIn);
+      updatePlateBody.append("SessionId", checkOutInfo.id);
+
+      await updatePlateAsync(updatePlateBody as any, {
+        onSuccess: () => {
+          dispatch(
+            setNewCardInfo({
+              ...checkOutInfo,
+              message: "Thay đổi biển số thành công",
+              isError: false,
+            })
+          );
+          refetchCardInfo();
+          setShowInputPlateIn((prev) => !prev);
+        },
+      });
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
-    if (!showInputPlate) return;
+    if (!showInputPlateOut) return;
 
     setFocus("PlateNumber");
-  }, [showInputPlate]);
+  }, [showInputPlateOut]);
+
+  useEffect(() => {
+    if (!showInputPlateIn) return;
+    if (plateInputRef.current) plateInputRef.current.focus();
+  }, [showInputPlateIn]);
 
   const handlePreventSubmit = (
     e: SyntheticEvent<HTMLFormElement, SubmitEvent>
@@ -198,17 +278,26 @@ export default function CheckOutVehicleForm({
                 label='Biển số xe vào'
                 col={true}
               >
-                {checkOutInfo.plateTextIn}
+                {showInputPlateIn ? (
+                  <Input
+                    ref={plateInputRef}
+                    className='w-full border'
+                    value={plateNumberIn}
+                    onChange={handleChangePlateInputIn}
+                  />
+                ) : (
+                  formatPlateNumber(checkOutInfo.plateTextIn)
+                )}
               </InfoVehicle>
               <InfoVehicle
                 className='row-span-2'
                 label='Biển số xe ra'
                 col={true}
               >
-                {showInputPlate ? (
+                {showInputPlateOut ? (
                   <FormInput name='PlateNumber' />
                 ) : (
-                  checkOutInfo.plateTextOut
+                  formatPlateNumber(checkOutInfo.plateTextOut)
                 )}
               </InfoVehicle>
             </InfoSection>

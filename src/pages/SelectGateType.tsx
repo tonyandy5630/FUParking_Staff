@@ -86,6 +86,11 @@ export default function SelectGateTypePage() {
     setSelectedGateOutId("");
   };
 
+  const handleResetSetup = () => {
+    setSelectedParkingId("");
+    handleResetGates();
+  };
+
   const allGateOptions = useCallback(
     (gateType: GateType): SelectOptions[] => {
       const gates = gatesData?.data.data;
@@ -118,7 +123,7 @@ export default function SelectGateTypePage() {
 
     const currentValue = systemSelectedGate
       ? systemSelectedGate.value
-      : selectedGateOutId;
+      : selectedGateInId;
     return gates.map((item) => (
       <ToggleButton
         key={item.value}
@@ -307,7 +312,11 @@ export default function SelectGateTypePage() {
             </ToggleButtonContainer>
           </div>
           <div className='grid grid-cols-2 gap-1'>
-            <Button className='rounded-sm' variant='destructive'>
+            <Button
+              className='rounded-sm'
+              variant='destructive'
+              onClick={() => handleResetSetup()}
+            >
               Hủy
             </Button>
             <Button

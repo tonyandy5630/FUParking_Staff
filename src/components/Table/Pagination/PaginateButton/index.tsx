@@ -11,7 +11,7 @@ export default function PaginateButton<TData>({
   ...props
 }: Props<TData>) {
   return (
-    <Button variant='ghost' className='hidden w-2 h-8 p-0 lg:flex' {...props}>
+    <Button variant='ghost' className='hidden w-6 h-6 p-0 lg:flex' {...props}>
       {children}
     </Button>
   );

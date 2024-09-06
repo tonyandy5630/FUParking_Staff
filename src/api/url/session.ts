@@ -8,6 +8,7 @@ export type SessionParams = {
   cardNum?: string;
   parkingId: string;
   plateNum?: string;
+  statusFilter?: string;
 };
 
 export const GET_SESSION_API_URL = ({
@@ -17,12 +18,13 @@ export const GET_SESSION_API_URL = ({
   cardNum = "",
   plateNum = "",
   parkingId,
+  statusFilter = "",
 }: SessionParams) =>
   `${baseAPI_URL}/session/${parkingId}?PageIndex=${
     pagination.pageIndex + 1
   }&PageSize=${
     pagination.pageSize
-  }&StartDate=${startDate}&endDate=${endDate}&cardNum=${cardNum}&plateNum=${plateNum}`;
+  }&StartDate=${startDate}&endDate=${endDate}&cardNum=${cardNum}&plateNum=${plateNum}&statusFilter=${statusFilter}`;
 
 export const UPDATE_SESSION_PLATE_NUMBER_API_URL = `${baseAPI_URL}/session/session/platenumber`;
 

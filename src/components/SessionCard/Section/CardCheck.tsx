@@ -1,14 +1,14 @@
 import RectangleContainer from "@components/Rectangle";
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, useEffect, useRef, useState } from "react";
 import CardInfoRow from "../CardInfo";
 import Image from "@components/Image";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CANCELED_HOTKEY, FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import PAGE from "../../../../url";
 import { Separator } from "@components/ui/separator";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@utils/store";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import { useAppSelector } from "@utils/store";
+import { useQuery } from "@tanstack/react-query";
 import { SessionCard } from "@my_types/session-card";
 import {
   initSessionCard,
@@ -21,17 +21,23 @@ import {
   MISSING_CARD_STATUS,
   PARKED_SESSION_STATUS,
 } from "@constants/session.const";
-import { CARD_NOT_INFO, PARKING_SESSION } from "@constants/message.const";
 import {
-  getCardSessionInfoAPI,
-  updateSessionPlateNumberAPI,
-} from "@apis/session.api";
+  CARD_NOT_IN_SYSTEM,
+  CARD_NOT_INFO,
+  PARKING_SESSION,
+} from "@constants/message.const";
+import { getCardSessionInfoAPI } from "@apis/session.api";
 import { FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { updateSessionPlateNumberSchema } from "@utils/schema/sessionSchema";
+import { AxiosError, HttpStatusCode } from "axios";
+import { ErrorResponseAPI } from "@my_types/index";
+import { Button } from "@components/ui/button";
+import { CopyIcon } from "@radix-ui/react-icons";
+const CustomTooltip = lazy(() => import("@components/Tooltip"));
 
 export default function CardCheckSection() {
-  const cardInfo = useSelector((state: RootState) => state.session);
+  const cardInfo = useAppSelector((state) => state.session);
   const cardNumberRef = useRef<HTMLInputElement>(null);
   const [cardValue, setCardValue] = useState<string>("");
   const [showPlateInput, setShowPlateInput] = useState(false);
@@ -41,6 +47,8 @@ export default function CardCheckSection() {
     data: cardData,
     isLoading: isLoadingCard,
     isError: isErrorCard,
+    error,
+    failureReason,
   } = useQuery({
     queryKey: ["/get-card-session-by-number", cardValue],
     queryFn: () => getCardSessionInfoAPI(cardValue),
@@ -86,9 +94,28 @@ export default function CardCheckSection() {
       enableOnFormTags: ["INPUT"],
     }
   );
-
   useEffect(() => {
     const cardInfoData = cardData?.data.data;
+
+    if (isErrorCard) {
+      const axiosErr = error as AxiosError<ErrorResponseAPI>;
+      const errorResponse = axiosErr.response;
+      if (!errorResponse) {
+        dispatch(
+          setNewSessionInfo({ ...initSessionCard, cardStatus: "Lỗi hệ thống" })
+        );
+      }
+
+      if (errorResponse?.status === HttpStatusCode.NotFound) {
+        dispatch(
+          setNewSessionInfo({
+            ...initSessionCard,
+            cardStatus: CARD_NOT_IN_SYSTEM,
+          })
+        );
+      }
+    }
+
     if (!cardInfoData) return;
 
     const {
@@ -104,8 +131,7 @@ export default function CardCheckSection() {
     } = cardInfoData;
 
     if (cardNumberRef.current) cardNumberRef.current.value = "";
-    if (sessionId === null) return;
-    if (sessionStatus === CLOSED_SESSION_STATUS) {
+    if (sessionId === null) {
       dispatch(
         setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ trống" })
       );
@@ -114,7 +140,17 @@ export default function CardCheckSection() {
 
     if (status === MISSING_CARD_STATUS) {
       dispatch(
-        setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ đã bị mất" })
+        setNewSessionInfo({
+          ...initSessionCard,
+          cardStatus: "Thẻ đã bị mất",
+        })
+      );
+      return;
+    }
+
+    if (sessionStatus === CLOSED_SESSION_STATUS || sessionStatus === null) {
+      dispatch(
+        setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ trống" })
       );
       return;
     }
@@ -136,7 +172,7 @@ export default function CardCheckSection() {
     };
 
     dispatch(setNewSessionInfo(newCardInfo));
-  }, [cardData?.data.data]);
+  }, [cardData?.data.data, isErrorCard]);
 
   const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCardValue(e.target.value);
@@ -172,10 +208,25 @@ export default function CardCheckSection() {
       <RectangleContainer className='min-h-full border rounded-md grid-rows-7'>
         <FormProvider {...methods}>
           <CardInfoRow isLoading={isLoadingCard} label='Biển số xe'>
-            {formatPlateNumber(cardInfo.plateNumber)}
+            {cardInfo.plateNumber !== "" && (
+              <div className='flex items-center gap-1'>
+                <span>{formatPlateNumber(cardInfo.plateNumber)}</span>
+                <CustomTooltip tooltip='Copy'>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    tooltip='Copy'
+                    onClick={() =>
+                      navigator.clipboard.writeText(cardInfo.plateNumber)
+                    }
+                  >
+                    <CopyIcon />
+                  </Button>
+                </CustomTooltip>
+              </div>
+            )}
           </CardInfoRow>
         </FormProvider>
-
         <CardInfoRow isLoading={isLoadingCard} label='Trạng thái'>
           {cardInfo.cardStatus}
         </CardInfoRow>

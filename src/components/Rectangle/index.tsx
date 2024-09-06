@@ -6,11 +6,11 @@ interface Props extends PropsWithChildren {
 }
 
 export default function RectangleContainer({ children, className }: Props) {
-  return <div className={` grid ${className} gap-3 h-32`}>{children}</div>;
+  return <div className={` grid ${className} gap-2 h-32`}>{children}</div>;
 }
 
 interface RectangleProps extends Props {
-  title: string;
+  title: React.ReactNode;
   isLoading?: boolean;
   contentClassName?: string;
 }
@@ -24,12 +24,16 @@ export function Rectangle({
 }: RectangleProps) {
   return (
     <div
-      className={`grid ${className} py-2 items-center justify-center col-span-1 grid-rows-[auto_1fr] border rounded-md`}
+      className={`grid ${
+        className ?? ""
+      } py-2 items-center justify-center col-span-1 grid-rows-[auto_1fr] border rounded-md`}
     >
-      <p className='text-sm text-center min-h-8'>{title}</p>
+      <div className='flex items-center text-sm text-center'>{title}</div>
       {isLoading && <Skeleton className='min-w-full h-9' />}
       {
-        <div className={` ${contentClassName} text-xl font-bold text-center `}>
+        <div
+          className={` ${contentClassName} max-h-fit text-xl font-bold text-center `}
+        >
           {!isLoading && children}
         </div>
       }

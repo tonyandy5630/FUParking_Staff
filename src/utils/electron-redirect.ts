@@ -1,7 +1,6 @@
 import url, { fileURLToPath } from "node:url";
 import { BrowserWindow } from "electron";
 import { BASE_URL } from "../../electron/main";
-import PAGE from "../../url";
 import path from "node:path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

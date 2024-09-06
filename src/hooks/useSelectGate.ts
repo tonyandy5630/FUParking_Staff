@@ -10,7 +10,7 @@ import PAGE from "../../url";
 /**
  *  Getting the gateId that type being passed to
  * @param gateType
- * @param shouldNavigate optional, to decide whether redirect if not getting gateId
+ * @param shouldNavigate default is **false**, optional-to decide whether redirect if not getting gateId
  * @returns gateId
  */
 export default function useSelectGate(
