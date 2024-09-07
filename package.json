@@ -85,6 +85,9 @@
   "build": {
     "appId": "com.test.test",
     "productName": "FPT Parking Staff",
+    "win": {
+      "icon": "public/Bai_Logo.png"
+    },
     "directories": {
       "buildResources": "assets",
       "output": "release"

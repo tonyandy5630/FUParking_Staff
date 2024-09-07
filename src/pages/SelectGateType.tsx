@@ -32,9 +32,11 @@ import ToggleButton from "@components/Button/ToggleButton";
 import ToggleButtonContainer from "@components/ToggleButtonContainer";
 import { Skeleton } from "@components/ui/skeleton";
 import { useAppSelector } from "@utils/store";
+import useRefresh from "../hooks/useRefresh";
 const ConfirmDialog = lazy(() => import("../ConfirmDialog"));
 
 export default function SelectGateTypePage() {
+  useRefresh();
   const parkingId = useGetParkingId();
   const [openConfirm, setOpenConfirm] = useState(false);
   useSelectGate(GATE_IN);
