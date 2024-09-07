@@ -1,6 +1,5 @@
 import { updateSessionPlateNumberSchemaType } from "./../utils/schema/sessionSchema";
 import { ErrorResponse, SuccessResponse } from "@my_types/index";
-import { Pagination } from "@my_types/pagination";
 import { CardInfo, Session } from "@my_types/session-card";
 import http from "@utils/http";
 import {

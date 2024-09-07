@@ -2,7 +2,6 @@ import { SizeTypes } from "@my_types/my-camera";
 import Webcam from "react-webcam";
 import { memo } from "react";
 import Image from "@components/Image";
-import Lane from "../Lane";
 import Frame from "../Frame";
 
 export type Props = {

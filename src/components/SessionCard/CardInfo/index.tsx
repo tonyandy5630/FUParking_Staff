@@ -1,6 +1,4 @@
 import { Skeleton } from "@components/ui/skeleton";
-import { EMPTY_INFO_CARD } from "@constants/error-message.const";
-import { CARD_NOT_INFO } from "@constants/message.const";
 import React, { PropsWithChildren, useMemo } from "react";
 
 interface Props extends PropsWithChildren {
@@ -9,12 +7,7 @@ interface Props extends PropsWithChildren {
   isLoading?: boolean;
 }
 
-export default function CardInfoRow({
-  children,
-  label,
-  content,
-  isLoading,
-}: Props) {
+export default function CardInfoRow({ children, label, isLoading }: Props) {
   const show = useMemo(() => {
     if (isLoading) return <Skeleton className='w-full h-4' />;
     return children === undefined || children === "" ? (

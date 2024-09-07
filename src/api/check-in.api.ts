@@ -1,9 +1,5 @@
-import {
-  CheckIn,
-  CheckInCustomerInfo,
-  UpdateVehicleTypeInfo,
-} from "@my_types/check-in";
-import { ErrorResponse, ResponseAPI } from "../types";
+import { CheckInCustomerInfo, UpdateVehicleTypeInfo } from "@my_types/check-in";
+import { ErrorResponse } from "../types";
 import http from "@utils/http";
 import {
   CUSTOMER_CHECK_IN_API_URL,
@@ -11,8 +7,6 @@ import {
   GUEST_CHECK_IN_API_URL,
 } from "./url/check-in";
 import { CheckInSchemaType } from "@utils/schema/checkinSchema";
-
-type CheckInType = "guest" | "customer";
 
 export const CustomerCheckInAPI = (data: CheckInSchemaType) => {
   return http.post<ErrorResponse<UpdateVehicleTypeInfo>>(

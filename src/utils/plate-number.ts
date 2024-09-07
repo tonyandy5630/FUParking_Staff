@@ -1,9 +1,5 @@
 import { CARD_NOT_INFO } from "@constants/message.const";
-import {
-  ELECTRIC_PLATE_NUMBER_REGEX,
-  GENERAL_PLATE_NUMBER_REGEX,
-  MOTORBIKE_PLATE_NUMBER_REGEX,
-} from "@constants/regex";
+import { GENERAL_PLATE_NUMBER_REGEX } from "@constants/regex";
 
 const REGION_ID_END_POSITION = 4;
 

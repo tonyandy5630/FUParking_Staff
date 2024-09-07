@@ -3,7 +3,6 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  getPaginationRowModel,
   PaginationState,
   Updater,
 } from "@tanstack/react-table";
@@ -12,13 +11,12 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@components/ui/table";
 import { DataTablePagination } from "./Pagination";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Skeleton } from "@components/ui/skeleton";
 import { ScrollArea } from "@components/ui/scroll-area";
 

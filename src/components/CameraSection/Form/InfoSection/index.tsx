@@ -35,7 +35,6 @@ interface InfoVehicleProps extends HTMLAttributes<HTMLDivElement> {
 export function InfoVehicle({
   children,
   className,
-  infoValue = "",
   label,
   col,
 }: InfoVehicleProps) {

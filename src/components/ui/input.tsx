@@ -1,8 +1,5 @@
 import * as React from "react";
-import { EyeClosedIcon, EyeOpenIcon } from "@radix-ui/react-icons";
-
 import { cn } from "@utils/utils";
-import { Button } from "./button";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {

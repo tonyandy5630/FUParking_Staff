@@ -21,8 +21,8 @@ import {
 import PAGE from "../../../../url";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CheckOutInfo } from "@my_types/check-out";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, useAppSelector } from "@utils/store";
+import { useDispatch } from "react-redux";
+import { useAppSelector } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
 import {
@@ -310,7 +310,6 @@ export default function CheckOutVehicleForm({
             {checkOutInfo.bodyImgOut !== "" &&
               checkOutInfo.plateImgOut !== "" && (
                 <button
-                  // variant='default'
                   type='button'
                   ref={buttonRef}
                   onClick={handleSubmit(onCheckOut)}

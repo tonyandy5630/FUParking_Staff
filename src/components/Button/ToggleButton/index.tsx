@@ -1,9 +1,5 @@
 import { Button } from "@components/ui/button";
-import React, {
-  ButtonHTMLAttributes,
-  MouseEventHandler,
-  useState,
-} from "react";
+import { ButtonHTMLAttributes } from "react";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   value: string;

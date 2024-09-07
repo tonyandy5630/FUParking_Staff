@@ -63,11 +63,8 @@ export default function CardCheckSection() {
     },
   });
   const {
-    getValues,
     setValue,
     reset,
-    handleSubmit,
-    watch,
     formState: { errors },
   } = methods;
   useHotkeys(

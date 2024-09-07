@@ -25,7 +25,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import UpdateVehicleSchema, {
   UpdateVehicleSchemaType,
 } from "@utils/schema/updateVehicleSchema";
-import { toast } from "react-toastify";
 import { FormInfoRow } from "@components/CameraSection/Form";
 import InfoSection, {
   InfoVehicle,

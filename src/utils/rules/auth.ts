@@ -3,7 +3,6 @@ import { UseFormGetValues } from "react-hook-form";
 
 const MIN_EMAIL = 2;
 const MAX_EMAIL = 30;
-const EMAIL_LENGTH_WARNING = LENGTH_WARNING(MIN_EMAIL, MAX_EMAIL);
 
 const MIN_NAME = 2;
 const MAX_NAME = 50;
@@ -11,7 +10,6 @@ const NAME_LENGTH_WARNING = LENGTH_WARNING(MIN_NAME, MAX_NAME);
 
 const MIN_PWD = 6;
 const MAX_PWD = 50;
-const PWD_LENGTH_WARNING = LENGTH_WARNING(MIN_PWD, MAX_PWD);
 
 const PHONE_REGEX = /^0\d{9}$/;
 

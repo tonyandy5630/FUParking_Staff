@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@components/ui/dialog";
-import React, { PropsWithChildren, useState } from "react";
+import { PropsWithChildren } from "react";
 
 interface Props extends PropsWithChildren {
   title: string;

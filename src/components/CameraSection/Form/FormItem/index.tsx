@@ -14,4 +14,6 @@ function FormItem({ children, className }: Props) {
     </div>
   );
 }
+
+FormItem.name = "FormItem";
 export default React.memo(FormItem);
