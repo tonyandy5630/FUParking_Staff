@@ -58,7 +58,10 @@ export function getLocalISOString(date?: Date): string {
   return isoString;
 }
 
-export default function toLocaleDate(date: Date): string {
+export default function toLocaleDate(date?: string): string {
+  if (!date) {
+    return "";
+  }
   const formatDate = new Date(date);
   const finalDate = formatDate.toLocaleDateString("vi-VN", localDateOption);
   return finalDate;

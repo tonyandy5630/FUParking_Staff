@@ -8,6 +8,7 @@ type SessionCard = {
   sessionId: string;
   vehicleType: string;
   timeIn: string;
+  timeOut?: string;
   gateIn: string;
   imageInUrl: string;
   imageInBodyUrl: string;
@@ -26,6 +27,7 @@ export type CardInfo = {
   sessionCustomerEmail: string;
   imageInUrl: string;
   imageInBodyUrl: string;
+  timeOut?: string;
   sessionId: string;
   sessionStatus: SessionStatus;
 };

@@ -128,6 +128,7 @@ export default function CardCheckSection() {
       sessionVehicleType,
       sessionId,
       sessionStatus,
+      timeOut,
     } = cardInfoData;
 
     if (cardNumberRef.current) cardNumberRef.current.value = "";
@@ -158,8 +159,9 @@ export default function CardCheckSection() {
     const newCardInfo: SessionCard = {
       gateIn: sessionGateIn,
       imageInBodyUrl: imageInBodyUrl,
+      timeOut,
       imageInUrl,
-      timeIn: toLocaleDate(new Date(sessionTimeIn)),
+      timeIn: toLocaleDate(sessionTimeIn),
       vehicleType: sessionVehicleType,
       plateNumber: sessionPlateNumber,
       sessionId: sessionId,
@@ -237,6 +239,9 @@ export default function CardCheckSection() {
         </CardInfoRow>
         <CardInfoRow isLoading={isLoadingCard} label='Giờ xe vào'>
           {cardInfo.timeIn}
+        </CardInfoRow>
+        <CardInfoRow isLoading={isLoadingCard} label='Giờ xe ra'>
+          {cardInfo.timeOut}
         </CardInfoRow>
         <CardInfoRow isLoading={isLoadingCard} label='Cổng xe vào'>
           {cardInfo.gateIn}

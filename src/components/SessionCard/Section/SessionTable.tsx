@@ -30,6 +30,7 @@ import { Button } from "@components/ui/button";
 import moment, { Moment } from "moment";
 import MyTimePicker from "@components/TimePicker";
 import { unFormatPlateNumber } from "@utils/plate-number";
+const dayStart = new Date(new Date().setHours(0, 0));
 
 function SessionTable() {
   const parkingId = useGetParkingId();
@@ -44,7 +45,7 @@ function SessionTable() {
     startDate?: string;
     endDate?: string;
   }>({
-    startDate: getLocalISOString(new Date()),
+    startDate: getLocalISOString(dayStart), //* start of day
     endDate: getLocalISOString(new Date()),
   });
   const [apiHourFilter, setApiHourFilter] = useState<{
@@ -92,10 +93,11 @@ function SessionTable() {
 
   const handleFromHourChange = (addHours: Moment | null) => {
     if (addHours === null) {
+      //** beginning of day
       setApiHourFilter((prev) => ({ ...prev, startHour: null }));
       setApiDateFilter((prev) => ({
         prev,
-        startDate: getLocalISOString(new Date()),
+        startDate: getLocalISOString(dayStart),
       }));
       return;
     }
@@ -112,7 +114,7 @@ function SessionTable() {
       setApiHourFilter((prev) => ({ ...prev, endHour: null }));
       setApiDateFilter((prev) => ({
         prev,
-        endDate: getLocalISOString(new Date()),
+        endDate: getLocalISOString(new Date()), //* get current date and hour
       }));
       return;
     }
@@ -164,12 +166,13 @@ function SessionTable() {
       return {
         index: currentPos,
         cardNumber: item.cardNumber,
+        timeOut: toLocaleDate(item.timeOut),
         plateNumber: item.plateNumber,
         cardStatus:
           item.status === PARKED_SESSION_STATUS ? "Đang giữ xe" : "Đã kết thúc",
         sessionId: item.id,
         vehicleType: item.vehicleTypeName,
-        timeIn: toLocaleDate(new Date(item.timeIn)),
+        timeIn: toLocaleDate(item.timeIn),
         gateIn: item.gateInName,
         imageInBodyUrl: item.imageInBodyUrl,
         imageInUrl: item.imageInUrl,

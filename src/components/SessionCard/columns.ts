@@ -24,6 +24,10 @@ export const SessionCardColumns: ColumnDef<SessionCard>[] = [
     header: "Thời gian vào",
   },
   {
+    accessorKey: "timeOut",
+    header: "Thời gian ra",
+  },
+  {
     accessorKey: "gateIn",
     header: "Cổng vào",
   },
