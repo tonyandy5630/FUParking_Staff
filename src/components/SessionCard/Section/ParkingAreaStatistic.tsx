@@ -11,6 +11,7 @@ import useSelectGate from "../../../hooks/useSelectGate";
 import { GATE_OUT } from "@constants/gate.const";
 import { formatVNCurrency } from "@utils/currency";
 import { DatePicker } from "@components/DatePicker";
+import { getLocalISOString } from "@utils/date";
 
 function ParkingStatistic() {
   const [parkingStats, setParkingStats] = useState({
@@ -19,8 +20,8 @@ function ParkingStatistic() {
     parkingCapacity: "0/0",
   });
   const [apiDateFilter, setApiDateFilter] = useState({
-    startDate: "",
-    endDate: "",
+    startDate: getLocalISOString(new Date()),
+    endDate: getLocalISOString(new Date()),
   });
   const parkingId = useGetParkingId();
   const { gateId: gateOutId } = useSelectGate(GATE_OUT, false);

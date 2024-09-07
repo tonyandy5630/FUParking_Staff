@@ -1,12 +1,14 @@
 import CheckOutSection from "@components/CheckOutSection";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import LANE from "@constants/lane.const";
 import LaneContainer from "@components/LaneContainer";
 import useGetCamera from "../hooks/useGetCamera";
 import useRefresh from "../hooks/useRefresh";
+import { GATE_OUT } from "@constants/gate.const";
+import useSelectGate from "../hooks/useSelectGate";
 
 export default function CheckOutPage() {
   const cameraIds = useGetCamera();
+  useSelectGate(GATE_OUT, true);
   useRefresh();
   return (
     <>

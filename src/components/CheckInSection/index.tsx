@@ -32,7 +32,6 @@ import {
   PLATE_NOT_VALID,
   SELECT_VEHICLE_TYPE,
   VEHICLE_IS_PARKING,
-  VERIFYING,
   WRONG_NON_PAID_CUSTOMER,
 } from "@constants/message.const";
 import {
@@ -62,6 +61,7 @@ import cropImageToBase64 from "@utils/image";
 import { isValidPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 import { ErrorResponseAPI } from "@my_types/index";
 import { PENDING_VEHICLE } from "@constants/vehicle.const";
+import { useAppSelector } from "@utils/store";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -99,7 +99,7 @@ const initCheckInInfo: CheckInInfo = {
 function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
-  const { gateId } = useSelectGate(GATE_IN, true);
+  const gateId = useAppSelector((state) => state.gateIn);
   const [isGuest, setIsGuest] = useState(false);
   const [checkInInfo, setCheckInInfo] = useState<CheckInInfo>(initCheckInInfo);
   const [openVehicleTypes, setOpenVehicleTypes] = useState(false);
@@ -109,7 +109,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   >(undefined);
   const [finalCustomerCheckInBody, setFinalCustomerCheckInBody] =
     useState<CheckInBodyData>(initCheckInBody);
-
   const methods = useForm({
     resolver: yupResolver(CheckInSchema),
     defaultValues: {

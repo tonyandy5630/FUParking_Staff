@@ -2,9 +2,12 @@ import CheckInSection from "@components/CheckInSection";
 import LaneContainer from "@components/LaneContainer";
 import useGetCamera from "../hooks/useGetCamera";
 import useRefresh from "../hooks/useRefresh";
+import useSelectGate from "../hooks/useSelectGate";
+import { GATE_IN } from "@constants/gate.const";
 
 export default function CheckInPage() {
   const cameraIds = useGetCamera();
+  useSelectGate(GATE_IN, true);
   useRefresh();
 
   return (

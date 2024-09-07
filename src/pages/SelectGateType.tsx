@@ -24,23 +24,27 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PAGE from "../../url";
 import { GATE_IN, GATE_OUT, VIRTUAL } from "@constants/gate.const";
-import { GateType } from "@my_types/gate";
+import { Gate, GateType } from "@my_types/gate";
 import useGetParkingId from "../hooks/useGetParkingId";
 import { SelectOptions } from "@components/Form/FormSelect";
 import useSelectGate from "../hooks/useSelectGate";
 import ToggleButton from "@components/Button/ToggleButton";
 import ToggleButtonContainer from "@components/ToggleButtonContainer";
 import { Skeleton } from "@components/ui/skeleton";
+import { useAppSelector } from "@utils/store";
 const ConfirmDialog = lazy(() => import("../ConfirmDialog"));
 
 export default function SelectGateTypePage() {
   const parkingId = useGetParkingId();
   const [openConfirm, setOpenConfirm] = useState(false);
-  const { gateId: gateInId } = useSelectGate(GATE_IN);
-  const { gateId: gateOutId } = useSelectGate(GATE_OUT);
+  useSelectGate(GATE_IN);
+  useSelectGate(GATE_OUT);
+  const gateInId = useAppSelector((state) => state.gateIn);
+  const gateOutId = useAppSelector((state) => state.gateOut);
   const [selectedParkingId, setSelectedParkingId] = useState<string>("");
   const [selectedGateInId, setSelectedGateInId] = useState<string>("");
   const [selectedGateOutId, setSelectedGateOutId] = useState<string>("");
+  const [allGates, setAllGates] = useState<Gate[]>([]);
   const navigate = useNavigate();
 
   const {
@@ -59,10 +63,18 @@ export default function SelectGateTypePage() {
   });
 
   const handleGateInChange = (value: string) => {
+    if (value === selectedGateInId) {
+      setSelectedGateInId("");
+      return;
+    }
     setSelectedGateInId(value);
   };
 
   const handleGateOutChange = (value: string) => {
+    if (value === selectedGateOutId) {
+      setSelectedGateOutId("");
+      return;
+    }
     setSelectedGateOutId(value);
   };
 
@@ -82,24 +94,40 @@ export default function SelectGateTypePage() {
   };
 
   const handleResetGates = () => {
-    setSelectedGateInId("");
-    setSelectedGateOutId("");
+    setSelectedGateInId(gateInId);
+    setSelectedGateOutId(gateOutId);
   };
 
   const handleResetSetup = () => {
-    setSelectedParkingId("");
+    setSelectedParkingId(parkingId);
     handleResetGates();
   };
 
+  useEffect(() => {
+    const allGates = gatesData?.data.data;
+    if (!allGates) {
+      return;
+    }
+
+    const selectedIn = allGates.find((item) => item.id === gateInId);
+    if (selectedIn) {
+      setSelectedGateInId(gateInId);
+    }
+    const selectedOut = allGates.find((item) => item.id === gateOutId);
+    if (selectedOut) {
+      setSelectedGateOutId(gateOutId);
+    }
+
+    setAllGates([...allGates]);
+  }, [gatesData?.data.data]);
+
   const allGateOptions = useCallback(
     (gateType: GateType): SelectOptions[] => {
-      const gates = gatesData?.data.data;
-
-      if (!gates) {
+      if (!allGates) {
         return [];
       }
 
-      return gates
+      return allGates
         .filter((item) => item.gateType === gateType)
         .map((item) => {
           return {
@@ -108,27 +136,20 @@ export default function SelectGateTypePage() {
           };
         });
     },
-    [gatesData?.data.data]
+    [allGates]
   );
 
   const gateInSelects = useMemo(() => {
     const gates = allGateOptions(GATE_IN);
-
     if (!gates || gates.length === 0) {
       return <p className='text-destructive'>Không có cổng</p>;
     }
 
-    const systemSelectedGate = gates.find((item) => item.value === gateInId);
-    if (systemSelectedGate) setSelectedGateInId(systemSelectedGate.value);
-
-    const currentValue = systemSelectedGate
-      ? systemSelectedGate.value
-      : selectedGateInId;
     return gates.map((item) => (
       <ToggleButton
         key={item.value}
         value={item.value}
-        currentValue={currentValue}
+        currentValue={selectedGateInId}
         onToggleClick={handleGateInChange}
       >
         {item.name}
@@ -143,17 +164,11 @@ export default function SelectGateTypePage() {
       return <p className='text-destructive'>Không có cổng</p>;
     }
 
-    const systemSelectedGate = gates.find((item) => item.value === gateOutId);
-    if (systemSelectedGate) setSelectedGateInId(systemSelectedGate.value);
-
-    const currentValue = systemSelectedGate
-      ? systemSelectedGate.value
-      : selectedGateOutId;
     return gates.map((item) => (
       <ToggleButton
         key={item.value}
         value={item.value}
-        currentValue={currentValue}
+        currentValue={selectedGateOutId}
         onToggleClick={handleGateOutChange}
       >
         {item.name}
@@ -288,6 +303,7 @@ export default function SelectGateTypePage() {
             open={openConfirm}
             onOpenChange={handleOpenConfirm}
             onConfirmSubmit={handleConfirmGate}
+            text='Bấm xác nhận bạn sẽ không thể đổi lại bãi giữ xe trong tương lai'
             title='Xác nhận cổng'
           />
         </Suspense>
@@ -316,6 +332,7 @@ export default function SelectGateTypePage() {
               className='rounded-sm'
               variant='destructive'
               onClick={() => handleResetSetup()}
+              disabled={selectedGateInId === "" || selectedGateOutId === ""}
             >
               Hủy
             </Button>

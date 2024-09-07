@@ -6,6 +6,8 @@ import { GATE_IN, GATE_OUT } from "@constants/gate.const";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PAGE from "../../url";
+import { useAppDispatch } from "@utils/store";
+import { setGateInId, setGateOutId } from "../redux/gateSlice";
 
 /**
  *  Getting the gateId that type being passed to
@@ -19,6 +21,7 @@ export default function useSelectGate(
 ) {
   const [gateId, setGateId] = useState("");
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     switch (gateType) {
@@ -28,6 +31,7 @@ export default function useSelectGate(
             if (shouldNavigate) navigate(PAGE.SELECT_GATE_TYPE);
           }
           setGateId(res);
+          dispatch(setGateInId(res));
         });
         break;
       case GATE_OUT:
@@ -36,6 +40,7 @@ export default function useSelectGate(
             if (shouldNavigate) navigate(PAGE.SELECT_GATE_TYPE);
           }
           setGateId(res);
+          dispatch(setGateOutId(res));
         });
         break;
       default:

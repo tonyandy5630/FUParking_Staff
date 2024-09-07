@@ -1,4 +1,3 @@
-import { NEXT_CUSTOMER } from "@constants/customer.const";
 import { CheckOutInfo } from "@my_types/check-out";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";

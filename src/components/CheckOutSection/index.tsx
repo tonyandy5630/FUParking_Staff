@@ -70,7 +70,7 @@ export type Props = {
 };
 
 function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
-  const { gateId } = useSelectGate(GATE_OUT, true);
+  const gateId = useAppSelector((state) => state.gateOut);
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
   const triggerInfoByCard = useRef(false);

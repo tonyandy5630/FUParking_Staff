@@ -2,6 +2,7 @@ import { Button } from "@components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -45,7 +46,9 @@ export default function ConfirmDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <p className='font-bold text-muted-foreground'>{text}</p>
+        <DialogDescription className='font-bold text-muted-foreground'>
+          {text ?? ""}
+        </DialogDescription>
         <DialogFooter className='grid grid-cols-2'>
           <Button variant='destructive' onClick={handleCancel} autoFocus>
             Hủy
