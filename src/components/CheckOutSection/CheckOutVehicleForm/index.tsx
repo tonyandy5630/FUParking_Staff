@@ -85,7 +85,7 @@ export default function CheckOutVehicleForm({
     }
   };
   useHotkeys(
-    position === LANE.LEFT ? SUBMIT_LEFT_HOTKEY : SUBMIT_RIGHT_HOTKEY,
+    position === LANE.LEFT ? SUBMIT_LEFT_HOTKEY.key : SUBMIT_RIGHT_HOTKEY.key,
     handleSubmitCheckOut,
     {
       scopes: [PAGE.CHECK_OUT, position],
@@ -105,7 +105,7 @@ export default function CheckOutVehicleForm({
   } = methods;
 
   useHotkeys(
-    FOCUS_CARD_INPUT_KEY,
+    FOCUS_CARD_INPUT_KEY.key,
     () => {
       setFocus("CardNumber");
       // reset();
@@ -118,7 +118,7 @@ export default function CheckOutVehicleForm({
   );
 
   useHotkeys(
-    CANCELED_HOTKEY,
+    CANCELED_HOTKEY.key,
     () => {
       pressPlateCount.current = 0;
       onReset();
@@ -138,7 +138,7 @@ export default function CheckOutVehicleForm({
   };
 
   useHotkeys(
-    FIX_PLATE_NUMBER_KEY,
+    FIX_PLATE_NUMBER_KEY.key,
     async () => {
       pressPlateCount.current++;
       enableActionKey.current = false;

@@ -7,7 +7,7 @@ import {
 import { PropsWithChildren } from "react";
 
 interface Props extends PropsWithChildren {
-  tooltip?: string;
+  tooltip?: React.ReactNode;
 }
 
 export default function CustomTooltip({ children, tooltip = "" }: Props) {
@@ -16,7 +16,7 @@ export default function CustomTooltip({ children, tooltip = "" }: Props) {
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
         <TooltipContent>
-          <p>{tooltip}</p>
+          <div>{tooltip}</div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

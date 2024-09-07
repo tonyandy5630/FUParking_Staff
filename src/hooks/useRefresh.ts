@@ -6,7 +6,7 @@ export default function useRefresh() {
   const navigate = useNavigate();
 
   useHotkeys(
-    REFRESH_HOTKEY,
+    REFRESH_HOTKEY.key,
     () => {
       navigate(0);
     },

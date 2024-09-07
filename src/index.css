@@ -24,7 +24,12 @@
   background: grey/50;
   border-radius: 5px;
 }
-
+@layer components {
+  .hotkey {
+    font-weight: bold;
+    text-transform: capitalize;
+  }
+}
 @layer base {
   :root {
     --background: 0 0% 100%;

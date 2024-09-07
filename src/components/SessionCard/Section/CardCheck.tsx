@@ -71,7 +71,7 @@ export default function CardCheckSection() {
     formState: { errors },
   } = methods;
   useHotkeys(
-    FOCUS_CARD_INPUT_KEY,
+    FOCUS_CARD_INPUT_KEY.key,
     () => {
       if (cardNumberRef.current) {
         cardNumberRef.current.focus();
@@ -84,7 +84,7 @@ export default function CardCheckSection() {
   );
 
   useHotkeys(
-    CANCELED_HOTKEY,
+    CANCELED_HOTKEY.key,
     () => {
       setShowPlateInput(false);
       reset();
@@ -215,7 +215,6 @@ export default function CardCheckSection() {
                   <Button
                     variant='ghost'
                     size='icon'
-                    tooltip='Copy'
                     onClick={() =>
                       navigator.clipboard.writeText(cardInfo.plateNumber)
                     }

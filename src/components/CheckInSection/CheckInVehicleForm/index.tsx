@@ -63,7 +63,7 @@ export default function CheckInVehicleForm({
   const enableActionKey = useRef(true);
 
   useHotkeys(
-    SUBMIT_LEFT_HOTKEY,
+    SUBMIT_LEFT_HOTKEY.key,
     async () => {
       await onCheckIn();
     },
@@ -74,7 +74,7 @@ export default function CheckInVehicleForm({
     }
   );
   useHotkeys(
-    FOCUS_CARD_INPUT_KEY,
+    FOCUS_CARD_INPUT_KEY.key,
     () => {
       setShowInputPlate(false);
       setFocus("CardId");
@@ -87,7 +87,7 @@ export default function CheckInVehicleForm({
     }
   );
   useHotkeys(
-    FIX_PLATE_NUMBER_KEY,
+    FIX_PLATE_NUMBER_KEY.key,
     async () => {
       //* already show plate then set the new plate to form
       if (showInputPlate) {
@@ -105,7 +105,7 @@ export default function CheckInVehicleForm({
     }
   );
   useHotkeys(
-    CANCELED_HOTKEY,
+    CANCELED_HOTKEY.key,
     () => {
       onReset();
       setShowInputPlate(false);
