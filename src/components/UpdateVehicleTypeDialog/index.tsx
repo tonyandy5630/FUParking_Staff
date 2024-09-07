@@ -69,7 +69,7 @@ function UpdateVehicleTypeDialog({
     vehicleType,
   } = info;
   useHotkeys(
-    CANCELED_HOTKEY,
+    CANCELED_HOTKEY.key,
     () => {
       onOpenChange();
     },
@@ -179,7 +179,7 @@ function UpdateVehicleTypeDialog({
                 <FormInfoRow>
                   <InfoSection numberOfRow={5}>
                     <InfoVehicle label='Thời gian đăng kí'>
-                      {toLocaleDate(new Date(timeRegister))}
+                      {toLocaleDate(timeRegister)}
                     </InfoVehicle>
                     <InfoVehicle label='Loại xe'>
                       <Controller
