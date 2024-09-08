@@ -58,7 +58,7 @@ export type CheckOutCardInfo = {
   vehicleType: string;
   status: string;
   amount: number;
-  customerType: CustomerType;
+  customerType: CustomerType | "";
 };
 
 export type ResponseCheckOut = ErrorResponse<CheckOutResponse>;

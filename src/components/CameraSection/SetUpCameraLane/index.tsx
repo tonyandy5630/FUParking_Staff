@@ -6,10 +6,12 @@ import MySelect from "@components/MySelect";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import {
+  GET_NOT_FIRST_TIME_CHANNEL,
   SET_CAMERA_LEFT_OTHER_CHANNEL,
   SET_CAMERA_LEFT_PLATE_CHANNEL,
   SET_CAMERA_RIGHT_OTHER_CHANNEL,
   SET_CAMERA_RIGHT_PLATE_CHANNEL,
+  SET_NOT_FIRST_TIME_CHANNEL,
 } from "@channels/index";
 import useGetCamera from "../../../hooks/useGetCamera";
 
@@ -55,8 +57,15 @@ export default function SetUpCameraLane({ laneKey }: Props) {
   }, [handleDevices]);
 
   const onSelectPlateCamera = useCallback(
-    (cameraId: string) => {
+    async (cameraId: string) => {
       setLaneCameras((prev) => ({ ...prev, plateCameraId: cameraId }));
+      const notFirstTimeSetup = await window.ipcRenderer.invoke(
+        GET_NOT_FIRST_TIME_CHANNEL
+      );
+      if (!notFirstTimeSetup) {
+        window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, true);
+      }
+
       if (laneKey === LANE.LEFT) {
         window.ipcRenderer.send(SET_CAMERA_LEFT_PLATE_CHANNEL, cameraId);
         return;

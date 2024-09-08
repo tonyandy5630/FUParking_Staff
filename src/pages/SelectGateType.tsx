@@ -4,6 +4,7 @@ import {
   GET_GATE_IN_ID_CHANNEL,
   GET_GATE_OUT_ID_CHANNEL,
   GET_GATE_TYPE_CHANNEL,
+  GET_NOT_FIRST_TIME_CHANNEL,
   GET_PARKING_AREA_ID_CHANNEL,
   LOGGED_IN,
   SET_GATE_CHANNEL,
@@ -282,16 +283,22 @@ export default function SelectGateTypePage() {
         return;
       }
 
-      window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, true);
-      if (newGateType === GATE_IN) {
+      // window.ipcRenderer.send(SET_NOT_FIRST_TIME_CHANNEL, true);
+
+      //* successfully validate
+      if (newGateType === GATE_IN || newGateType === GATE_OUT) {
         window.ipcRenderer.send(LOGGED_IN, true);
-        navigate(PAGE.CHECK_IN);
-        return;
-      } else if (newGateType === GATE_OUT) {
-        window.ipcRenderer.send(LOGGED_IN, true);
-        navigate(PAGE.CHECK_OUT);
-        return;
       }
+
+      const notFirstTimeSetup = await window.ipcRenderer.invoke(
+        GET_NOT_FIRST_TIME_CHANNEL
+      );
+
+      if (!notFirstTimeSetup) {
+        navigate(PAGE.DEVICE_SET_UP);
+      }
+
+      return;
     } catch (error) {
       console.log(error);
     }

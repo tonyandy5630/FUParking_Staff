@@ -4,8 +4,6 @@ import {
   GET_CAMERA_RIGHT_OTHER_CHANNEL,
   GET_CAMERA_RIGHT_PLATE_CHANNEL,
 } from "@channels/index";
-import LANE from "@constants/lane.const";
-import LanePosition from "@my_types/lane";
 import { useEffect, useState } from "react";
 
 export type CameraLane = {
@@ -71,11 +69,15 @@ export default function useGetCamera() {
       }
     };
 
-    getCameraIds();
+    getCameraIds()
+      .then((res) => console.log(res))
+      .catch((err) => {
+        console.log(err);
+      });
 
     return () => {
       shouldUpdate = false;
     };
-  }, []);
+  }, [setLaneCameras]);
   return laneCameras;
 }

@@ -563,6 +563,15 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
 
       //* check in for guest
       if (isGuest) {
+        const vehicleType = finalCustomerCheckInBody.vehicleType;
+        if (!vehicleType || vehicleType === "") {
+          setCheckInInfo((prev) => ({
+            ...prev,
+            message: SELECT_VEHICLE_TYPE,
+            isError: true,
+          }));
+          return;
+        }
         const checkInBody = setGuestCheckInFormData({
           bodyInSrc: finalCustomerCheckInBody.bodyInSrc,
           cardText: finalCustomerCheckInBody.cardText,

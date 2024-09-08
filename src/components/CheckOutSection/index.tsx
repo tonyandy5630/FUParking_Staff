@@ -27,11 +27,10 @@ import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
 import {
   APP_CUSTOMER,
+  GUEST_CUSTOMER,
   NEXT_CUSTOMER,
   PAID_CUSTOMER,
 } from "@constants/customer.const";
-import useSelectGate from "../../hooks/useSelectGate";
-import { GATE_OUT } from "@constants/gate.const";
 import CheckOutVehicleForm from "./CheckOutVehicleForm";
 import { SizeTypes } from "@my_types/my-camera";
 import {
@@ -331,7 +330,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     triggerInfoByCard.current,
   ]);
 
-  // Effect for updating card info based on cardByPlate
+  //* Effect for updating card info based on cardByPlate
   useEffect(() => {
     const plateNumber = unFormatPlateNumber(
       watch("PlateNumber")?.toUpperCase()
@@ -426,7 +425,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     watch("PlateNumber"),
     checkOutInfo,
   ]);
-  //Effect for updating card info based on cardData
+  //* Effect for updating card info based on cardData
   useEffect(() => {
     const cardNumber = watch("CardNumber")?.toString();
 
@@ -467,7 +466,10 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         : PLATE_NOT_MATCH;
 
     let customerType = cardInfo.vehicleType;
-    if (cardInfo.customerType !== PAID_CUSTOMER) {
+    if (
+      cardInfo.customerType === GUEST_CUSTOMER ||
+      cardInfo.customerType === ""
+    ) {
       dispatch(
         setNewCardInfo({
           ...checkOutInfo,
@@ -489,7 +491,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       return;
     }
 
-    if (cardInfo.amount > 0) {
+    const isNotEnoughMoney = cardInfo.amount > 0;
+    if (isNotEnoughMoney) {
       message = IS_NOT_ENOUGH_TO_PAY;
     }
     // Check if there's any actual change in state before dispatching
@@ -504,7 +507,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         plateTextIn: cardInfo.plateNumber,
         customerType: APP_CUSTOMER,
         plateTextOut: checkOutInfo.plateTextOut,
-        isError: !isPlateMatched,
+        isError: !isPlateMatched || isNotEnoughMoney,
         bodyImgIn: cardInfo.imageInBodyUrl,
         message,
       })
