@@ -26,6 +26,7 @@ import { useAppSelector } from "@utils/store";
 import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
 import {
+  initCheckOutInfo,
   resetCurrentCardInfo,
   setNewCardInfo,
 } from "../../../redux/checkoutSlice";
@@ -34,6 +35,16 @@ import { formatPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 import { Input } from "@components/ui/input";
 import { updateSessionPlateNumberAPI } from "@apis/session.api";
 import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { ErrorResponseAPI } from "@my_types/index";
+import {
+  CHECKOUT_PENDING_VEHICLE_ERROR,
+  PLATE_IN_OTHER_SESSION_ERROR,
+} from "@constants/error-message.const";
+import {
+  CANNOT_CHECKOUT_PENDING_VEHICLE,
+  VEHICLE_IN_OTHER_SESSION,
+} from "@constants/message.const";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -143,12 +154,8 @@ export default function CheckOutVehicleForm({
       pressPlateCount.current++;
       enableActionKey.current = false;
       const cardText = checkOutInfo.checkOutCardText;
-      console.log(cardText);
+      //* handle fix plate when check in is wrong
       if (cardText !== "") {
-        //* first press set value
-        if (pressPlateCount.current === 1) {
-          setPlateNumberIn(checkOutInfo.plateTextIn);
-        }
         //* second press confirm and submit
         if (pressPlateCount.current === 2) {
           pressPlateCount.current = 0;
@@ -156,17 +163,22 @@ export default function CheckOutVehicleForm({
           await handleUpdatePlateNumberIn();
           return;
         }
+
+        //* first press set value and show input field
+        if (pressPlateCount.current === 1) {
+          setPlateNumberIn(checkOutInfo.plateTextIn);
+        }
         setShowInputPlateIn((prev) => !prev);
         return;
       }
-
+      //* handle check out missing plate
       //* final press send checkout
       if (pressPlateCount.current === 3) {
         pressPlateCount.current = 0;
         enableActionKey.current = true;
         await onMissingCardCheckOut();
       }
-      //* second press get info
+      //* second press get info and show input
       if (pressPlateCount.current === 2) {
         onTriggerGetInfoByPlate();
         return;
@@ -183,7 +195,8 @@ export default function CheckOutVehicleForm({
   const handleUpdatePlateNumberIn = async () => {
     try {
       const updatePlateBody = new FormData();
-      updatePlateBody.append("PlateNumber", unFormatPlateNumber(plateNumberIn));
+      const newPlate = unFormatPlateNumber(plateNumberIn);
+      updatePlateBody.append("PlateNumber", newPlate);
       updatePlateBody.append("SessionId", checkOutInfo.id);
 
       await updatePlateAsync(updatePlateBody as any, {
@@ -191,15 +204,51 @@ export default function CheckOutVehicleForm({
           dispatch(
             setNewCardInfo({
               ...checkOutInfo,
+              plateTextOut: newPlate,
               message: "Thay đổi biển số thành công",
               isError: false,
             })
           );
+          enableActionKey.current = false;
           refetchCardInfo();
           setShowInputPlateIn((prev) => !prev);
         },
       });
     } catch (err: unknown) {
+      const error = err as AxiosError<ErrorResponseAPI>;
+      const errResponse = error.response;
+      if (!errResponse) {
+        dispatch(
+          setNewCardInfo({
+            ...initCheckOutInfo,
+            message: "Lỗi hệ thống",
+            isError: true,
+          })
+        );
+        return;
+      }
+
+      const message = errResponse.data.message;
+      if (message === CHECKOUT_PENDING_VEHICLE_ERROR) {
+        dispatch(
+          setNewCardInfo({
+            ...checkOutInfo,
+            message: CANNOT_CHECKOUT_PENDING_VEHICLE,
+            isError: true,
+          })
+        );
+        return;
+      }
+      if (message === PLATE_IN_OTHER_SESSION_ERROR) {
+        dispatch(
+          setNewCardInfo({
+            ...checkOutInfo,
+            message: VEHICLE_IN_OTHER_SESSION,
+            isError: true,
+          })
+        );
+        return;
+      }
       console.log(err);
     }
   };
@@ -301,7 +350,7 @@ export default function CheckOutVehicleForm({
             </InfoSection>
           </FormInfoRow>
           <FormNameRow
-            isLoading={isLoading}
+            isLoading={isLoading || isPendingUpdatePlate}
             gateType={GATE_OUT}
             label='Làn ra'
             error={isError}

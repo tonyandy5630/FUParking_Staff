@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import CameraSection from "../CameraSection";
-
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CheckOutSchema from "@utils/schema/checkoutSchema";
@@ -22,6 +21,8 @@ import {
 import {
   CONFLICT_ERROR,
   EMPTY_INFO_CARD,
+  NOT_FOUND_SESSION_WITH_CARD_ERROR,
+  PLATE_IN_OTHER_SESSION_ERROR,
 } from "@constants/error-message.const";
 import { licensePlateAPI } from "@apis/license.api";
 import { LicenseResponse } from "@my_types/license";
@@ -41,6 +42,7 @@ import {
   PLATE_NOT_READ,
   PLATE_NOT_VALID,
   SLOW_DOWN_ACTION,
+  VEHICLE_IN_OTHER_SESSION,
 } from "@constants/message.const";
 import { getLocalISOString } from "@utils/date";
 import { HotkeysProvider } from "react-hotkeys-hook";
@@ -77,6 +79,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   const [timeOut, setTimeOut] = useState("");
   const checkOutInfo = useAppSelector((cardInfo) => cardInfo.checkOutCard);
   const dispatch = useDispatch();
+  const isRunningAPI = useRef(false);
   const methods = useForm({
     resolver: yupResolver(CheckOutSchema),
     defaultValues: {
@@ -89,6 +92,14 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     },
   });
 
+  const allowCheckOut = () => {
+    if (isRunningAPI.current) isRunningAPI.current = false;
+  };
+
+  const notAllowCheckOut = () => {
+    if (isRunningAPI.current === false) isRunningAPI.current = true;
+  };
+
   const {
     formState: { errors },
     reset,
@@ -100,6 +111,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   const handleResetForm = () => {
     setTimeOut("");
     triggerInfoByCard.current = false;
+    triggerGetInfoByPlateNumber.current = false;
+    allowCheckOut();
     dispatch(resetCurrentCardInfo());
     setFocus("CardNumber");
     reset();
@@ -134,7 +147,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     isLoading: isLoadingCardInfo,
     isSuccess: isSuccessCardInfo,
     isError: isErrorCardInfo,
-    error,
+    error: errorSessionByCard,
     refetch: refetchCardInfo,
   } = useQuery({
     queryKey: [
@@ -161,17 +174,20 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   };
 
   useEffect(() => {
-    const isValidCard = watch("CardNumber")?.length === 10;
+    const isValidCard = getValues("CardNumber")?.length === 10;
     if (isValidCard) {
       const current = new Date();
       setTimeOut(current.toString());
+      //* query session info
       triggerInfoByCard.current = true;
       dispatch(
-        setNewCardInfo({ ...checkOutInfo, timeOut: current.toString() })
+        setNewCardInfo({
+          ...checkOutInfo,
+          timeOut: current.toString(),
+        })
       );
       return;
     }
-    triggerInfoByCard.current = false;
   }, [watch("CardNumber")?.length]);
 
   const checkOutMutation = useMutation({
@@ -191,11 +207,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     mutationKey: ["/missing-card-check-out"],
     mutationFn: missingCardCheckOutAPI,
   });
-  const {
-    isError: isCheckOutError,
-    isSuccess: isCheckoutSuccess,
-    isPending: isCheckingOut,
-  } = checkOutMutation;
+  const { isSuccess: isCheckoutSuccess, isPending: isCheckingOut } =
+    checkOutMutation;
 
   const plateDetectionMutation = useMutation({
     mutationKey: ["plate-detection-check-out"],
@@ -203,7 +216,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   });
 
   useEffect(() => {
-    if (error?.message === CONFLICT_ERROR)
+    if (errorSessionByCard?.message === CONFLICT_ERROR)
       dispatch(
         setNewCardInfo({
           ...initCheckOutInfo,
@@ -211,11 +224,17 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           isError: true,
         })
       );
-  }, [error]);
+  }, [errorSessionByCard]);
+
+  useEffect(() => {
+    //* reset on mount
+    dispatch(resetCurrentCardInfo());
+  }, []);
 
   const handlePlateDetection = useCallback(async () => {
-    let plateImgOut = "";
     try {
+      let plateImgOut = "";
+      //* reset before do anything
       dispatch(resetCurrentCardInfo());
       const plateNumberBody = new FormData();
       const plateImageSrc = (plateCamRef.current as any).getScreenshot();
@@ -225,7 +244,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
 
       plateNumberBody.append("upload", plateFile);
       plateNumberBody.append("regions", "vn");
-
       await plateDetectionMutation.mutateAsync(plateNumberBody, {
         onSuccess: async (
           plateDetectionRes: SuccessResponse<LicenseResponse>
@@ -245,21 +263,21 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
               cropCordinates
             );
           }
-
-          triggerInfoByCard.current = false;
           dispatch(
             setNewCardInfo({
               ...checkOutInfo,
               timeOut: new Date().toString(),
-              plateImgOut: plateImageSrc,
+              plateImgOut,
               plateTextOut: plateRead,
               bodyImgOut: bodyImageSrc,
               croppedImagePlate: croppedImage,
             })
           );
+          triggerInfoByCard.current = false;
         },
       });
     } catch (error) {
+      triggerInfoByCard.current = true;
       const err = error as AxiosError;
       if (err.response) {
         if (err.response.status === HttpStatusCode.TooManyRequests) {
@@ -276,22 +294,31 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       }
       return false;
     }
-  }, [dispatch, plateCamRef, bodyCamRef, triggerInfoByCard]);
-  // Effect for plate detection
-  useEffect(() => {
-    if (!cardData?.data?.data && !cardByPlateData?.data.data) {
-      return;
-    }
-    handlePlateDetection();
-  }, [cardData?.data?.data, cardByPlateData?.data.data]);
+  }, [
+    dispatch,
+    plateCamRef,
+    bodyCamRef,
+    triggerInfoByCard,
+    watch("CardNumber"),
+  ]);
 
-  //* error effect
+  //* effect separate plate detection and check out
   useEffect(() => {
-    if (isErrorCardInfo || isErrorCardByPlate) {
-      triggerInfoByCard.current = false;
+    if (!cardData?.data.data && !cardByPlateData?.data.data) return;
+
+    handlePlateDetection();
+  }, [cardData?.data.data, cardByPlateData?.data.data]);
+
+  //* error effect by plate
+  useEffect(() => {
+    if (isErrorCardByPlate) {
       triggerGetInfoByPlateNumber.current = false;
-      const cardByPlateError = error as AxiosError<ErrorResponseAPI>;
-      if (cardByPlateError == null || !cardByPlateError) {
+      allowCheckOut();
+      const sessionByPlateError =
+        errorCardByPlate as AxiosError<ErrorResponseAPI>;
+
+      //* unhandled error
+      if (!sessionByPlateError.response) {
         dispatch(
           setNewCardInfo({
             ...initCheckOutInfo,
@@ -301,8 +328,10 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         );
         return;
       }
-      const cardByPlateErrorResponse = cardByPlateError.response;
-      if (!cardByPlateErrorResponse) {
+
+      //* error by get info by plate
+      const sessionByPlateErrorResponse = sessionByPlateError.response;
+      if (!sessionByPlateErrorResponse) {
         dispatch(
           setNewCardInfo({
             ...initCheckOutInfo,
@@ -311,8 +340,9 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           })
         );
       }
-      const errorMessageCardByPlate = cardByPlateErrorResponse?.data.message;
-      if (errorMessageCardByPlate === EMPTY_INFO_CARD) {
+      const errorMessageSessionByPlate =
+        sessionByPlateErrorResponse?.data.message;
+      if (errorMessageSessionByPlate === EMPTY_INFO_CARD) {
         dispatch(
           setNewCardInfo({
             ...initCheckOutInfo,
@@ -323,12 +353,42 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       }
       reset();
     }
-  }, [
-    isErrorCardInfo,
-    isErrorCardByPlate,
-    triggerGetInfoByPlateNumber.current,
-    triggerInfoByCard.current,
-  ]);
+  }, [isErrorCardByPlate, triggerGetInfoByPlateNumber.current]);
+
+  //* error effect by card
+  useEffect(() => {
+    //* allow checkout to run after error
+    if (!isErrorCardInfo) {
+      return;
+    }
+
+    const sessionByCardError =
+      errorSessionByCard as AxiosError<ErrorResponseAPI>;
+
+    const sessionByCardResponse = sessionByCardError.response;
+    // reset({ CardNumber: "" });
+    if (!sessionByCardResponse || sessionByCardResponse === null) {
+      dispatch(
+        setNewCardInfo({
+          ...initCheckOutInfo,
+          message: "Lỗi hệ thống",
+          isError: true,
+        })
+      );
+    }
+
+    const errorMessageSessionByCard = sessionByCardResponse?.data.message;
+    if (errorMessageSessionByCard === NOT_FOUND_SESSION_WITH_CARD_ERROR) {
+      dispatch(
+        setNewCardInfo({
+          ...initCheckOutInfo,
+          message: CARD_NOT_INFO,
+          isError: true,
+        })
+      );
+      return;
+    }
+  }, [isErrorCardInfo, errorSessionByCard]);
 
   //* Effect for updating card info based on cardByPlate
   useEffect(() => {
@@ -340,6 +400,14 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     }
 
     if (plateNumber.trim().length < 8) {
+      dispatch(
+        setNewCardInfo({
+          ...checkOutInfo,
+          message: PLATE_NOT_VALID,
+          plateTextOut: plateNumber,
+          isError: true,
+        })
+      );
       return;
     }
     const isValidPlate = isValidPlateNumber(plateNumber);
@@ -425,10 +493,10 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     watch("PlateNumber"),
     checkOutInfo,
   ]);
+
   //* Effect for updating card info based on cardData
   useEffect(() => {
-    const cardNumber = watch("CardNumber")?.toString();
-
+    const cardNumber = getValues("CardNumber")?.toString();
     if (!cardNumber) {
       return () => {};
     }
@@ -436,14 +504,15 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (cardNumber.length > 10) {
       dispatch(setInfoMessage({ message: SLOW_DOWN_ACTION, isError: true }));
       setTimeout(() => {
-        reset();
+        handleResetForm();
       }, 500);
       return;
     }
 
     if (cardNumber.length < 10) {
-      return () => {};
+      return;
     }
+
     const cardInfo = cardData?.data?.data;
     if (!cardInfo) {
       dispatch(
@@ -455,7 +524,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       );
       return;
     }
-    triggerInfoByCard.current = true;
+
     //* plate matched = no error
     const isPlateMatched = cardInfo.plateNumber === checkOutInfo.plateTextOut;
     let message =
@@ -521,6 +590,11 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
 
   const handleCheckOutMissingCard = async () => {
     try {
+      //* handle spam checkout missing card
+      if (isRunningAPI.current) {
+        return;
+      }
+      notAllowCheckOut();
       const plateNumber = unFormatPlateNumber(
         watch("PlateNumber")?.toUpperCase() as string
       );
@@ -562,6 +636,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         onSuccess: (res) => {
           triggerGetInfoByPlateNumber.current = false;
           reset({ PlateNumber: "" });
+          //* allow api to run again
+          allowCheckOut();
           dispatch(
             setNewCardInfo({
               ...initCheckOutInfo,
@@ -572,6 +648,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         },
       });
     } catch (err: unknown) {
+      allowCheckOut();
       const error = err as AxiosError<ErrorResponseAPI>;
       if (!error.response?.data) {
         dispatch(
@@ -584,9 +661,15 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       }
     }
   };
+  console.log(isRunningAPI.current);
 
   const onCheckOut = async (checkOutData: CheckOut) => {
     try {
+      //* handle spamming check out
+      if (isRunningAPI.current === true) {
+        return;
+      }
+      notAllowCheckOut();
       const bodyFile = base64StringToFile(
         checkOutInfo.bodyImgOut,
         "uploaded_image.png"
@@ -610,7 +693,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       await checkOutMutation.mutateAsync(checkOutBody as any, {
         onSuccess: async (res: ErrorResponse<CheckOutResponse>) => {
           triggerInfoByCard.current = false;
-          reset({ CardNumber: "" });
+          allowCheckOut();
+          reset({ CardNumber: "", PlateNumber: "" });
           dispatch(
             setNewCardInfo({
               ...initCheckOutInfo,
@@ -620,8 +704,9 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           );
         },
         onError: (err: unknown) => {
+          allowCheckOut();
           const error = err as AxiosError<ErrorResponseAPI>;
-          reset();
+          // reset();
           if (!error.response?.data) {
             dispatch(
               setNewCardInfo({
@@ -632,6 +717,18 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
             );
           }
           const message = error.response?.data.message;
+          if (message === PLATE_IN_OTHER_SESSION_ERROR) {
+            notAllowCheckOut();
+            dispatch(
+              setNewCardInfo({
+                ...checkOutInfo,
+                message: VEHICLE_IN_OTHER_SESSION,
+                isError: true,
+              })
+            );
+            return;
+          }
+
           if (message === EMPTY_INFO_CARD) {
             dispatch(
               setNewCardInfo({

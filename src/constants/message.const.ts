@@ -27,3 +27,6 @@ export const VERIFYING = "Đang xác thực";
 export const WAITING_APPROVAL = "Đang chờ xác nhận";
 export const VEHICLE_IS_PARKING =
   "Không thực hiện check in. lý do: xe đang gửi trong bãi";
+export const VEHICLE_IN_OTHER_SESSION = "Xe đã thuộc phiên giữ xe khác";
+export const CANNOT_CHECKOUT_PENDING_VEHICLE =
+  "Xe đang đợi xác nhận không được. Không được phép check out";

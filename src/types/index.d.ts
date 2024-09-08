@@ -16,7 +16,7 @@ export type ErrorResponse<Data> = {
 
 export type ErrorResponseAPI = {
   message?: string;
-  data?: Data;
+  data: Data;
 };
 
 export type ErrorResponseAPI = {

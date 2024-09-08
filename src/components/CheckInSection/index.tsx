@@ -43,8 +43,6 @@ import {
   SYSTEM_CUSTOMER,
   FREE_CUSTOMER,
 } from "@constants/customer.const";
-import useSelectGate from "../../hooks/useSelectGate";
-import { GATE_IN } from "@constants/gate.const";
 import CameraSection from "@components/CameraSection";
 import CheckInVehicleForm from "./CheckInVehicleForm";
 import { HotkeysProvider } from "react-hotkeys-hook";
@@ -104,6 +102,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const [checkInInfo, setCheckInInfo] = useState<CheckInInfo>(initCheckInInfo);
   const [openVehicleTypes, setOpenVehicleTypes] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
+  const isRunningAPI = useRef(false);
   const [updateVehicleInfo, setUpdateVehicleInfo] = useState<
     UpdateVehicleTypeInfo | undefined
   >(undefined);
@@ -181,11 +180,17 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const handleReset = () => {
     setCheckInInfo(initCheckInInfo);
     setIsGuest(false);
+    if (isRunningAPI.current) isRunningAPI.current = false;
     setFocus("CardId");
     reset();
   };
 
+  const handleToggleRunningAPI = () => {
+    if (isRunningAPI.current) isRunningAPI.current = !isRunningAPI.current;
+  };
+
   const handleResetCardText = () => {
+    setIsGuest(false);
     setFocus("CardId");
     reset({ CardId: "" });
   };
@@ -244,6 +249,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     try {
       await guestCheckInMutation.mutateAsync(checkInBody as any, {
         onSuccess: () => {
+          handleToggleRunningAPI();
           setIsGuest(false);
           handleReset();
           setCheckInInfo((prev) => ({
@@ -254,6 +260,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         },
       });
     } catch (err: unknown) {
+      handleToggleRunningAPI();
       const error = err as AxiosError<ErrorResponseAPI>;
       if (!error?.response?.data || !error?.response) {
         setCheckInInfo((prev) => ({
@@ -270,6 +277,17 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           message: CARD_NOT_IN_SYSTEM,
           isError: true,
         }));
+        return;
+      }
+
+      if (error.response.data.message === VEHICLE_IN_PARKING_ERROR) {
+        setCheckInInfo((prev) => ({
+          ...prev,
+          message: VEHICLE_IS_PARKING,
+          isError: true,
+        }));
+        handleResetCardText();
+
         return;
       }
 
@@ -447,6 +465,14 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     }
   };
 
+  useEffect(() => {
+    if (isGuest) {
+      setOpenVehicleTypes(true);
+      return;
+    }
+    setOpenVehicleTypes(false);
+  }, [isGuest]);
+
   //* effect get info
   useEffect(() => {
     const customerTypeData = checkInInfoData?.data.data;
@@ -507,7 +533,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         }
         case GUEST_CUSTOMER:
           setIsGuest(true);
-          setOpenVehicleTypes(true);
           setCheckInInfo((prev) => ({
             ...prev,
             customerType: GUEST,
@@ -517,7 +542,6 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           break;
         default:
           setIsGuest(true);
-          setOpenVehicleTypes(true);
           setCheckInInfo((prev) => ({
             ...prev,
             customerType: GUEST,
@@ -531,6 +555,11 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
 
   const handleCheckIn = useCallback(async () => {
     try {
+      if (isRunningAPI.current === true) {
+        return;
+      }
+      isRunningAPI.current = true;
+
       if (!finalCustomerCheckInBody) {
         setCheckInInfo((prev) => ({
           ...initCheckInInfo,
@@ -632,12 +661,13 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         isError: true,
       }));
     }
-  }, [finalCustomerCheckInBody, isGuest]);
+  }, [finalCustomerCheckInBody, isGuest, isRunningAPI.current]);
 
   const handleCustomerCheckIn = async (body: any) => {
     try {
       await customerCheckInMutation.mutateAsync(body as any, {
         onSuccess: (res) => {
+          handleToggleRunningAPI();
           handleReset();
           setCheckInInfo((prev) => ({
             ...prev,
@@ -646,6 +676,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           }));
         },
         onError: (err: any) => {
+          handleToggleRunningAPI();
           const error = err as AxiosError<ErrorResponseAPI>;
           if (!error?.response?.data || !error?.response) {
             setCheckInInfo((prev) => ({
@@ -653,6 +684,17 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
               message: "Lỗi hệ thống",
               isError: true,
             }));
+            return;
+          }
+
+          if (error.response.data.message === VEHICLE_IN_PARKING_ERROR) {
+            setCheckInInfo((prev) => ({
+              ...prev,
+              message: VEHICLE_IS_PARKING,
+              isError: true,
+            }));
+            handleResetCardText();
+
             return;
           }
 
@@ -685,6 +727,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       });
     } catch (error) {
       reset();
+      handleToggleRunningAPI();
     }
   };
 

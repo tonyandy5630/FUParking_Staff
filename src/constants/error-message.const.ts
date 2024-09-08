@@ -9,3 +9,8 @@ export const CARD_NOT_EXISTED_ERROR = "Card is not exist in system";
 export const CARD_IS_MISSING_ERROR = "Card is missing";
 export const VEHICLE_IN_PARKING_ERROR =
   "This plate number is already in system";
+export const PLATE_IN_OTHER_SESSION_ERROR =
+  "Plate number is belong to anther session";
+export const CHECKOUT_PENDING_VEHICLE_ERROR = "This vehicle is pending";
+export const NOT_FOUND_SESSION_WITH_CARD_ERROR =
+  "Not found session with card number";
