@@ -6,6 +6,7 @@ import {
   GET_GATE_IN_ID_CHANNEL,
   GET_GATE_OUT_ID_CHANNEL,
   GET_GATE_TYPE_CHANNEL,
+  GET_IS_2_LANE_CHANNEL,
   GET_NOT_FIRST_TIME_CHANNEL,
   GET_PARKING_AREA_ID_CHANNEL,
   GO_BACK_CHANNEL,
@@ -16,6 +17,7 @@ import {
   SET_CAMERA_RIGHT_OTHER_CHANNEL,
   SET_CAMERA_RIGHT_PLATE_CHANNEL,
   SET_GATE_CHANNEL,
+  SET_IS_2_LANE_CHANNEL,
   SET_NOT_FIRST_TIME_CHANNEL,
   SET_PARKING_AREA_ID_CHANNEL,
   TO_CHECK_IN_CHANNEL,
@@ -35,6 +37,7 @@ import {
   GATE_IN_ID_KEY,
   GATE_OUT_ID_KEY,
   GATE_TYPE_KEY,
+  IS_2_LANE,
   LEFT_OTHER_CAMERA_ID_KEY,
   LEFT_PLATE_CAMERA_ID_KEY,
   PARKING_AREA_ID_KEY,
@@ -44,11 +47,6 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// if (process.resourcesPath) {
-//   dotenvExpand.expand(
-//     dotenv.config({ path: path.join(process.resourcesPath, ".env") })
-//   );
-// }
 // The built directory structure
 //
 // ├─┬─┬ dist
@@ -285,6 +283,24 @@ ipcMain.on(SET_CAMERA_RIGHT_OTHER_CHANNEL, (_, cameraId: string) => {
 
 //#endregion
 
+ipcMain.handle(GET_IS_2_LANE_CHANNEL, () => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get(IS_2_LANE, false);
+});
+
+ipcMain.on(SET_IS_2_LANE_CHANNEL, (_, is2Lane: boolean) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.set(IS_2_LANE, is2Lane);
+});
+
 ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
   if (!win) {
     return;
@@ -308,7 +324,6 @@ ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
   const menu = Menu.buildFromTemplate(loggedInMenu);
   Menu.setApplicationMenu(menu);
 });
-//#endregion
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

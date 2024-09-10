@@ -7,6 +7,7 @@ const PAGE = {
   CARD_CHECKER: "/card/check",
   MISSING_CARD: "/card/missing",
   VERIFY_VEHICLE: "/customer/verify",
+  LOGIN: "/",
 };
 
 export default PAGE;

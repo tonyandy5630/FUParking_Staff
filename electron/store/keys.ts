@@ -13,3 +13,6 @@ export const LEFT_OTHER_CAMERA_ID_KEY = "left.other";
 
 export const RIGHT_PLATE_CAMERA_ID_KEY = "right.plate";
 export const RIGHT_OTHER_CAMERA_ID_KEY = "right.other";
+
+export const IS_2_LANE = "is2Lane.checkin";
+export const IS_2_LANE_CHECK_OUT_KEY = "is2Lane.checkout";

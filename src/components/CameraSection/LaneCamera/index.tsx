@@ -13,7 +13,7 @@ export type Props = {
   webcamRef: any;
 };
 
-function LaneCamera({
+export default function LaneCamera({
   cameraSize = "sm",
   imageSrc,
   webcamRef,
@@ -46,5 +46,3 @@ function LaneCamera({
     </div>
   );
 }
-
-export default memo(LaneCamera);

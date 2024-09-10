@@ -31,3 +31,6 @@ export const GET_CAMERA_RIGHT_PLATE_CHANNEL = "get-plate-right";
 
 export const SET_CAMERA_RIGHT_OTHER_CHANNEL = "set-other-right";
 export const GET_CAMERA_RIGHT_OTHER_CHANNEL = "get-other-right";
+
+export const SET_IS_2_LANE_CHANNEL = "set-2-lane-check-in";
+export const GET_IS_2_LANE_CHANNEL = "get-2-lane-check-in";

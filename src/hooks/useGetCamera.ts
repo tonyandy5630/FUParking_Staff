@@ -16,13 +16,16 @@ const initState = {
     plateCameraId: "",
     otherCameraId: "",
   },
-  right: undefined,
+  right: {
+    plateCameraId: "",
+    otherCameraId: "",
+  },
 };
 
 export default function useGetCamera() {
   const [laneCameras, setLaneCameras] = useState<{
     left: CameraLane;
-    right?: CameraLane;
+    right: CameraLane;
   }>(initState);
 
   useEffect(() => {
@@ -52,13 +55,10 @@ export default function useGetCamera() {
                 otherCameraId: leftOtherCameraId,
                 plateCameraId: leftPlateCameraId,
               },
-              right:
-                rightPlateCameraId !== "" && rightOtherCameraId !== ""
-                  ? {
-                      plateCameraId: rightPlateCameraId,
-                      otherCameraId: rightOtherCameraId,
-                    }
-                  : undefined,
+              right: {
+                plateCameraId: rightPlateCameraId,
+                otherCameraId: rightOtherCameraId,
+              },
             });
           })
           .catch((err) => {

@@ -5,16 +5,19 @@ import useGetCamera from "../hooks/useGetCamera";
 import useRefresh from "../hooks/useRefresh";
 import { GATE_OUT } from "@constants/gate.const";
 import useSelectGate from "../hooks/useSelectGate";
+import PAGE from "../../url";
+import useToggleLaneMode from "../hooks/useToggleLaneMode";
 
 export default function CheckOutPage() {
   const cameraIds = useGetCamera();
+  const { is2Lane: isSetting2Lane } = useToggleLaneMode();
   useSelectGate(GATE_OUT, true);
   useRefresh();
   return (
     <>
       <div className='flex w-full min-h-full'>
         {cameraIds.left !== undefined && (
-          <LaneContainer is2Lane={cameraIds.right !== undefined}>
+          <LaneContainer is2Lane={isSetting2Lane}>
             <CheckOutSection
               plateDeviceId={cameraIds.left.plateCameraId}
               bodyDeviceId={cameraIds.left.otherCameraId}
@@ -23,7 +26,7 @@ export default function CheckOutPage() {
             >
               Lane 1
             </CheckOutSection>
-            {cameraIds.right !== undefined && (
+            {isSetting2Lane && (
               <CheckOutSection
                 plateDeviceId={cameraIds.right.plateCameraId}
                 bodyDeviceId={cameraIds.right.otherCameraId}

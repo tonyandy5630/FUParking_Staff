@@ -60,12 +60,14 @@ import { isValidPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 import { ErrorResponseAPI } from "@my_types/index";
 import { PENDING_VEHICLE } from "@constants/vehicle.const";
 import { useAppSelector } from "@utils/store";
+import LanePosition from "@my_types/lane";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
   bodyDeviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
   children: any;
+  position: LanePosition;
 };
 
 export type CheckInInfo = {
@@ -151,12 +153,15 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     queryKey: [
       "/get-info-check-in",
       checkInInfo.plateText,
-      watch("CardId").trim(),
+      getValues("CardId").trim(),
     ],
     queryFn: () =>
-      getCustomerTypeCheckInAPI(checkInInfo.plateText, watch("CardId").trim()),
+      getCustomerTypeCheckInAPI(
+        checkInInfo.plateText,
+        getValues("CardId").trim()
+      ),
     enabled:
-      checkInInfo.plateText.trim() !== "" && watch("CardId").trim() !== "",
+      checkInInfo.plateText.trim() !== "" && getValues("CardId").trim() !== "",
     retry: 0,
     gcTime: 0,
   });
@@ -319,7 +324,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const handleFixPlate = () => {
     try {
       const plateNumber = unFormatPlateNumber(
-        watch("PlateNumber")?.toUpperCase() as string
+        getValues("PlateNumber")?.toUpperCase() as string
       );
       const cardNumber = getValues("CardId");
       if (cardNumber === "") {
@@ -422,7 +427,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
       setFinalCustomerCheckInBody((prev) => ({
         ...prev,
         imageInSrc: plateImageSrc,
-        cardText: checkInData.CardId,
+        cardText: checkInData.CardId.trim(),
         gateId,
         bodyInSrc: bodyImageSrc,
         plateText: plateRead,
@@ -559,6 +564,10 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         return;
       }
       isRunningAPI.current = true;
+      //* must insert card before submit
+      if (finalCustomerCheckInBody.cardText === "") {
+        return;
+      }
 
       if (!finalCustomerCheckInBody) {
         setCheckInInfo((prev) => ({
@@ -769,6 +778,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
           onFixPlate={handleFixPlate}
           onCheckIn={handleCheckIn}
           onReset={handleReset}
+          position={props.position}
         />
       </HotkeysProvider>
     </ParkingContainer>

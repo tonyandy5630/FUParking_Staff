@@ -61,6 +61,7 @@ import {
 import ParkingContainer from "@components/ParkingContainer";
 import cropImageToBase64 from "@utils/image";
 import { isValidPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
+import { watch } from "node:fs";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -103,9 +104,9 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   const {
     formState: { errors },
     reset,
-    watch,
     getValues,
     setFocus,
+    watch,
   } = methods;
 
   const handleResetForm = () => {
@@ -127,12 +128,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   } = useQuery({
     queryKey: [
       "/get-checkout-card-info-by-plate",
-      watch("PlateNumber"),
+      getValues("PlateNumber"),
       timeOut,
     ],
     queryFn: () =>
       getCardCheckOutInfoByPlateAPI(
-        unFormatPlateNumber(watch("PlateNumber") ?? ""),
+        unFormatPlateNumber(getValues("PlateNumber") ?? ""),
         getLocalISOString(new Date(timeOut))
       ),
     enabled: triggerGetInfoByPlateNumber.current,
@@ -152,12 +153,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   } = useQuery({
     queryKey: [
       "/get-checkout-card-info-session",
-      watch("CardNumber")?.toString(),
+      getValues("CardNumber")?.toString(),
       timeOut,
     ],
     queryFn: () =>
       getCardCheckOutAPI(
-        watch("CardNumber") ?? "",
+        getValues("CardNumber") ?? "",
         getLocalISOString(new Date(timeOut))
       ),
     enabled: triggerInfoByCard.current,
@@ -172,9 +173,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     setTimeOut(current.toString());
     triggerGetInfoByPlateNumber.current = true;
   };
-
   useEffect(() => {
-    const isValidCard = getValues("CardNumber")?.length === 10;
+    const isValidCard = watch("CardNumber")?.length === 10;
     if (isValidCard) {
       const current = new Date();
       setTimeOut(current.toString());
@@ -294,13 +294,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       }
       return false;
     }
-  }, [
-    dispatch,
-    plateCamRef,
-    bodyCamRef,
-    triggerInfoByCard,
-    watch("CardNumber"),
-  ]);
+  }, [dispatch, plateCamRef, bodyCamRef, triggerInfoByCard]);
 
   //* effect separate plate detection and check out
   useEffect(() => {
@@ -393,7 +387,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   //* Effect for updating card info based on cardByPlate
   useEffect(() => {
     const plateNumber = unFormatPlateNumber(
-      watch("PlateNumber")?.toUpperCase()
+      getValues("PlateNumber")?.toUpperCase()
     );
     if (!plateNumber) {
       return;
@@ -490,7 +484,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   }, [
     cardByPlateData?.data?.data,
     dispatch,
-    watch("PlateNumber"),
+    getValues("PlateNumber"),
     checkOutInfo,
   ]);
 
@@ -585,7 +579,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     cardData?.data?.data,
     checkOutInfo.id,
     checkOutInfo.plateImgOut,
-    watch("CardNumber"),
+    getValues("CardNumber"),
   ]);
 
   const handleCheckOutMissingCard = async () => {
@@ -596,7 +590,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       }
       notAllowCheckOut();
       const plateNumber = unFormatPlateNumber(
-        watch("PlateNumber")?.toUpperCase() as string
+        getValues("PlateNumber")?.toUpperCase() as string
       );
 
       const isValidPlate = isValidPlateNumber(plateNumber);
@@ -661,7 +655,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       }
     }
   };
-  console.log(isRunningAPI.current);
 
   const onCheckOut = async (checkOutData: CheckOut) => {
     try {

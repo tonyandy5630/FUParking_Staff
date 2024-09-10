@@ -14,7 +14,7 @@ import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import {
   CANCELED_HOTKEY,
-  FIX_PLATE_NUMBER_KEY,
+  FIX_PLATE_LEFT_NUMBER_KEY,
   SUBMIT_LEFT_HOTKEY,
   SUBMIT_RIGHT_HOTKEY,
 } from "../../../hotkeys/key";
@@ -23,7 +23,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { CheckOutInfo } from "@my_types/check-out";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "@utils/store";
-import { FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
+import { FOCUS_CARD_INPUT_LEFT_KEY } from "../../../hotkeys/key";
 import Image from "@components/Image";
 import {
   initCheckOutInfo,
@@ -116,7 +116,7 @@ export default function CheckOutVehicleForm({
   } = methods;
 
   useHotkeys(
-    FOCUS_CARD_INPUT_KEY.key,
+    FOCUS_CARD_INPUT_LEFT_KEY.key,
     () => {
       setFocus("CardNumber");
       // reset();
@@ -149,7 +149,7 @@ export default function CheckOutVehicleForm({
   };
 
   useHotkeys(
-    FIX_PLATE_NUMBER_KEY.key,
+    FIX_PLATE_LEFT_NUMBER_KEY.key,
     async () => {
       pressPlateCount.current++;
       enableActionKey.current = false;
