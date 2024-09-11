@@ -61,24 +61,29 @@ import {
 import ParkingContainer from "@components/ParkingContainer";
 import cropImageToBase64 from "@utils/image";
 import { isValidPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
-import { watch } from "node:fs";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
   bodyDeviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
-  children: any;
+  children?: any;
   position: LanePosition;
 };
 
 function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
-  const gateId = useAppSelector((state) => state.gateOut);
+  const gateId = useAppSelector((state) => state.gate);
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
   const triggerInfoByCard = useRef(false);
   const triggerGetInfoByPlateNumber = useRef<boolean>(false);
   const [timeOut, setTimeOut] = useState("");
-  const checkOutInfo = useAppSelector((cardInfo) => cardInfo.checkOutCard);
+  const checkOutGeneralInfo = useAppSelector(
+    (cardInfo) => cardInfo.checkOutCard
+  );
+  const checkOutInfo =
+    props.position === LANE.LEFT
+      ? checkOutGeneralInfo.left
+      : checkOutGeneralInfo.right;
   const dispatch = useDispatch();
   const isRunningAPI = useRef(false);
   const methods = useForm({
@@ -114,7 +119,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     triggerInfoByCard.current = false;
     triggerGetInfoByPlateNumber.current = false;
     allowCheckOut();
-    dispatch(resetCurrentCardInfo());
+    dispatch(resetCurrentCardInfo({ lane: props.position }));
     setFocus("CardNumber");
     reset();
   };
@@ -128,12 +133,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   } = useQuery({
     queryKey: [
       "/get-checkout-card-info-by-plate",
-      getValues("PlateNumber"),
+      getValues("PlateNumber")?.trim(),
       timeOut,
     ],
     queryFn: () =>
       getCardCheckOutInfoByPlateAPI(
-        unFormatPlateNumber(getValues("PlateNumber") ?? ""),
+        unFormatPlateNumber(getValues("PlateNumber")?.trim() ?? ""),
         getLocalISOString(new Date(timeOut))
       ),
     enabled: triggerGetInfoByPlateNumber.current,
@@ -153,15 +158,16 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   } = useQuery({
     queryKey: [
       "/get-checkout-card-info-session",
-      getValues("CardNumber")?.toString(),
+      getValues("CardNumber")?.toString().trim(),
       timeOut,
     ],
     queryFn: () =>
       getCardCheckOutAPI(
-        getValues("CardNumber") ?? "",
+        getValues("CardNumber")?.trim() ?? "",
         getLocalISOString(new Date(timeOut))
       ),
-    enabled: triggerInfoByCard.current,
+    enabled:
+      triggerInfoByCard.current && getLocalISOString(new Date(timeOut)) !== "",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     retry: 0,
@@ -179,13 +185,16 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       const current = new Date();
       setTimeOut(current.toString());
       //* query session info
-      triggerInfoByCard.current = true;
       dispatch(
         setNewCardInfo({
-          ...checkOutInfo,
-          timeOut: current.toString(),
+          lane: props.position,
+          info: {
+            ...checkOutInfo,
+            timeOut: current.toString(),
+          },
         })
       );
+      triggerInfoByCard.current = true;
       return;
     }
   }, [watch("CardNumber")?.length]);
@@ -219,23 +228,26 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (errorSessionByCard?.message === CONFLICT_ERROR)
       dispatch(
         setNewCardInfo({
-          ...initCheckOutInfo,
-          message: CARD_NOT_INFO,
-          isError: true,
+          lane: props.position,
+          info: {
+            ...initCheckOutInfo,
+            message: CARD_NOT_INFO,
+            isError: true,
+          },
         })
       );
   }, [errorSessionByCard]);
 
   useEffect(() => {
     //* reset on mount
-    dispatch(resetCurrentCardInfo());
+    dispatch(resetCurrentCardInfo({ lane: props.position }));
   }, []);
 
   const handlePlateDetection = useCallback(async () => {
     try {
       let plateImgOut = "";
       //* reset before do anything
-      dispatch(resetCurrentCardInfo());
+      dispatch(resetCurrentCardInfo({ lane: props.position }));
       const plateNumberBody = new FormData();
       const plateImageSrc = (plateCamRef.current as any).getScreenshot();
       const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
@@ -265,12 +277,15 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           }
           dispatch(
             setNewCardInfo({
-              ...checkOutInfo,
-              timeOut: new Date().toString(),
-              plateImgOut,
-              plateTextOut: plateRead,
-              bodyImgOut: bodyImageSrc,
-              croppedImagePlate: croppedImage,
+              lane: props.position,
+              info: {
+                ...checkOutInfo,
+                timeOut: new Date().toString(),
+                plateImgOut,
+                plateTextOut: plateRead,
+                bodyImgOut: bodyImageSrc,
+                croppedImagePlate: croppedImage,
+              },
             })
           );
           triggerInfoByCard.current = false;
@@ -283,9 +298,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         if (err.response.status === HttpStatusCode.TooManyRequests) {
           dispatch(
             setNewCardInfo({
-              ...initCheckOutInfo,
-              message: SLOW_DOWN_ACTION,
-              isError: true,
+              lane: props.position,
+              info: {
+                ...initCheckOutInfo,
+                message: SLOW_DOWN_ACTION,
+                isError: true,
+              },
             })
           );
           reset();
@@ -315,9 +333,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       if (!sessionByPlateError.response) {
         dispatch(
           setNewCardInfo({
-            ...initCheckOutInfo,
-            message: "Lỗi hệ thống",
-            isError: true,
+            lane: props.position,
+            info: {
+              ...initCheckOutInfo,
+              message: "Lỗi hệ thống",
+              isError: true,
+            },
           })
         );
         return;
@@ -328,9 +349,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       if (!sessionByPlateErrorResponse) {
         dispatch(
           setNewCardInfo({
-            ...initCheckOutInfo,
-            message: "Lỗi hệ thống",
-            isError: true,
+            lane: props.position,
+            info: {
+              ...initCheckOutInfo,
+              message: "Lỗi hệ thống",
+              isError: true,
+            },
           })
         );
       }
@@ -339,9 +363,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       if (errorMessageSessionByPlate === EMPTY_INFO_CARD) {
         dispatch(
           setNewCardInfo({
-            ...initCheckOutInfo,
-            message: CARD_NOT_INFO,
-            isError: true,
+            lane: props.position,
+            info: {
+              ...initCheckOutInfo,
+              message: CARD_NOT_INFO,
+              isError: true,
+            },
           })
         );
       }
@@ -355,7 +382,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (!isErrorCardInfo) {
       return;
     }
-
+    reset({ CardNumber: "" });
     const sessionByCardError =
       errorSessionByCard as AxiosError<ErrorResponseAPI>;
 
@@ -364,9 +391,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (!sessionByCardResponse || sessionByCardResponse === null) {
       dispatch(
         setNewCardInfo({
-          ...initCheckOutInfo,
-          message: "Lỗi hệ thống",
-          isError: true,
+          lane: props.position,
+          info: {
+            ...initCheckOutInfo,
+            message: "Lỗi hệ thống",
+            isError: true,
+          },
         })
       );
     }
@@ -375,9 +405,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (errorMessageSessionByCard === NOT_FOUND_SESSION_WITH_CARD_ERROR) {
       dispatch(
         setNewCardInfo({
-          ...initCheckOutInfo,
-          message: CARD_NOT_INFO,
-          isError: true,
+          lane: props.position,
+          info: {
+            ...initCheckOutInfo,
+            message: CARD_NOT_INFO,
+            isError: true,
+          },
         })
       );
       return;
@@ -396,10 +429,13 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (plateNumber.trim().length < 8) {
       dispatch(
         setNewCardInfo({
-          ...checkOutInfo,
-          message: PLATE_NOT_VALID,
-          plateTextOut: plateNumber,
-          isError: true,
+          lane: props.position,
+          info: {
+            ...checkOutInfo,
+            message: PLATE_NOT_VALID,
+            plateTextOut: plateNumber,
+            isError: true,
+          },
         })
       );
       return;
@@ -409,10 +445,13 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (!isValidPlate) {
       dispatch(
         setNewCardInfo({
-          ...checkOutInfo,
-          message: PLATE_NOT_VALID,
-          plateTextOut: plateNumber,
-          isError: true,
+          lane: props.position,
+          info: {
+            ...checkOutInfo,
+            message: PLATE_NOT_VALID,
+            plateTextOut: plateNumber,
+            isError: true,
+          },
         })
       );
       return;
@@ -422,9 +461,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (!cardInfo) {
       dispatch(
         setNewCardInfo({
-          ...checkOutInfo,
-          message: CARD_NOT_INFO,
-          isError: true,
+          lane: props.position,
+          info: {
+            ...checkOutInfo,
+            message: CARD_NOT_INFO,
+            isError: true,
+          },
         })
       );
       return;
@@ -443,19 +485,22 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (cardInfo.customerType !== PAID_CUSTOMER) {
       dispatch(
         setNewCardInfo({
-          ...checkOutInfo,
-          id: cardInfo.id,
-          cashToPay: cardInfo.amount,
-          plateImgIn: cardInfo.imageInUrl,
-          timeIn: new Date(cardInfo.timeIn).toString(),
-          plateTextIn: cardInfo.plateNumber,
-          plateImgOut: checkOutInfo.plateImgOut,
-          bodyImgOut: checkOutInfo.bodyImgOut,
-          customerType,
-          plateTextOut: checkOutInfo.plateTextOut,
-          isError: !isPlateMatched, //* plate matched = no error
-          bodyImgIn: cardInfo.imageInBodyUrl,
-          message,
+          lane: props.position,
+          info: {
+            ...checkOutInfo,
+            id: cardInfo.id,
+            cashToPay: cardInfo.amount,
+            plateImgIn: cardInfo.imageInUrl,
+            timeIn: new Date(cardInfo.timeIn).toString(),
+            plateTextIn: cardInfo.plateNumber,
+            plateImgOut: checkOutInfo.plateImgOut,
+            bodyImgOut: checkOutInfo.bodyImgOut,
+            customerType,
+            plateTextOut: checkOutInfo.plateTextOut,
+            isError: !isPlateMatched, //* plate matched = no error
+            bodyImgIn: cardInfo.imageInBodyUrl,
+            message,
+          },
         })
       );
       return;
@@ -467,17 +512,20 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     // Check if there's any actual change in state before dispatching
     dispatch(
       setNewCardInfo({
-        ...checkOutInfo,
-        id: cardInfo.id,
-        cashToPay: cardInfo.amount,
-        plateImgIn: cardInfo.imageInUrl,
-        timeIn: new Date(cardInfo.timeIn).toString(),
-        plateTextIn: cardInfo.plateNumber,
-        customerType: APP_CUSTOMER,
-        plateTextOut: checkOutInfo.plateTextOut,
-        isError: !isPlateMatched, //* plate matched = no error
-        bodyImgIn: cardInfo.imageInBodyUrl,
-        message,
+        lane: props.position,
+        info: {
+          ...checkOutInfo,
+          id: cardInfo.id,
+          cashToPay: cardInfo.amount,
+          plateImgIn: cardInfo.imageInUrl,
+          timeIn: new Date(cardInfo.timeIn).toString(),
+          plateTextIn: cardInfo.plateNumber,
+          customerType: APP_CUSTOMER,
+          plateTextOut: checkOutInfo.plateTextOut,
+          isError: !isPlateMatched, //* plate matched = no error
+          bodyImgIn: cardInfo.imageInBodyUrl,
+          message,
+        },
       })
     );
     // }
@@ -490,13 +538,19 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
 
   //* Effect for updating card info based on cardData
   useEffect(() => {
-    const cardNumber = getValues("CardNumber")?.toString();
+    const cardNumber = getValues("CardNumber")?.toString().trim();
     if (!cardNumber) {
       return () => {};
     }
 
     if (cardNumber.length > 10) {
-      dispatch(setInfoMessage({ message: SLOW_DOWN_ACTION, isError: true }));
+      dispatch(
+        setInfoMessage({
+          message: SLOW_DOWN_ACTION,
+          isError: true,
+          lane: props.position,
+        })
+      );
       setTimeout(() => {
         handleResetForm();
       }, 500);
@@ -511,9 +565,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     if (!cardInfo) {
       dispatch(
         setNewCardInfo({
-          ...checkOutInfo,
-          message: CARD_NOT_INFO,
-          isError: true,
+          lane: props.position,
+          info: {
+            ...checkOutInfo,
+            message: CARD_NOT_INFO,
+            isError: true,
+          },
         })
       );
       return;
@@ -535,20 +592,23 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     ) {
       dispatch(
         setNewCardInfo({
-          ...checkOutInfo,
-          id: cardInfo.id,
-          cashToPay: cardInfo.amount,
-          plateImgIn: cardInfo.imageInUrl,
-          timeIn: new Date(cardInfo.timeIn).toString(),
-          plateTextIn: cardInfo.plateNumber,
-          plateImgOut: checkOutInfo.plateImgOut,
-          bodyImgOut: checkOutInfo.bodyImgOut,
-          customerType,
-          plateTextOut: checkOutInfo.plateTextOut,
-          isError: !isPlateMatched,
-          bodyImgIn: cardInfo.imageInBodyUrl,
-          checkOutCardText: cardNumber,
-          message,
+          lane: props.position,
+          info: {
+            ...checkOutInfo,
+            id: cardInfo.id,
+            cashToPay: cardInfo.amount,
+            plateImgIn: cardInfo.imageInUrl,
+            timeIn: new Date(cardInfo.timeIn).toString(),
+            plateTextIn: cardInfo.plateNumber,
+            plateImgOut: checkOutInfo.plateImgOut,
+            bodyImgOut: checkOutInfo.bodyImgOut,
+            customerType,
+            plateTextOut: checkOutInfo.plateTextOut,
+            isError: !isPlateMatched,
+            bodyImgIn: cardInfo.imageInBodyUrl,
+            checkOutCardText: cardNumber,
+            message,
+          },
         })
       );
       return;
@@ -561,18 +621,21 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     // Check if there's any actual change in state before dispatching
     dispatch(
       setNewCardInfo({
-        ...checkOutInfo,
-        id: cardInfo.id,
-        checkOutCardText: cardNumber,
-        cashToPay: cardInfo.amount,
-        plateImgIn: cardInfo.imageInUrl,
-        timeIn: new Date(cardInfo.timeIn).toString(),
-        plateTextIn: cardInfo.plateNumber,
-        customerType: APP_CUSTOMER,
-        plateTextOut: checkOutInfo.plateTextOut,
-        isError: !isPlateMatched || isNotEnoughMoney,
-        bodyImgIn: cardInfo.imageInBodyUrl,
-        message,
+        lane: props.position,
+        info: {
+          ...checkOutInfo,
+          id: cardInfo.id,
+          checkOutCardText: cardNumber,
+          cashToPay: cardInfo.amount,
+          plateImgIn: cardInfo.imageInUrl,
+          timeIn: new Date(cardInfo.timeIn).toString(),
+          plateTextIn: cardInfo.plateNumber,
+          customerType: APP_CUSTOMER,
+          plateTextOut: checkOutInfo.plateTextOut,
+          isError: !isPlateMatched || isNotEnoughMoney,
+          bodyImgIn: cardInfo.imageInBodyUrl,
+          message,
+        },
       })
     );
   }, [
@@ -597,10 +660,13 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       if (!isValidPlate) {
         dispatch(
           setNewCardInfo({
-            ...checkOutInfo,
-            plateTextOut: plateNumber,
-            message: PLATE_NOT_VALID,
-            isError: true,
+            lane: props.position,
+            info: {
+              ...checkOutInfo,
+              plateTextOut: plateNumber,
+              message: PLATE_NOT_VALID,
+              isError: true,
+            },
           })
         );
         return;
@@ -634,9 +700,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           allowCheckOut();
           dispatch(
             setNewCardInfo({
-              ...initCheckOutInfo,
-              message: NEXT_CUSTOMER,
-              isError: false,
+              lane: props.position,
+              info: {
+                ...initCheckOutInfo,
+                message: NEXT_CUSTOMER,
+                isError: false,
+              },
             })
           );
         },
@@ -647,9 +716,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       if (!error.response?.data) {
         dispatch(
           setNewCardInfo({
-            ...checkOutInfo,
-            message: "Lỗi hệ thống",
-            isError: true,
+            lane: props.position,
+            info: {
+              ...checkOutInfo,
+              message: "Lỗi hệ thống",
+              isError: true,
+            },
           })
         );
       }
@@ -690,9 +762,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           reset({ CardNumber: "", PlateNumber: "" });
           dispatch(
             setNewCardInfo({
-              ...initCheckOutInfo,
-              message: NEXT_CUSTOMER,
-              isError: false,
+              lane: props.position,
+              info: {
+                ...initCheckOutInfo,
+                message: NEXT_CUSTOMER,
+                isError: false,
+              },
             })
           );
         },
@@ -703,9 +778,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           if (!error.response?.data) {
             dispatch(
               setNewCardInfo({
-                ...checkOutInfo,
-                message: "Lỗi hệ thống",
-                isError: true,
+                lane: props.position,
+                info: {
+                  ...checkOutInfo,
+                  message: "Lỗi hệ thống",
+                  isError: true,
+                },
               })
             );
           }
@@ -714,9 +792,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
             notAllowCheckOut();
             dispatch(
               setNewCardInfo({
-                ...checkOutInfo,
-                message: VEHICLE_IN_OTHER_SESSION,
-                isError: true,
+                lane: props.position,
+                info: {
+                  ...checkOutInfo,
+                  message: VEHICLE_IN_OTHER_SESSION,
+                  isError: true,
+                },
               })
             );
             return;
@@ -725,9 +806,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           if (message === EMPTY_INFO_CARD) {
             dispatch(
               setNewCardInfo({
-                ...checkOutInfo,
-                message: CARD_NOT_INFO,
-                isError: true,
+                lane: props.position,
+                info: {
+                  ...checkOutInfo,
+                  message: CARD_NOT_INFO,
+                  isError: true,
+                },
               })
             );
           }
@@ -738,9 +822,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       if (!error.response?.data) {
         dispatch(
           setNewCardInfo({
-            ...checkOutInfo,
-            message: "Lỗi hệ thống",
-            isError: true,
+            lane: props.position,
+            info: {
+              ...checkOutInfo,
+              message: "Lỗi hệ thống",
+              isError: true,
+            },
           })
         );
       }
@@ -766,10 +853,11 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       />
       <HotkeysProvider
         initiallyActiveScopes={[PAGE.CHECK_OUT, props.position]}
-        key={LANE.LEFT}
+        key={props.position}
       >
         <CheckOutVehicleForm
           methods={methods}
+          key={props.position}
           isLoading={
             plateDetectionMutation.isPending ||
             isCheckingOut ||

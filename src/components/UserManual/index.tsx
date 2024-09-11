@@ -8,10 +8,11 @@ import {
   DialogTrigger,
 } from "@components/ui/dialog";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
-import { PropsWithChildren, useRef, useState } from "react";
+import { PropsWithChildren, useState } from "react";
 import HotKeyTable from "./HotKeyTable";
 import { HELP_KEY } from "../../hotkeys/key";
 import { useHotkeys } from "react-hotkeys-hook";
+import { ScrollArea } from "@components/ui/scroll-area";
 
 interface Props extends PropsWithChildren {}
 export default function UserManualDialog({}: Props) {
@@ -54,7 +55,9 @@ export default function UserManualDialog({}: Props) {
         <DialogDescription>
           Bảng tổng hợp các phím tát và sử dụng ứng dụng BAI Parking System
         </DialogDescription>
-        <HotKeyTable />
+        <ScrollArea className='max-h-[30rem]'>
+          <HotKeyTable />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

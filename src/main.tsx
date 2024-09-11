@@ -6,10 +6,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import QueryProviders from "./utils/queryClientProvider";
 const Layout = lazy(() => import("@components/Layout"));
-const CheckInPage = lazy(() => import("./pages/CheckIn"));
+const GatePage = lazy(() => import("./pages/Gate"));
 import Login from "./pages/Login";
 import PAGE from "../url";
-const CheckOutPage = lazy(() => import("./pages/CheckOut"));
 const SelectGateTypePage = lazy(() => import("./pages/SelectGateType"));
 const DeviceSetupPage = lazy(() => import("./pages/DeviceSetup"));
 import { Provider } from "react-redux";
@@ -18,6 +17,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import moment from "moment-timezone";
 import "moment/locale/vi";
+import RouteFallBack from "@components/RouteFallBack";
 const CardCheckerPage = lazy(() => import("./pages/CardChecker"));
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -34,15 +34,31 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route
                 path={PAGE.SELECT_GATE_TYPE}
                 element={
-                  <Suspense>
+                  <Suspense fallback={<RouteFallBack />}>
                     <SelectGateTypePage />
                   </Suspense>
                 }
               />
               <Route
+                element={
+                  <Suspense fallback={<RouteFallBack />}>
+                    <Layout />
+                  </Suspense>
+                }
+              >
+                <Route
+                  path={PAGE.GATE}
+                  element={
+                    <Suspense fallback={<RouteFallBack />}>
+                      <GatePage />
+                    </Suspense>
+                  }
+                />
+              </Route>
+              <Route
                 path={PAGE.DEVICE_SET_UP}
                 element={
-                  <Suspense>
+                  <Suspense fallback={<RouteFallBack />}>
                     <DeviceSetupPage />
                   </Suspense>
                 }
@@ -50,7 +66,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route
                 path='/card'
                 element={
-                  <Suspense>
+                  <Suspense fallback={<RouteFallBack />}>
                     <Layout />
                   </Suspense>
                 }
@@ -58,33 +74,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route
                   path='check'
                   element={
-                    <Suspense fallback={<p>Loading...</p>}>
+                    <Suspense fallback={<RouteFallBack />}>
                       <CardCheckerPage />
-                    </Suspense>
-                  }
-                />
-              </Route>
-              <Route
-                path='/check'
-                element={
-                  <Suspense>
-                    <Layout />
-                  </Suspense>
-                }
-              >
-                <Route
-                  path='in'
-                  element={
-                    <Suspense fallback={<p>Loading...</p>}>
-                      <CheckInPage />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path='out'
-                  element={
-                    <Suspense>
-                      <CheckOutPage />
                     </Suspense>
                   }
                 />

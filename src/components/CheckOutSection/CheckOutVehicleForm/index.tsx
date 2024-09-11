@@ -13,7 +13,7 @@ import { CheckOutSchemaType } from "@utils/schema/checkoutSchema";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import {
-  CANCELED_HOTKEY,
+  CANCELED_LEFT_HOTKEY,
   FIX_PLATE_LEFT_NUMBER_KEY,
   SUBMIT_LEFT_HOTKEY,
   SUBMIT_RIGHT_HOTKEY,
@@ -45,6 +45,9 @@ import {
   CANNOT_CHECKOUT_PENDING_VEHICLE,
   VEHICLE_IN_OTHER_SESSION,
 } from "@constants/message.const";
+import useFocusCardHotKey from "../../../hooks/useFocusCardHotKey";
+import useFixPlateHotKey from "../../../hooks/useFixPlateHotkey";
+import useCancelHotKey from "../../../hooks/useCancelHotKey";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -70,7 +73,9 @@ export default function CheckOutVehicleForm({
   onReset,
   refetchCardInfo,
 }: Props) {
-  const checkOutInfo = useAppSelector((state) => state.checkOutCard);
+  const checkOutLaneInfo = useAppSelector((state) => state.checkOutCard);
+  const checkOutInfo =
+    position === LANE.LEFT ? checkOutLaneInfo.left : checkOutLaneInfo.right;
   const pressPlateCount = useRef<number>(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dispatch = useDispatch();
@@ -87,14 +92,14 @@ export default function CheckOutVehicleForm({
     mutationKey: ["update-plate-numeber-checkout"],
     mutationFn: updateSessionPlateNumberAPI,
   });
-
-  //* submit form
-  const handleSubmitCheckOut = () => {
-    if (buttonRef.current) {
-      pressPlateCount.current = 0;
-      buttonRef.current.click();
-    }
-  };
+  useFixPlateHotKey({
+    lane: position,
+    callback: handleFixPlateKeyPressed,
+    options: {
+      scopes: [PAGE.CHECK_OUT, position],
+      enableOnFormTags: ["input", "select", "textarea"],
+    },
+  });
   useHotkeys(
     position === LANE.LEFT ? SUBMIT_LEFT_HOTKEY.key : SUBMIT_RIGHT_HOTKEY.key,
     handleSubmitCheckOut,
@@ -104,93 +109,99 @@ export default function CheckOutVehicleForm({
       enabled: enableActionKey.current,
     }
   );
-
-  const {
-    formState: { errors },
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    setFocus,
-    getValues,
-  } = methods;
-
-  useHotkeys(
-    FOCUS_CARD_INPUT_LEFT_KEY.key,
-    () => {
+  useFocusCardHotKey({
+    lane: position,
+    callback: () => {
       setFocus("CardNumber");
-      // reset();
     },
-    {
+    options: {
       scopes: [PAGE.CHECK_OUT, position],
       enableOnFormTags: ["input", "select", "textarea"],
       enabled: enableActionKey.current,
-    }
-  );
-
-  useHotkeys(
-    CANCELED_HOTKEY.key,
-    () => {
-      pressPlateCount.current = 0;
-      onReset();
-      setShowInputPlateOut(false);
-      setShowInputPlateIn(false);
-      dispatch(resetCurrentCardInfo());
-      enableActionKey.current = true;
     },
-    {
+  });
+  const {
+    formState: { errors },
+    handleSubmit,
+    setFocus,
+  } = methods;
+
+  useCancelHotKey({
+    lane: position,
+    callback: handleResetPressed,
+    options: {
       scopes: [PAGE.CHECK_OUT, position],
       enableOnFormTags: ["input", "select", "textarea"],
-    }
-  );
+    },
+  });
+
+  function handleResetPressed() {
+    pressPlateCount.current = 0;
+    onReset();
+    setShowInputPlateOut(false);
+    setShowInputPlateIn(false);
+    dispatch(resetCurrentCardInfo({ lane: position }));
+    enableActionKey.current = true;
+  }
 
   const handleChangePlateInputIn = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPlateNumberIn(e.target.value);
   };
 
-  useHotkeys(
-    FIX_PLATE_LEFT_NUMBER_KEY.key,
-    async () => {
-      pressPlateCount.current++;
-      enableActionKey.current = false;
-      const cardText = checkOutInfo.checkOutCardText;
-      //* handle fix plate when check in is wrong
-      if (cardText !== "") {
-        //* second press confirm and submit
-        if (pressPlateCount.current === 2) {
-          pressPlateCount.current = 0;
-          enableActionKey.current = true;
-          await handleUpdatePlateNumberIn();
-          return;
-        }
-
-        //* first press set value and show input field
-        if (pressPlateCount.current === 1) {
-          setPlateNumberIn(checkOutInfo.plateTextIn);
-        }
-        setShowInputPlateIn((prev) => !prev);
-        return;
-      }
-      //* handle check out missing plate
-      //* final press send checkout
-      if (pressPlateCount.current === 3) {
-        pressPlateCount.current = 0;
-        enableActionKey.current = true;
-        await onMissingCardCheckOut();
-      }
-      //* second press get info and show input
-      if (pressPlateCount.current === 2) {
-        onTriggerGetInfoByPlate();
-        return;
-      }
-
-      setShowInputPlateOut((prev) => !prev);
-    },
-    {
-      scopes: [PAGE.CHECK_OUT],
-      enableOnFormTags: ["input", "select", "textarea"],
+  async function handleFixPlateKeyPressed() {
+    pressPlateCount.current++;
+    enableActionKey.current = false;
+    const cardText = checkOutInfo.checkOutCardText;
+    //* handle fix plate when check in is wrong
+    if (cardText !== "") {
+      await handleFixPlate(pressPlateCount.current);
+      return;
     }
-  );
+    await handleCheckOutMissingCard(pressPlateCount.current);
+  }
+
+  async function handleCheckOutMissingCard(pressCount: number) {
+    //* handle check out missing plate
+    //* final press send checkout
+    if (pressCount === 3) {
+      pressPlateCount.current = 0;
+      enableActionKey.current = true;
+      await onMissingCardCheckOut();
+    }
+    //* second press get info and show input
+    if (pressCount === 2) {
+      enableActionKey.current = false;
+      onTriggerGetInfoByPlate();
+      return;
+    }
+
+    setShowInputPlateOut((prev) => !prev);
+  }
+
+  async function handleFixPlate(pressCount: number) {
+    //* second press confirm and submit
+    if (pressCount === 2) {
+      pressPlateCount.current = 0;
+      enableActionKey.current = true;
+      await handleUpdatePlateNumberIn();
+      return;
+    }
+
+    //* first press set value and show input field
+    if (pressCount === 1) {
+      setPlateNumberIn(checkOutInfo.plateTextIn);
+    }
+    setShowInputPlateIn((prev) => !prev);
+    return;
+  }
+
+  //* submit form
+  function handleSubmitCheckOut() {
+    if (buttonRef.current) {
+      pressPlateCount.current = 0;
+      buttonRef.current.click();
+    }
+  }
 
   const handleUpdatePlateNumberIn = async () => {
     try {
@@ -198,18 +209,22 @@ export default function CheckOutVehicleForm({
       const newPlate = unFormatPlateNumber(plateNumberIn);
       updatePlateBody.append("PlateNumber", newPlate);
       updatePlateBody.append("SessionId", checkOutInfo.id);
+      enableActionKey.current = false;
 
       await updatePlateAsync(updatePlateBody as any, {
         onSuccess: () => {
           dispatch(
             setNewCardInfo({
-              ...checkOutInfo,
-              plateTextOut: newPlate,
-              message: "Thay đổi biển số thành công",
-              isError: false,
+              lane: position,
+              info: {
+                ...checkOutInfo,
+                plateTextOut: newPlate,
+                message: "Thay đổi biển số thành công",
+                isError: false,
+              },
             })
           );
-          enableActionKey.current = false;
+          enableActionKey.current = true;
           refetchCardInfo();
           setShowInputPlateIn((prev) => !prev);
         },
@@ -220,9 +235,12 @@ export default function CheckOutVehicleForm({
       if (!errResponse) {
         dispatch(
           setNewCardInfo({
-            ...initCheckOutInfo,
-            message: "Lỗi hệ thống",
-            isError: true,
+            lane: position,
+            info: {
+              ...initCheckOutInfo,
+              message: "Lỗi hệ thống",
+              isError: true,
+            },
           })
         );
         return;
@@ -232,9 +250,12 @@ export default function CheckOutVehicleForm({
       if (message === CHECKOUT_PENDING_VEHICLE_ERROR) {
         dispatch(
           setNewCardInfo({
-            ...checkOutInfo,
-            message: CANNOT_CHECKOUT_PENDING_VEHICLE,
-            isError: true,
+            lane: position,
+            info: {
+              ...checkOutInfo,
+              message: CANNOT_CHECKOUT_PENDING_VEHICLE,
+              isError: true,
+            },
           })
         );
         return;
@@ -242,9 +263,12 @@ export default function CheckOutVehicleForm({
       if (message === PLATE_IN_OTHER_SESSION_ERROR) {
         dispatch(
           setNewCardInfo({
-            ...checkOutInfo,
-            message: VEHICLE_IN_OTHER_SESSION,
-            isError: true,
+            lane: position,
+            info: {
+              ...checkOutInfo,
+              message: VEHICLE_IN_OTHER_SESSION,
+              isError: true,
+            },
           })
         );
         return;
@@ -255,7 +279,6 @@ export default function CheckOutVehicleForm({
 
   useEffect(() => {
     if (!showInputPlateOut) return;
-
     setFocus("PlateNumber");
   }, [showInputPlateOut]);
 
@@ -275,7 +298,11 @@ export default function CheckOutVehicleForm({
     <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handlePreventSubmit}>
-          <div className='absolute bottom-0 right-0 opacity-0'>
+          <div
+            className={`absolute bottom-0 opacity-0 ${
+              position === LANE.LEFT ? "left-0" : "right-0"
+            }`}
+          >
             <FormInput name='CardNumber' autoFocus={true} />
           </div>
           <FormInfoRow className='grid-cols-[auto_1.5fr_1fr]'>

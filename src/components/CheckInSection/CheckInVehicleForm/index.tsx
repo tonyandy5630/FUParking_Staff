@@ -19,7 +19,7 @@ import { CheckInInfo } from "@components/CheckInSection";
 import { useHotkeys } from "react-hotkeys-hook";
 import PAGE from "../../../../url";
 import {
-  CANCELED_HOTKEY,
+  CANCELED_LEFT_HOTKEY,
   SUBMIT_LEFT_HOTKEY,
   SUBMIT_RIGHT_HOTKEY,
 } from "../../../hotkeys/key";
@@ -30,6 +30,7 @@ import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import useFixPlateHotKey from "../../../hooks/useFixPlateHotkey";
 import useFocusCardHotKey from "../../../hooks/useFocusCardHotKey";
+import useCancelHotKey from "../../../hooks/useCancelHotKey";
 
 type Props = {
   methods: UseFormReturn<CheckInSchemaType>;
@@ -75,9 +76,13 @@ export default function CheckInVehicleForm({
     },
   });
 
-  useHotkeys(CANCELED_HOTKEY.key, () => handleCancel(), {
-    scopes: [PAGE.CHECK_IN, position],
-    enableOnFormTags: ["input", "select", "textarea"],
+  useCancelHotKey({
+    lane: position,
+    callback: handleCancel,
+    options: {
+      scopes: [PAGE.CHECK_IN, position],
+      enableOnFormTags: ["input", "select", "textarea"],
+    },
   });
 
   useFocusCardHotKey({
@@ -96,7 +101,7 @@ export default function CheckInVehicleForm({
       await onCheckIn();
     },
     {
-      scopes: [PAGE.CHECK_IN],
+      scopes: [PAGE.CHECK_IN, position],
       enableOnFormTags: ["input", "select", "textarea"],
       enabled: enableSubmit.current, //* allow cursor to move and not selecting any input
     }
@@ -124,7 +129,7 @@ export default function CheckInVehicleForm({
   function handleFixPlate() {
     if (showInputPlate) {
       enableActionKey.current = true;
-      //* allow to move cursor without submit the form
+      //* allow to move cursor without submitting the form
       enableSubmit.current = true;
       onFixPlate();
       setShowInputPlate((prev) => !prev);

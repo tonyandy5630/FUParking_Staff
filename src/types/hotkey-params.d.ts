@@ -3,6 +3,6 @@ import LanePosition from "./lane";
 
 export default interface HotkeyHookParams {
   lane: LanePosition;
-  callback: () => void;
+  callback: () => void | Promise<void>;
   options: OptionsOrDependencyArray;
 }

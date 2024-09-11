@@ -15,7 +15,7 @@ export default function useFocusCardHotKey({
     lane === LANE.LEFT
       ? FOCUS_CARD_INPUT_LEFT_KEY.key
       : FOCUS_CARD_INPUT_RIGHT_KEY.key,
-    () => callback(),
+    async () => await callback(),
     options
   );
 }

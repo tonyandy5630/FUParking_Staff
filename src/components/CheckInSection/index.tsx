@@ -66,7 +66,7 @@ export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
   bodyDeviceId: ConstrainDOMString | undefined;
   cameraSize?: SizeTypes;
-  children: any;
+  children?: any;
   position: LanePosition;
 };
 
@@ -99,7 +99,7 @@ const initCheckInInfo: CheckInInfo = {
 function CheckInSection({ cameraSize = "sm", ...props }: Props) {
   const plateCamRef = useRef(null);
   const bodyCamRef = useRef(null);
-  const gateId = useAppSelector((state) => state.gateIn);
+  const gateId = useAppSelector((state) => state.gate);
   const [isGuest, setIsGuest] = useState(false);
   const [checkInInfo, setCheckInInfo] = useState<CheckInInfo>(initCheckInInfo);
   const [openVehicleTypes, setOpenVehicleTypes] = useState(false);
@@ -764,7 +764,7 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
         plateDeviceId={props.plateDeviceId}
         bodyDeviceId={props.bodyDeviceId}
       />
-      <HotkeysProvider initiallyActiveScopes={[PAGE.CHECK_IN]}>
+      <HotkeysProvider initiallyActiveScopes={[PAGE.CHECK_IN, props.position]}>
         <CheckInVehicleForm
           methods={methods}
           isLoading={
