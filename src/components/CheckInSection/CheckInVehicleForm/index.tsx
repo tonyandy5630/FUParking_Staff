@@ -19,15 +19,18 @@ import { CheckInInfo } from "@components/CheckInSection";
 import { useHotkeys } from "react-hotkeys-hook";
 import PAGE from "../../../../url";
 import {
-  CANCELED_HOTKEY,
-  FIX_PLATE_NUMBER_KEY,
-  FOCUS_CARD_INPUT_KEY,
+  CANCELED_LEFT_HOTKEY,
   SUBMIT_LEFT_HOTKEY,
+  SUBMIT_RIGHT_HOTKEY,
 } from "../../../hotkeys/key";
 import { GATE_IN } from "@constants/gate.const";
-import { ELECTRIC_PLATE_NUMBER_REGEX } from "@constants/regex";
 import Image from "@components/Image";
 import { formatPlateNumber } from "@utils/plate-number";
+import LanePosition from "@my_types/lane";
+import LANE from "@constants/lane.const";
+import useFixPlateHotKey from "../../../hooks/useFixPlateHotkey";
+import useFocusCardHotKey from "../../../hooks/useFocusCardHotKey";
+import useCancelHotKey from "../../../hooks/useCancelHotKey";
 
 type Props = {
   methods: UseFormReturn<CheckInSchemaType>;
@@ -38,6 +41,7 @@ type Props = {
   onCheckIn: () => Promise<void>;
   onFixPlate: () => void;
   onReset: () => void;
+  position: LanePosition;
 };
 
 export default function CheckInVehicleForm({
@@ -49,6 +53,7 @@ export default function CheckInVehicleForm({
   onFixPlate,
   onReset,
   onCheckIn,
+  position,
 }: Props) {
   const {
     formState: { errors },
@@ -59,69 +64,81 @@ export default function CheckInVehicleForm({
     setFocus,
   } = methods;
   const [showInputPlate, setShowInputPlate] = useState(false);
-  const isElectric = useRef(false);
   const enableActionKey = useRef(true);
+  const enableSubmit = useRef(true);
+
+  useFixPlateHotKey({
+    lane: position,
+    callback: handleFixPlate,
+    options: {
+      scopes: [PAGE.CHECK_IN, position],
+      enableOnFormTags: ["input", "textarea"],
+    },
+  });
+
+  useCancelHotKey({
+    lane: position,
+    callback: handleCancel,
+    options: {
+      scopes: [PAGE.CHECK_IN, position],
+      enableOnFormTags: ["input", "select", "textarea"],
+    },
+  });
+
+  useFocusCardHotKey({
+    lane: position,
+    callback: handleFocusCard,
+    options: {
+      scopes: [PAGE.CHECK_IN, position],
+      enableOnFormTags: ["input", "select", "textarea"],
+      enabled: enableActionKey.current,
+    },
+  });
 
   useHotkeys(
-    SUBMIT_LEFT_HOTKEY.key,
+    position === LANE.LEFT ? SUBMIT_LEFT_HOTKEY.key : SUBMIT_RIGHT_HOTKEY.key,
     async () => {
       await onCheckIn();
     },
     {
-      scopes: [PAGE.CHECK_IN],
+      scopes: [PAGE.CHECK_IN, position],
       enableOnFormTags: ["input", "select", "textarea"],
-      enabled: enableActionKey.current,
-    }
-  );
-  useHotkeys(
-    FOCUS_CARD_INPUT_KEY.key,
-    () => {
-      setShowInputPlate(false);
-      setFocus("CardId");
-      reset();
-    },
-    {
-      scopes: [PAGE.CHECK_IN],
-      enableOnFormTags: ["input", "select", "textarea"],
-      enabled: enableActionKey.current,
-    }
-  );
-  useHotkeys(
-    FIX_PLATE_NUMBER_KEY.key,
-    async () => {
-      //* already show plate then set the new plate to form
-      if (showInputPlate) {
-        enableActionKey.current = true;
-        onFixPlate();
-        setShowInputPlate((prev) => !prev);
-        return;
-      }
-      enableActionKey.current = false;
-      setShowInputPlate((prev) => !prev);
-    },
-    {
-      scopes: [PAGE.CHECK_IN],
-      enableOnFormTags: ["input", "textarea"],
-    }
-  );
-  useHotkeys(
-    CANCELED_HOTKEY.key,
-    () => {
-      onReset();
-      setShowInputPlate(false);
-      enableActionKey.current = true;
-    },
-    {
-      scopes: [PAGE.CHECK_IN],
-      enableOnFormTags: ["input", "select", "textarea"],
+      enabled: enableSubmit.current, //* allow cursor to move and not selecting any input
     }
   );
 
   useEffect(() => {
     if (!showInputPlate) return;
     setFocus("PlateNumber");
-    setValue("PlateNumber", checkInInfo.plateText.toUpperCase());
+    setValue("PlateNumber", checkInInfo.plateText.toUpperCase().trim());
   }, [showInputPlate]);
+
+  function handleFocusCard() {
+    setFocus("CardId");
+    setShowInputPlate(false);
+    reset();
+  }
+
+  function handleCancel() {
+    onReset();
+    setShowInputPlate(false);
+    enableSubmit.current = true;
+    enableActionKey.current = true;
+  }
+
+  function handleFixPlate() {
+    if (showInputPlate) {
+      enableActionKey.current = true;
+      //* allow to move cursor without submitting the form
+      enableSubmit.current = true;
+      onFixPlate();
+      setShowInputPlate((prev) => !prev);
+      return;
+    }
+    enableActionKey.current = true;
+    enableSubmit.current = false;
+    setShowInputPlate((prev) => !prev);
+  }
 
   const {
     data: vehicleTypesData,
@@ -146,19 +163,15 @@ export default function CheckInVehicleForm({
     return [];
   }, [isSuccessVehicleTypes, vehicleTypesData?.data.data]);
 
-  useEffect(() => {
-    const plate = checkInInfo.plateText;
-    if (ELECTRIC_PLATE_NUMBER_REGEX.test(plate)) {
-      isElectric.current = true;
-      return;
-    }
-    isElectric.current = false;
-  }, [checkInInfo.plateText]);
   return (
     <>
       <FormProvider {...methods}>
         <FormContainer onSubmit={handleSubmit(onGetCheckInInfo)}>
-          <div className='absolute bottom-0 right-0 opacity-0'>
+          <div
+            className={`absolute bottom-0 opacity-0 ${
+              position === LANE.LEFT ? "left-0" : "right-0"
+            }`}
+          >
             <FormInput name='CardId' autoFocus={true} />
           </div>
           <FormInfoRow className='grid-cols-[auto_1fr_1fr]'>

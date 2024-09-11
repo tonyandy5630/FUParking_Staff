@@ -32,6 +32,7 @@ export default function SetUpCameraLane({ laneKey }: Props) {
       const videoInputs = mediaDevices.filter(
         ({ kind }: MediaDeviceInfo) => kind === "videoinput"
       );
+
       setDevices(videoInputs);
     },
     [setDevices]
@@ -52,6 +53,14 @@ export default function SetUpCameraLane({ laneKey }: Props) {
   }, [cameraIds]);
 
   useEffect(() => {
+    //* handle I/O lock
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      stream.getTracks().map((track) => track.stop());
+    });
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      stream.getTracks().map((track) => (track.enabled = !track.enabled));
+    });
+
     navigator.mediaDevices.enumerateDevices().then(handleDevices);
     // Add event listener when component mounts
   }, [handleDevices]);

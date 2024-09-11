@@ -8,7 +8,6 @@ import React, { useEffect, useState } from "react";
 import useGetParkingId from "../../../hooks/useGetParkingId";
 import { Separator } from "@components/ui/separator";
 import useSelectGate from "../../../hooks/useSelectGate";
-import { GATE_OUT } from "@constants/gate.const";
 import { formatVNCurrency } from "@utils/currency";
 import { DatePicker } from "@components/DatePicker";
 import { getLocalISOString } from "@utils/date";
@@ -24,7 +23,7 @@ function ParkingStatistic() {
     endDate: getLocalISOString(new Date()),
   });
   const parkingId = useGetParkingId();
-  const { gateId: gateOutId } = useSelectGate(GATE_OUT, false);
+  const gateOutId = useSelectGate(false);
 
   const [
     {

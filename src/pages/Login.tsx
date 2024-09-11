@@ -22,7 +22,7 @@ import {
 import { useState } from "react";
 import logo from "../assets/Bai_Logo.png";
 import {
-  GET_GATE_TYPE_CHANNEL,
+  GET_GATE_ID_CHANNEL,
   GET_NOT_FIRST_TIME_CHANNEL,
   LOGGED_IN,
 } from "@channels/index";
@@ -70,6 +70,7 @@ export default function Login(): JSX.Element {
           });
           toast.onChange(async (payload) => {
             if (payload.status === "removed") {
+              window.ipcRenderer.send(LOGGED_IN, true);
               const notFirstTime = await window.ipcRenderer.invoke(
                 GET_NOT_FIRST_TIME_CHANNEL
               );
@@ -78,19 +79,16 @@ export default function Login(): JSX.Element {
                 navigate(PAGE.SELECT_GATE_TYPE);
                 return;
               }
-              const systemGateType = await window.ipcRenderer.invoke(
-                GET_GATE_TYPE_CHANNEL
-              );
-              if (systemGateType === "" || !systemGateType) {
+
+              //* handle not select gate
+              const gate = await window.ipcRenderer.invoke(GET_GATE_ID_CHANNEL);
+              if (gate === "" || !gate) {
                 navigate(PAGE.SELECT_GATE_TYPE);
                 return;
               }
 
-              window.ipcRenderer.send(LOGGED_IN, true);
-              if (systemGateType === GATE_IN) {
-                navigate(PAGE.CHECK_IN);
-              } else {
-                navigate(PAGE.CHECK_OUT);
+              if (gate) {
+                navigate(PAGE.GATE);
               }
             }
           });

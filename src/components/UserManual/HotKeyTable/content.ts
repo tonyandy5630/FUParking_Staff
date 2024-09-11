@@ -1,43 +1,27 @@
 import {
-  CANCELED_HOTKEY,
-  FIX_PLATE_NUMBER_KEY,
-  FOCUS_CARD_INPUT_KEY,
+  CANCELED_LEFT_HOTKEY,
+  FIX_PLATE_LEFT_NUMBER_KEY,
+  FIX_PLATE_RIGHT_NUMBER_KEY,
+  FOCUS_CARD_INPUT_LEFT_KEY,
+  FOCUS_CARD_INPUT_RIGHT_KEY,
   HELP_KEY,
   REFRESH_HOTKEY,
   SUBMIT_LEFT_HOTKEY,
   SUBMIT_RIGHT_HOTKEY,
+  SWITCH_LANE_MODE_KEY,
 } from "../../../hotkeys/key";
 
 export const HotKeyTableHeaders = ["Phím tắt", "Chức năng"];
 
 export const HotKeyContents = [
-  {
-    hotkey: FOCUS_CARD_INPUT_KEY.key,
-    function: FOCUS_CARD_INPUT_KEY.function,
-  },
-  {
-    hotkey: FIX_PLATE_NUMBER_KEY.key,
-    function: FIX_PLATE_NUMBER_KEY.function,
-  },
-
-  {
-    hotkey: SUBMIT_LEFT_HOTKEY.key,
-    function: SUBMIT_LEFT_HOTKEY.function,
-  },
-  {
-    hotkey: SUBMIT_RIGHT_HOTKEY.key,
-    function: SUBMIT_RIGHT_HOTKEY.function,
-  },
-  {
-    hotkey: CANCELED_HOTKEY.key,
-    function: CANCELED_HOTKEY.function,
-  },
-  {
-    hotkey: REFRESH_HOTKEY.key,
-    function: REFRESH_HOTKEY.function,
-  },
-  {
-    hotkey: HELP_KEY.key,
-    function: HELP_KEY.function,
-  },
+  FOCUS_CARD_INPUT_LEFT_KEY,
+  FOCUS_CARD_INPUT_RIGHT_KEY,
+  FIX_PLATE_LEFT_NUMBER_KEY,
+  FIX_PLATE_RIGHT_NUMBER_KEY,
+  SUBMIT_LEFT_HOTKEY,
+  SUBMIT_RIGHT_HOTKEY,
+  CANCELED_LEFT_HOTKEY,
+  REFRESH_HOTKEY,
+  HELP_KEY,
+  SWITCH_LANE_MODE_KEY,
 ];

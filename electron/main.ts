@@ -1,13 +1,15 @@
+import type { GateType } from "@my_types/gate";
 import {
   GET_CAMERA_LEFT_OTHER_CHANNEL,
   GET_CAMERA_LEFT_PLATE_CHANNEL,
   GET_CAMERA_RIGHT_OTHER_CHANNEL,
   GET_CAMERA_RIGHT_PLATE_CHANNEL,
-  GET_GATE_IN_ID_CHANNEL,
-  GET_GATE_OUT_ID_CHANNEL,
-  GET_GATE_TYPE_CHANNEL,
+  GET_GATE_ID_CHANNEL,
+  GET_IS_2_LANE_CHANNEL,
+  GET_LEFT_LANE_CHANNEL,
   GET_NOT_FIRST_TIME_CHANNEL,
   GET_PARKING_AREA_ID_CHANNEL,
+  GET_RIGHT_LANE_CHANNEL,
   GO_BACK_CHANNEL,
   LOGGED_IN,
   OPEN_ERROR_DIALOG_CHANNEL,
@@ -16,39 +18,34 @@ import {
   SET_CAMERA_RIGHT_OTHER_CHANNEL,
   SET_CAMERA_RIGHT_PLATE_CHANNEL,
   SET_GATE_CHANNEL,
+  SET_IS_2_LANE_CHANNEL,
+  SET_LEFT_LANE_CHANNEL,
   SET_NOT_FIRST_TIME_CHANNEL,
   SET_PARKING_AREA_ID_CHANNEL,
-  TO_CHECK_IN_CHANNEL,
-  TO_CHECK_OUT_CHANNEL,
-  TO_DEVICE_SETUP_CHANNEL,
+  SET_RIGHT_LANE_CHANNEL,
 } from "../channel";
 import { app, BrowserWindow, Menu, dialog, ipcMain, MenuItem } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import loginMenuItems from "./menu/loginMenuItems";
-import PAGE from "../url";
-import { loadURL } from "./utils/electron_utils";
+import MenuItems, { LoggedInMenuItems } from "./menu/loginMenuItems";
 import Store from "electron-store";
 import ElectronStore from "electron-store";
 import { GATE_IN, GATE_OUT } from "../src/constants/gate.const";
 import {
-  GATE_IN_ID_KEY,
-  GATE_OUT_ID_KEY,
-  GATE_TYPE_KEY,
+  GATE_ID_KEY,
+  IS_2_LANE_KEY,
+  LEFT_LANE_KEY,
   LEFT_OTHER_CAMERA_ID_KEY,
   LEFT_PLATE_CAMERA_ID_KEY,
+  NOT_FIRST_TIME_KEY,
   PARKING_AREA_ID_KEY,
+  RIGHT_LANE_KEY,
   RIGHT_OTHER_CAMERA_ID_KEY,
   RIGHT_PLATE_CAMERA_ID_KEY,
 } from "./store/keys";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// if (process.resourcesPath) {
-//   dotenvExpand.expand(
-//     dotenv.config({ path: path.join(process.resourcesPath, ".env") })
-//   );
-// }
 // The built directory structure
 //
 // ├─┬─┬ dist
@@ -108,18 +105,6 @@ ipcMain.on(GO_BACK_CHANNEL, () => {
   win?.webContents.goBack();
 });
 
-ipcMain.on(TO_CHECK_IN_CHANNEL, () => {
-  loadURL(PAGE.CHECK_IN);
-});
-
-ipcMain.on(TO_CHECK_OUT_CHANNEL, () => {
-  loadURL(PAGE.CHECK_OUT);
-});
-
-ipcMain.on(TO_DEVICE_SETUP_CHANNEL, () => {
-  loadURL(PAGE.DEVICE_SET_UP);
-});
-
 ipcMain.on(OPEN_ERROR_DIALOG_CHANNEL, (e) => {
   dialog.showErrorBox("Error", "Something went wrong");
 });
@@ -129,7 +114,7 @@ ipcMain.on(SET_NOT_FIRST_TIME_CHANNEL, (_, isFirstTime: boolean) => {
     dialog.showErrorBox("Error", "Error in set store");
     return;
   }
-  store.set("notFirstTime", isFirstTime);
+  store.set(NOT_FIRST_TIME_KEY, isFirstTime);
 });
 
 ipcMain.handle(GET_NOT_FIRST_TIME_CHANNEL, () => {
@@ -137,55 +122,28 @@ ipcMain.handle(GET_NOT_FIRST_TIME_CHANNEL, () => {
     dialog.showErrorBox("Error", "Error in set store");
     return;
   }
-  return store.get("notFirstTime", false);
+  return store.get(NOT_FIRST_TIME_KEY, false);
 });
 
-ipcMain.on(SET_GATE_CHANNEL, (e, gate: { id: string; type: string }) => {
+ipcMain.on(SET_GATE_CHANNEL, (_, id: string) => {
   if (!store) {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
-  if (!gate.id || !gate.type) {
+  if (!id) {
     dialog.showErrorBox("Select Gate", "Gate is not selected");
     return;
   }
-  if (gate.type === GATE_IN)
-    store.set({
-      gateInId: gate.id,
-      gateType: gate.type,
-    });
-  else if (gate.type === GATE_OUT) {
-    store.set({
-      gateOutId: gate.id,
-      gateType: gate.type,
-    });
-  } else {
-    dialog.showErrorBox("Gate is invalid", "Gate cannot be set");
-  }
+  store.set(GATE_ID_KEY, id);
 });
 
-ipcMain.handle(GET_GATE_TYPE_CHANNEL, (e) => {
+ipcMain.handle(GET_GATE_ID_CHANNEL, () => {
   if (!store) {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
-  return store.get(GATE_TYPE_KEY, "");
-});
 
-ipcMain.handle(GET_GATE_IN_ID_CHANNEL, (event: any) => {
-  if (!store) {
-    dialog.showErrorBox("Error", "Error in getting store");
-    return;
-  }
-  return store.get(GATE_IN_ID_KEY, "");
-});
-
-ipcMain.handle(GET_GATE_OUT_ID_CHANNEL, (event: any) => {
-  if (!store) {
-    dialog.showErrorBox("Error", "Error in getting store");
-    return;
-  }
-  return store.get(GATE_OUT_ID_KEY, "");
+  return store.get(GATE_ID_KEY, "");
 });
 
 ipcMain.on(SET_PARKING_AREA_ID_CHANNEL, (_, parkingId: string) => {
@@ -285,6 +243,63 @@ ipcMain.on(SET_CAMERA_RIGHT_OTHER_CHANNEL, (_, cameraId: string) => {
 
 //#endregion
 
+//#region Swap Lane
+ipcMain.on(SET_LEFT_LANE_CHANNEL, (_, value: GateType) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  store.set(LEFT_LANE_KEY, value);
+});
+
+ipcMain.handle(GET_LEFT_LANE_CHANNEL, () => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get(LEFT_LANE_KEY, GATE_IN);
+});
+
+ipcMain.on(SET_RIGHT_LANE_CHANNEL, (_, value: GateType) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  store.set(RIGHT_LANE_KEY, value);
+});
+
+ipcMain.handle(GET_RIGHT_LANE_CHANNEL, () => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get(RIGHT_LANE_KEY, GATE_OUT);
+});
+
+//#endregion
+
+ipcMain.handle(GET_IS_2_LANE_CHANNEL, () => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get(IS_2_LANE_KEY, false);
+});
+
+ipcMain.on(SET_IS_2_LANE_CHANNEL, (_, is2Lane: boolean) => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.set(IS_2_LANE_KEY, is2Lane);
+});
+
 ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
   if (!win) {
     return;
@@ -294,21 +309,19 @@ ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
     return;
   }
 
-  const loggedInMenu = loginMenuItems(win, store);
-  if (loggedInMenu === undefined) return;
+  const menuItems = MenuItems(win, store);
+  if (menuItems === undefined) return;
 
-  const gateInMenuItem = loggedInMenu[1].submenu[0] as Partial<MenuItem>;
-  const gateOutMenuItem = loggedInMenu[1].submenu[1] as Partial<MenuItem>;
-  const cardCheckerMenuItem = loggedInMenu[2].submenu[0] as Partial<MenuItem>;
+  const cardCheckerMenuItem = menuItems[1].submenu[0] as Partial<MenuItem>;
 
-  gateInMenuItem.enabled = true;
-  gateOutMenuItem.enabled = true;
   cardCheckerMenuItem.enabled = true;
-  cardCheckerMenuItem.enabled = true;
-  const menu = Menu.buildFromTemplate(loggedInMenu);
+
+  const loggedInMenuItems = LoggedInMenuItems(win);
+  const menu = Menu.buildFromTemplate(
+    (menuItems as Array<any>).concat(loggedInMenuItems)
+  );
   Menu.setApplicationMenu(menu);
 });
-//#endregion
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -334,7 +347,7 @@ app
     createWindow();
     if (!win) return;
 
-    const loginMenu = loginMenuItems(win, store);
+    const loginMenu = MenuItems(win, store);
     if (loginMenu.length === 0) {
       Promise.reject();
     }

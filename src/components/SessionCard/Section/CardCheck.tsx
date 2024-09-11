@@ -3,7 +3,10 @@ import React, { lazy, useEffect, useRef, useState } from "react";
 import CardInfoRow from "../CardInfo";
 import Image from "@components/Image";
 import { useHotkeys } from "react-hotkeys-hook";
-import { CANCELED_HOTKEY, FOCUS_CARD_INPUT_KEY } from "../../../hotkeys/key";
+import {
+  CANCELED_LEFT_HOTKEY,
+  FOCUS_CARD_INPUT_LEFT_KEY,
+} from "../../../hotkeys/key";
 import PAGE from "../../../../url";
 import { Separator } from "@components/ui/separator";
 import { useDispatch } from "react-redux";
@@ -51,7 +54,7 @@ export default function CardCheckSection() {
     failureReason,
   } = useQuery({
     queryKey: ["/get-card-session-by-number", cardValue],
-    queryFn: () => getCardSessionInfoAPI(cardValue),
+    queryFn: () => getCardSessionInfoAPI(cardValue.trim()),
     enabled: cardValue.length === 10,
   });
 
@@ -68,7 +71,7 @@ export default function CardCheckSection() {
     formState: { errors },
   } = methods;
   useHotkeys(
-    FOCUS_CARD_INPUT_KEY.key,
+    FOCUS_CARD_INPUT_LEFT_KEY.key,
     () => {
       if (cardNumberRef.current) {
         cardNumberRef.current.focus();
@@ -81,7 +84,7 @@ export default function CardCheckSection() {
   );
 
   useHotkeys(
-    CANCELED_HOTKEY.key,
+    CANCELED_LEFT_HOTKEY.key,
     () => {
       setShowPlateInput(false);
       reset();
@@ -174,7 +177,7 @@ export default function CardCheckSection() {
   }, [cardData?.data.data, isErrorCard]);
 
   const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCardValue(e.target.value);
+    setCardValue(e.target.value.trim());
   };
 
   useEffect(() => {

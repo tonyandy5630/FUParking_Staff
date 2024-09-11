@@ -6,7 +6,7 @@ import { GATE_IN, GATE_OUT } from "../../src/constants/gate.const";
 import ElectronRedirect from "../../src/utils/electron-redirect";
 dotenv.config();
 
-function loginMenuItems(win: BrowserWindow, store: ElectronStore | null): any {
+function MenuItems(win: BrowserWindow, store: ElectronStore | null): any {
   return [
     {
       label: "Cài đặt",
@@ -28,27 +28,6 @@ function loginMenuItems(win: BrowserWindow, store: ElectronStore | null): any {
       ],
     },
     {
-      label: "Cổng",
-      submenu: [
-        {
-          label: "Cổng vào",
-          enabled: false,
-          click: () => {
-            if (store) store.set("gateType", GATE_IN);
-            ElectronRedirect(win, PAGE.CHECK_IN);
-          },
-        },
-        {
-          label: "Cổng ra",
-          enabled: false,
-          click: () => {
-            if (store) store.set("gateType", GATE_OUT);
-            ElectronRedirect(win, PAGE.CHECK_OUT);
-          },
-        },
-      ],
-    },
-    {
       label: "Thẻ",
       submenu: [
         {
@@ -63,4 +42,15 @@ function loginMenuItems(win: BrowserWindow, store: ElectronStore | null): any {
   ];
 }
 
-export default loginMenuItems;
+export function LoggedInMenuItems(win: BrowserWindow) {
+  return [
+    {
+      label: "Cổng",
+      click: () => {
+        ElectronRedirect(win, PAGE.GATE);
+      },
+    },
+  ];
+}
+
+export default MenuItems;

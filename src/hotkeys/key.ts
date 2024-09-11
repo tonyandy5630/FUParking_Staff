@@ -1,23 +1,42 @@
-export const FOCUS_CARD_INPUT_KEY = {
-  key: "shift",
-  function: "Chuẩn bị quét thẻ",
+export const FOCUS_CARD_INPUT_LEFT_KEY = {
+  key: "shift+space",
+  function: "Chuẩn bị quét thẻ cho làn trái",
 };
-export const FIX_PLATE_NUMBER_KEY = {
-  key: "ctrl",
+
+export const FOCUS_CARD_INPUT_RIGHT_KEY = {
+  key: "space",
+  function: "Chuẩn bị quét thẻ cho làn phải",
+};
+
+export const FIX_PLATE_LEFT_NUMBER_KEY = {
+  key: "CapsLock",
   function: [
-    "Nhấn lần 1: Sửa biển số xe",
+    "Nhấn lần 1: Sửa biển số xe cho làn trái (hoặc 1 làn)",
     "Nhấn lần 2: Xác nhận biển số",
     "Nhấn lần 3 (Đối với khách mất thẻ): Xác nhận check out",
   ],
 };
+
+export const FIX_PLATE_RIGHT_NUMBER_KEY = {
+  key: "ctrl+enter",
+  function: [
+    "Nhấn lần 1: Sửa biển số xe cho làn phải",
+    "Nhấn lần 2: Xác nhận biển số",
+    "Nhấn lần 3 (Đối với khách mất thẻ): Xác nhận check out",
+  ],
+};
+
 export const HELP_KEY = {
   key: "f1",
   function: "Trợ giúp",
 };
-
+export const SWITCH_LANE_MODE_KEY = {
+  key: "f2",
+  function: "Bật/Tắt chế độ 2 làn",
+};
 export const SUBMIT_LEFT_HOTKEY = {
   key: "ArrowLeft",
-  function: ["Xác nhận check in/check out làn trái và 1 làn"],
+  function: "Xác nhận check in/check out làn trái và 1 làn",
 };
 
 export const SUBMIT_RIGHT_HOTKEY = {
@@ -25,8 +44,13 @@ export const SUBMIT_RIGHT_HOTKEY = {
   function: "Xác nhận check in/check out làn phải",
 };
 
-export const CANCELED_HOTKEY = {
-  key: "esc",
+export const CANCELED_LEFT_HOTKEY = {
+  key: "shift+esc",
+  function: "Hủy bỏ thao tác",
+};
+
+export const CANCELED_RIGHT_HOTKEY = {
+  key: "ctrl+backspace",
   function: "Hủy bỏ thao tác",
 };
 
