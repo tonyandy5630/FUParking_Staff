@@ -12,7 +12,11 @@ import { PropsWithChildren, useState } from "react";
 import HotKeyTable from "./HotKeyTable";
 import { HELP_KEY } from "../../hotkeys/key";
 import { useHotkeys } from "react-hotkeys-hook";
-import { ScrollArea } from "@components/ui/scroll-area";
+import {
+  GeneralHotKeys,
+  LeftHotKeys,
+  RightHotKeys,
+} from "./HotKeyTable/content";
 
 interface Props extends PropsWithChildren {}
 export default function UserManualDialog({}: Props) {
@@ -50,14 +54,31 @@ export default function UserManualDialog({}: Props) {
           </Button>
         </DialogTrigger>
       </CustomTooltip>
-      <DialogContent>
+      <DialogContent className='max-w-screen-xl max-h-lvh'>
         <DialogTitle>Hỗ trợ người dùng</DialogTitle>
         <DialogDescription>
           Bảng tổng hợp các phím tát và sử dụng ứng dụng BAI Parking System
         </DialogDescription>
-        <ScrollArea className='max-h-[30rem]'>
-          <HotKeyTable />
-        </ScrollArea>
+        <div className='max-h-[42rem]'>
+          <div className='grid grid-rows-[1fr_auto] gap-2'>
+            <div className='grid grid-cols-2 gap-2'>
+              <HotKeyTable
+                contents={LeftHotKeys}
+                tableCaption='Tổng hợp phím tắt làn trái'
+              />
+              <HotKeyTable
+                contents={RightHotKeys}
+                tableCaption='Tổng hợp phím tắt làn phải'
+              />
+            </div>
+            <div className='flex justify-center w-full h-fit'>
+              <HotKeyTable
+                contents={GeneralHotKeys}
+                tableCaption='Tổng hợp phím tắt chung'
+              />
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

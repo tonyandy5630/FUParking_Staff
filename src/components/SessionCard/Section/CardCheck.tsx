@@ -4,7 +4,7 @@ import CardInfoRow from "../CardInfo";
 import Image from "@components/Image";
 import { useHotkeys } from "react-hotkeys-hook";
 import {
-  CANCELED_LEFT_HOTKEY,
+  CANCEL_LEFT_HOTKEY,
   FOCUS_CARD_INPUT_LEFT_KEY,
 } from "../../../hotkeys/key";
 import PAGE from "../../../../url";
@@ -84,7 +84,7 @@ export default function CardCheckSection() {
   );
 
   useHotkeys(
-    CANCELED_LEFT_HOTKEY.key,
+    CANCEL_LEFT_HOTKEY.key,
     () => {
       setShowPlateInput(false);
       reset();

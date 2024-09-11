@@ -19,7 +19,7 @@ import { CheckInInfo } from "@components/CheckInSection";
 import { useHotkeys } from "react-hotkeys-hook";
 import PAGE from "../../../../url";
 import {
-  CANCELED_LEFT_HOTKEY,
+  CANCEL_LEFT_HOTKEY,
   SUBMIT_LEFT_HOTKEY,
   SUBMIT_RIGHT_HOTKEY,
 } from "../../../hotkeys/key";

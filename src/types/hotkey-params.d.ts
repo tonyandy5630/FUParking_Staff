@@ -6,3 +6,8 @@ export default interface HotkeyHookParams {
   callback: () => void | Promise<void>;
   options: OptionsOrDependencyArray;
 }
+
+export interface HotkeyType {
+  key: string;
+  function: string | string[];
+}

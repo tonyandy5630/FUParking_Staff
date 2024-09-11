@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 import { BrowserWindow } from "electron";
 import PAGE from "../../url";
 import ElectronStore from "electron-store";
-import { GATE_IN, GATE_OUT } from "../../src/constants/gate.const";
 import ElectronRedirect from "../../src/utils/electron-redirect";
 dotenv.config();
 
@@ -12,7 +11,7 @@ function MenuItems(win: BrowserWindow, store: ElectronStore | null): any {
       label: "Cài đặt",
       submenu: [
         {
-          label: "Camera",
+          label: "Camera và Làn",
           enabled: true,
           click: () => {
             ElectronRedirect(win, PAGE.DEVICE_SET_UP);

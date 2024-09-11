@@ -31,7 +31,7 @@ import InfoSection, {
 } from "@components/CameraSection/Form/InfoSection";
 import Message from "@components/Message";
 import { useHotkeys } from "react-hotkeys-hook";
-import { CANCELED_LEFT_HOTKEY } from "../../hotkeys/key";
+import { CANCEL_LEFT_HOTKEY } from "../../hotkeys/key";
 import PAGE from "../../../url";
 import { Label } from "@components/ui/label";
 import { PENDING_VEHICLE } from "@constants/vehicle.const";
@@ -68,7 +68,7 @@ function UpdateVehicleTypeDialog({
     vehicleType,
   } = info;
   useHotkeys(
-    CANCELED_LEFT_HOTKEY.key,
+    CANCEL_LEFT_HOTKEY.key,
     () => {
       onOpenChange();
     },

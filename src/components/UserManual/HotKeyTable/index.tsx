@@ -7,14 +7,19 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table";
-import { HotKeyContents, HotKeyTableHeaders } from "./content";
+import { HotKeyTableHeaders } from "./content";
 import { useMemo } from "react";
 import { ArrowLeftIcon, ArrowRightIcon } from "@radix-ui/react-icons";
 import { SUBMIT_LEFT_HOTKEY, SUBMIT_RIGHT_HOTKEY } from "../../../hotkeys/key";
+import { HotkeyType } from "@my_types/hotkey-params";
 
-export default function HotKeyTable() {
+interface Props {
+  contents: HotkeyType[];
+  tableCaption: string;
+}
+export default function HotKeyTable({ contents, tableCaption }: Props) {
   const tableBody = useMemo(() => {
-    return HotKeyContents.map((keyItem) => {
+    return contents.map((keyItem: HotkeyType) => {
       let key: any = keyItem.key;
       if (keyItem.key === SUBMIT_LEFT_HOTKEY.key) {
         key = (
@@ -34,7 +39,7 @@ export default function HotKeyTable() {
       return (
         <TableRow key={keyItem.key}>
           <TableCell className='hotkey'>{key}</TableCell>
-          <TableCell>
+          <TableCell className=''>
             {Array.isArray(keyItem.function) ? (
               <>
                 {keyItem.function.map((item) => (
@@ -48,7 +53,7 @@ export default function HotKeyTable() {
         </TableRow>
       );
     });
-  }, [HotKeyContents.length]);
+  }, [contents.length]);
 
   const tableHeaders = useMemo(() => {
     return HotKeyTableHeaders.map((header) => (
@@ -56,12 +61,14 @@ export default function HotKeyTable() {
     ));
   }, [HotKeyTableHeaders.length]);
   return (
-    <Table>
-      <TableCaption>Tổng hợp các phím tắt</TableCaption>
-      <TableHeader>
-        <TableRow>{tableHeaders}</TableRow>
-      </TableHeader>
-      <TableBody>{tableBody}</TableBody>
-    </Table>
+    <div className='pb-2 border rounded-sm h-fit min-w-96'>
+      <Table className='rounded-sm '>
+        <TableCaption>{tableCaption}</TableCaption>
+        <TableHeader>
+          <TableRow>{tableHeaders}</TableRow>
+        </TableHeader>
+        <TableBody>{tableBody}</TableBody>
+      </Table>
+    </div>
   );
 }

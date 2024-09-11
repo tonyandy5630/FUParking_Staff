@@ -28,7 +28,7 @@ export const FIX_PLATE_RIGHT_NUMBER_KEY = {
 
 export const HELP_KEY = {
   key: "f1",
-  function: "Trợ giúp",
+  function: "Bật/Tắt bảng trợ giúp",
 };
 export const SWITCH_LANE_MODE_KEY = {
   key: "f2",
@@ -44,12 +44,12 @@ export const SUBMIT_RIGHT_HOTKEY = {
   function: "Xác nhận check in/check out làn phải",
 };
 
-export const CANCELED_LEFT_HOTKEY = {
+export const CANCEL_LEFT_HOTKEY = {
   key: "shift+esc",
   function: "Hủy bỏ thao tác",
 };
 
-export const CANCELED_RIGHT_HOTKEY = {
+export const CANCEL_RIGHT_HOTKEY = {
   key: "ctrl+backspace",
   function: "Hủy bỏ thao tác",
 };

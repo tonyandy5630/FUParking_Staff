@@ -13,7 +13,7 @@ import { CheckOutSchemaType } from "@utils/schema/checkoutSchema";
 import LanePosition from "@my_types/lane";
 import LANE from "@constants/lane.const";
 import {
-  CANCELED_LEFT_HOTKEY,
+  CANCEL_LEFT_HOTKEY,
   FIX_PLATE_LEFT_NUMBER_KEY,
   SUBMIT_LEFT_HOTKEY,
   SUBMIT_RIGHT_HOTKEY,
