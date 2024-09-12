@@ -7,6 +7,7 @@ import LANE from "@constants/lane.const";
 import useToggleLaneMode from "../hooks/useToggleLaneMode";
 import useGetLaneMode from "../hooks/useGetLaneMode";
 import { lazy, Suspense, useMemo } from "react";
+import useGetLogin from "../hooks/useGetLogIn";
 const CheckInSection = lazy(() => import("@components/CheckInSection"));
 const CheckoutSection = lazy(() => import("@components/CheckOutSection"));
 
@@ -15,6 +16,7 @@ export default function CheckInPage() {
   const { is2Lane: isSetting2Lane } = useToggleLaneMode();
   const leftLaneMode = useGetLaneMode(LANE.LEFT);
   const rightLaneMode = useGetLaneMode(LANE.RIGHT);
+  useGetLogin(true);
   useSelectGate(true);
   useRefresh();
 

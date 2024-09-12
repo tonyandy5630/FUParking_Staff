@@ -24,10 +24,13 @@ import { Skeleton } from "@components/ui/skeleton";
 import { useAppSelector } from "@utils/store";
 import useRefresh from "../hooks/useRefresh";
 const ConfirmDialog = lazy(() => import("../ConfirmDialog"));
+import useGetLogin from "../hooks/useGetLogIn";
+const LoginButton = lazy(() => import("@components/LoginButton"));
 
 export default function SelectGateTypePage() {
   useRefresh();
   useSelectGate();
+  const isLoggedIn = useGetLogin();
   const parkingId = useGetParkingId();
   const [openConfirm, setOpenConfirm] = useState(false);
   const gateInId = useAppSelector((state) => state.gate);
@@ -214,6 +217,7 @@ export default function SelectGateTypePage() {
           />
         </Suspense>
       )}
+      <div className='w-full p-3'>{!isLoggedIn && <LoginButton />}</div>
       <main className='flex flex-col items-center justify-center min-h-full gap-y-10 min-w-screen'>
         <div className='flex items-center justify-center min-w-full p-3 text-4xl font-bold'>
           <h3 className='uppercase '>Cài đặt cổng</h3>

@@ -37,3 +37,6 @@ export const SET_LEFT_LANE_CHANNEL = "set-left-lane";
 
 export const GET_RIGHT_LANE_CHANNEL = "get-right-lane";
 export const SET_RIGHT_LANE_CHANNEL = "set-right-lane";
+
+export const LOG_OUT_CHANNEL = "log-out";
+export const GET_LOG_IN_CHANNEL = "get-log-in";

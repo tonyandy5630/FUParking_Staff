@@ -14,3 +14,4 @@ export const IS_2_LANE_KEY = "is-2-lane";
 
 export const LEFT_LANE_KEY = "lane.left";
 export const RIGHT_LANE_KEY = "lane.right";
+export const LOGGED_IN_KEY = "logged-in";

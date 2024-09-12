@@ -4,7 +4,7 @@ import ParkingContainer from "@components/ParkingContainer";
 import { Label } from "@components/ui/label";
 import { Switch } from "@components/ui/switch";
 import LANE from "@constants/lane.const";
-import { useCallback, useEffect, useState } from "react";
+import { lazy, useCallback, useEffect, useState } from "react";
 import useRefresh from "../hooks/useRefresh";
 import {
   SET_IS_2_LANE_CHANNEL,
@@ -16,9 +16,12 @@ import useGetLaneMode from "../hooks/useGetLaneMode";
 import { GateType } from "@my_types/gate";
 import LaneRadioGroup from "@components/LaneRadioGroup";
 import { Separator } from "@components/ui/separator";
+import useGetLogin from "../hooks/useGetLogIn";
+const LoginButton = lazy(() => import("@components/LoginButton"));
 
 export default function DeviceSetupPage() {
   const isSetting2Lane = useGet2Lane();
+  const isLoggedIn = useGetLogin();
   const [is2Lane, setIs2Lane] = useState(false);
   const leftLaneMode = useGetLaneMode(LANE.LEFT);
   const rightLaneMode = useGetLaneMode(LANE.RIGHT);
@@ -53,7 +56,8 @@ export default function DeviceSetupPage() {
   }, []);
 
   return (
-    <div className='flex flex-col items-start justify-center w-full p-4'>
+    <div className='relative flex flex-col items-start justify-center w-full p-4'>
+      {!isLoggedIn && <LoginButton />}
       <div className='flex items-center justify-center h-32 min-w-full text-center'>
         <h2 className='text-4xl font-bold'>Cài đặt Camera</h2>
       </div>

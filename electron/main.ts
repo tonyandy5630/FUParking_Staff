@@ -7,10 +7,12 @@ import {
   GET_GATE_ID_CHANNEL,
   GET_IS_2_LANE_CHANNEL,
   GET_LEFT_LANE_CHANNEL,
+  GET_LOG_IN_CHANNEL,
   GET_NOT_FIRST_TIME_CHANNEL,
   GET_PARKING_AREA_ID_CHANNEL,
   GET_RIGHT_LANE_CHANNEL,
   GO_BACK_CHANNEL,
+  LOG_OUT_CHANNEL,
   LOGGED_IN,
   OPEN_ERROR_DIALOG_CHANNEL,
   SET_CAMERA_LEFT_OTHER_CHANNEL,
@@ -37,6 +39,7 @@ import {
   LEFT_LANE_KEY,
   LEFT_OTHER_CAMERA_ID_KEY,
   LEFT_PLATE_CAMERA_ID_KEY,
+  LOGGED_IN_KEY,
   NOT_FIRST_TIME_KEY,
   PARKING_AREA_ID_KEY,
   RIGHT_LANE_KEY,
@@ -300,14 +303,50 @@ ipcMain.on(SET_IS_2_LANE_CHANNEL, (_, is2Lane: boolean) => {
   return store.set(IS_2_LANE_KEY, is2Lane);
 });
 
+ipcMain.handle(LOG_OUT_CHANNEL, () => {
+  if (!win) {
+    return;
+  }
+
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+  const menuItems = MenuItems(win, store);
+  if (menuItems === undefined) return;
+
+  const cardCheckerMenuItem = menuItems[1].submenu[0] as Partial<MenuItem>;
+
+  cardCheckerMenuItem.enabled = false;
+
+  const menu = Menu.buildFromTemplate(menuItems);
+  store.set(LOGGED_IN_KEY, false);
+  Menu.setApplicationMenu(menu);
+});
+
+ipcMain.handle(GET_LOG_IN_CHANNEL, () => {
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
+    return;
+  }
+
+  return store.get(LOGGED_IN_KEY, false);
+});
+
 ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
   if (!win) {
+    return;
+  }
+  if (!store) {
+    dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
 
   if (!isLoggedIn) {
     return;
   }
+
+  store.set(LOGGED_IN_KEY, isLoggedIn);
 
   const menuItems = MenuItems(win, store);
   if (menuItems === undefined) return;
@@ -328,8 +367,14 @@ ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    app.quit();
+    if (!store) {
+      dialog.showErrorBox("Error", "Error in getting store");
+      return;
+    }
+
+    store.set(LOGGED_IN_KEY, false);
     win = null;
+    app.quit();
   }
 });
 
