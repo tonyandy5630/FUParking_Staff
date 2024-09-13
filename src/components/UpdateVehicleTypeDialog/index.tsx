@@ -221,6 +221,7 @@ function UpdateVehicleTypeDialog({
                     <Button
                       type='submit'
                       onClick={(e) => setValue("isAccept", true)}
+                      autoFocus={true}
                     >
                       Đồng ý
                     </Button>

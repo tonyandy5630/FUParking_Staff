@@ -73,9 +73,12 @@ export default function CheckOutVehicleForm({
   onReset,
   refetchCardInfo,
 }: Props) {
-  const checkOutLaneInfo = useAppSelector((state) => state.checkOutCard);
-  const checkOutInfo =
-    position === LANE.LEFT ? checkOutLaneInfo.left : checkOutLaneInfo.right;
+  const checkOutInfo = useAppSelector((state) => {
+    return position === LANE.LEFT
+      ? state.checkOutCard.left
+      : state.checkOutCard.right;
+  });
+
   const pressPlateCount = useRef<number>(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dispatch = useDispatch();
@@ -124,6 +127,8 @@ export default function CheckOutVehicleForm({
     formState: { errors },
     handleSubmit,
     setFocus,
+    getValues,
+    watch,
   } = methods;
 
   useCancelHotKey({
@@ -161,20 +166,44 @@ export default function CheckOutVehicleForm({
   }
 
   async function handleCheckOutMissingCard(pressCount: number) {
+    const plateNumber = unFormatPlateNumber(getValues("PlateNumber"));
+
     //* handle check out missing plate
     //* final press send checkout
     if (pressCount === 3) {
+      const previousPlate = checkOutInfo.plateTextOut;
+      const currentPlate = plateNumber;
+      //* handle fix plate when enter wrong plate number
+      //* go back to step 2 (re-trigger get info)
+      if (previousPlate !== currentPlate) {
+        pressPlateCount.current = 2;
+        enableActionKey.current = true;
+        onTriggerGetInfoByPlate();
+        return;
+      }
       pressPlateCount.current = 0;
       enableActionKey.current = true;
+      dispatch(
+        setNewCardInfo({
+          lane: position,
+          info: {
+            ...checkOutInfo,
+            plateTextOut: plateNumber,
+          },
+        })
+      );
+      setShowInputPlateOut((prev) => !prev);
       await onMissingCardCheckOut();
+      return;
     }
     //* second press get info and show input
     if (pressCount === 2) {
+      if (plateNumber === "" || !plateNumber) return;
       enableActionKey.current = false;
       onTriggerGetInfoByPlate();
       return;
     }
-
+    //* first pres show input
     setShowInputPlateOut((prev) => !prev);
   }
 
@@ -218,7 +247,7 @@ export default function CheckOutVehicleForm({
               lane: position,
               info: {
                 ...checkOutInfo,
-                plateTextOut: newPlate,
+                plateTextIn: newPlate,
                 message: "Thay đổi biển số thành công",
                 isError: false,
               },

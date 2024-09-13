@@ -33,7 +33,7 @@ export const formatPlateNumber = (plateNumber: string) => {
 export const unFormatPlateNumber = (plate?: string) => {
   if (plate === undefined) return "";
   if (plate === "") return "";
-
+  plate = plate.trim().toUpperCase();
   const plateHasDash = plate.includes("-");
   const plateHasDot = plate.includes(".");
 
