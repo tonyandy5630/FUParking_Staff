@@ -437,6 +437,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   }, [isErrorCardInfo, errorSessionByCard]);
   //* Effect for updating card info based on cardByPlate
   useEffect(() => {
+    //* only trigger when checking out missing card
+    if (!triggerGetInfoByPlateNumber.current) return;
     const plateNumber = checkOutInfo.plateTextOut;
     if (!plateNumber) {
       return;
@@ -531,7 +533,12 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       })
     );
     // }
-  }, [cardByPlateData?.data?.data, dispatch, checkOutInfo]);
+  }, [
+    cardByPlateData?.data?.data,
+    dispatch,
+    checkOutInfo,
+    triggerGetInfoByPlateNumber.current,
+  ]);
 
   //* Effect for updating card info based on cardData
   useEffect(() => {

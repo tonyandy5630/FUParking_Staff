@@ -17,10 +17,13 @@ import {
   LeftHotKeys,
   RightHotKeys,
 } from "./HotKeyTable/content";
+import useGet2Lane from "../../hooks/useGet2Lane";
+import LaneRadioGroup from "@components/LaneRadioGroup";
 
 interface Props extends PropsWithChildren {}
 export default function UserManualDialog({}: Props) {
   const [openRef, setOpenRef] = useState(false);
+  const is2Lane = useGet2Lane();
   useHotkeys(
     HELP_KEY.key,
     () => {
@@ -59,6 +62,9 @@ export default function UserManualDialog({}: Props) {
         <DialogDescription>
           Bảng tổng hợp các phím tát và sử dụng ứng dụng BAI Parking System
         </DialogDescription>
+        <div className='flex flex-col items-start justify-center'>
+          <LaneRadioGroup is2Lane={is2Lane} />
+        </div>
         <div className='max-h-[42rem]'>
           <div className='grid grid-rows-[1fr_auto] gap-2'>
             <div className='grid grid-cols-2 gap-2'>

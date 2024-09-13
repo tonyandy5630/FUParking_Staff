@@ -26,7 +26,15 @@ import {
   SET_PARKING_AREA_ID_CHANNEL,
   SET_RIGHT_LANE_CHANNEL,
 } from "../channel";
-import { app, BrowserWindow, Menu, dialog, ipcMain, MenuItem } from "electron";
+import {
+  app,
+  BrowserWindow,
+  Menu,
+  dialog,
+  ipcMain,
+  MenuItem,
+  ipcRenderer,
+} from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import MenuItems, { LoggedInMenuItems } from "./menu/loginMenuItems";
@@ -248,12 +256,14 @@ ipcMain.on(SET_CAMERA_RIGHT_OTHER_CHANNEL, (_, cameraId: string) => {
 
 //#region Swap Lane
 ipcMain.on(SET_LEFT_LANE_CHANNEL, (_, value: GateType) => {
+  if (!win) return;
   if (!store) {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
 
   store.set(LEFT_LANE_KEY, value);
+  win.webContents.send(SET_LEFT_LANE_CHANNEL, value);
 });
 
 ipcMain.handle(GET_LEFT_LANE_CHANNEL, () => {
@@ -266,12 +276,15 @@ ipcMain.handle(GET_LEFT_LANE_CHANNEL, () => {
 });
 
 ipcMain.on(SET_RIGHT_LANE_CHANNEL, (_, value: GateType) => {
+  if (!win) return;
+
   if (!store) {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
 
   store.set(RIGHT_LANE_KEY, value);
+  win.webContents.send(SET_RIGHT_LANE_CHANNEL, value);
 });
 
 ipcMain.handle(GET_RIGHT_LANE_CHANNEL, () => {

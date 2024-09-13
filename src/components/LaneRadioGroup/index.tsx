@@ -2,15 +2,13 @@ import { SelectOptions } from "@components/Form/FormSelect";
 import { Label } from "@components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
 import { GATE_IN, GATE_OUT } from "@constants/gate.const";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import useGetLaneMode from "../../hooks/useGetLaneMode";
+import { SET_LEFT_LANE_CHANNEL, SET_RIGHT_LANE_CHANNEL } from "@channels/index";
+import LANE from "@constants/lane.const";
+import { GateType } from "@my_types/gate";
 
 interface Props {
-  value: { left: string; right: string };
-  onValueChange: {
-    left: (value: string) => void;
-    right: (value: string) => void;
-  };
-  label: { left: string; right: string };
   is2Lane: boolean;
 }
 
@@ -24,12 +22,22 @@ const LaneRadioItems: SelectOptions[] = [
     name: "Làn ra",
   },
 ];
-export default function LaneRadioGroup({
-  value,
-  onValueChange,
-  label,
-  is2Lane,
-}: Props) {
+export default function LaneRadioGroup({ is2Lane }: Props) {
+  const leftLaneMode = useGetLaneMode(LANE.LEFT);
+  const rightLaneMode = useGetLaneMode(LANE.RIGHT);
+  const [laneMode, setLaneMode] = useState({
+    left: leftLaneMode,
+    right: rightLaneMode,
+  });
+
+  useEffect(() => {
+    setLaneMode((prev) => ({
+      ...prev,
+      left: leftLaneMode,
+      right: rightLaneMode,
+    }));
+  }, [leftLaneMode, rightLaneMode]);
+
   const radioItems = useMemo(() => {
     return LaneRadioItems.map((item) => (
       <div className='flex items-center space-x-2' key={item.value}>
@@ -39,25 +47,30 @@ export default function LaneRadioGroup({
     ));
   }, [LaneRadioItems]);
 
+  const handleSetLeftLaneMode = useCallback((mode: string) => {
+    setLaneMode((prev) => ({ ...prev, left: mode as GateType }));
+    window.ipcRenderer.send(SET_LEFT_LANE_CHANNEL, mode);
+  }, []);
+
+  const handleSetRightLaneMode = useCallback((mode: string) => {
+    setLaneMode((prev) => ({ ...prev, right: mode as GateType }));
+    window.ipcRenderer.send(SET_RIGHT_LANE_CHANNEL, mode);
+  }, []);
+
   return (
     <div className='flex gap-4'>
       <div className='flex flex-col items-start justify-center gap-2'>
-        <Label>{label.left}</Label>
-        <RadioGroup
-          defaultValue={GATE_IN}
-          value={value.left}
-          onValueChange={onValueChange.left}
-        >
+        <Label>Làn trái</Label>
+        <RadioGroup value={laneMode.left} onValueChange={handleSetLeftLaneMode}>
           {radioItems}
         </RadioGroup>
       </div>
       {is2Lane && (
         <div className='flex flex-col items-start justify-center gap-2'>
-          <Label>{label.right}</Label>
+          <Label>Làn phải</Label>
           <RadioGroup
-            value={value.right}
-            defaultValue={GATE_IN}
-            onValueChange={onValueChange.right}
+            value={laneMode.right}
+            onValueChange={handleSetRightLaneMode}
           >
             {radioItems}
           </RadioGroup>
