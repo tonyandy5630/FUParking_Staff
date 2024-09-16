@@ -2,9 +2,11 @@ import { SessionStatus } from "@constants/session.const";
 
 type SessionCard = {
   index?: number;
+  cardId: string;
   cardNumber: string;
   plateNumber: string;
   cardStatus: string;
+  sessionStatus?: string;
   sessionId: string;
   vehicleType: string;
   timeIn: string;
@@ -16,6 +18,7 @@ type SessionCard = {
 };
 
 export type CardInfo = {
+  cardId: string;
   cardNumber: string;
   plateNumber: string;
   status: string;

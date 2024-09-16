@@ -26,15 +26,7 @@ import {
   SET_PARKING_AREA_ID_CHANNEL,
   SET_RIGHT_LANE_CHANNEL,
 } from "../channel";
-import {
-  app,
-  BrowserWindow,
-  Menu,
-  dialog,
-  ipcMain,
-  MenuItem,
-  ipcRenderer,
-} from "electron";
+import { app, BrowserWindow, Menu, dialog, ipcMain, MenuItem } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import MenuItems, { LoggedInMenuItems } from "./menu/loginMenuItems";
@@ -377,7 +369,6 @@ ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     if (!store) {
@@ -396,6 +387,20 @@ app.on("activate", () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  }
+});
+
+//* handle single instance of app at a time
+let isSingleInstance = app.requestSingleInstanceLock();
+if (!isSingleInstance) {
+  app.quit();
+}
+
+// Behaviour on second instance for parent process- Pretty much optional
+app.on("second-instance", () => {
+  if (win) {
+    if (win.isMinimized()) win.restore();
+    win.focus();
   }
 });
 
