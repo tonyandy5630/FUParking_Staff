@@ -31,7 +31,11 @@ import {
   setNewCardInfo,
 } from "../../../redux/checkoutSlice";
 import { GATE_OUT } from "@constants/gate.const";
-import { formatPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
+import {
+  formatPlateNumber,
+  isValidPlateNumber,
+  unFormatPlateNumber,
+} from "@utils/plate-number";
 import { Input } from "@components/ui/input";
 import { updateSessionPlateNumberAPI } from "@apis/session.api";
 import { useMutation } from "@tanstack/react-query";
@@ -43,11 +47,13 @@ import {
 } from "@constants/error-message.const";
 import {
   CANNOT_CHECKOUT_PENDING_VEHICLE,
+  PLATE_OUT_NOT_VALID,
   VEHICLE_IN_OTHER_SESSION,
 } from "@constants/message.const";
 import useFocusCardHotKey from "../../../hooks/useFocusCardHotKey";
 import useFixPlateHotKey from "../../../hooks/useFixPlateHotkey";
 import useCancelHotKey from "../../../hooks/useCancelHotKey";
+import useFixPlateOutHotKey from "../../../hooks/useFixPlateOutHotKey";
 
 type Props = {
   methods: UseFormReturn<CheckOutSchemaType>;
@@ -95,12 +101,21 @@ export default function CheckOutVehicleForm({
     mutationKey: ["update-plate-numeber-checkout"],
     mutationFn: updateSessionPlateNumberAPI,
   });
+
+  useFixPlateOutHotKey({
+    lane: position,
+    callback: handleFixPlateOut,
+    options: {
+      scopes: [PAGE.CHECK_OUT, position],
+      enableOnFormTags: ["input"],
+    },
+  });
   useFixPlateHotKey({
     lane: position,
     callback: handleFixPlateKeyPressed,
     options: {
       scopes: [PAGE.CHECK_OUT, position],
-      enableOnFormTags: ["input", "select", "textarea"],
+      enableOnFormTags: ["input"],
     },
   });
   useHotkeys(
@@ -108,7 +123,7 @@ export default function CheckOutVehicleForm({
     handleSubmitCheckOut,
     {
       scopes: [PAGE.CHECK_OUT, position],
-      enableOnFormTags: ["input", "select"],
+      enableOnFormTags: ["input"],
       enabled: enableActionKey.current,
     }
   );
@@ -119,7 +134,7 @@ export default function CheckOutVehicleForm({
     },
     options: {
       scopes: [PAGE.CHECK_OUT, position],
-      enableOnFormTags: ["input", "select", "textarea"],
+      enableOnFormTags: ["input"],
       enabled: enableActionKey.current,
     },
   });
@@ -128,7 +143,7 @@ export default function CheckOutVehicleForm({
     handleSubmit,
     setFocus,
     getValues,
-    watch,
+    setValue,
   } = methods;
 
   useCancelHotKey({
@@ -136,9 +151,66 @@ export default function CheckOutVehicleForm({
     callback: handleResetPressed,
     options: {
       scopes: [PAGE.CHECK_OUT, position],
-      enableOnFormTags: ["input", "select", "textarea"],
+      enableOnFormTags: ["input"],
     },
   });
+
+  useEffect(() => {
+    if (!showInputPlateOut) return;
+    setFocus("PlateNumber");
+  }, [showInputPlateOut]);
+
+  useEffect(() => {
+    if (!showInputPlateIn) return;
+    if (plateInputRef.current) plateInputRef.current.focus();
+  }, [showInputPlateIn]);
+
+  function handleFixPlateOut() {
+    //* cannot fix plate out if not insert card
+    if (checkOutInfo.checkOutCardText === "") {
+      return;
+    }
+    pressPlateCount.current++;
+    enableActionKey.current = false;
+    //* second time press submit new plate out
+    if (pressPlateCount.current === 2) {
+      const newPlateNumberOut =
+        (getValues("PlateNumber")?.trim() as string) ?? "";
+      const isNewPlateOutValid = isValidPlateNumber(newPlateNumberOut);
+      //* handle not valid plate out
+      if (!isNewPlateOutValid) {
+        //* go back previous step
+        pressPlateCount.current--;
+        dispatch(
+          setNewCardInfo({
+            lane: position,
+            info: {
+              ...checkOutInfo,
+              message: PLATE_OUT_NOT_VALID,
+              isError: true,
+            },
+          })
+        );
+        return;
+      }
+      enableActionKey.current = true;
+
+      pressPlateCount.current = 0;
+      dispatch(
+        setNewCardInfo({
+          lane: position,
+          info: {
+            ...checkOutInfo,
+            plateTextOut: newPlateNumberOut,
+          },
+        })
+      );
+    }
+
+    //* first time press show input
+    setShowInputPlateOut((prev) => !prev);
+    setValue("PlateNumber", checkOutInfo.plateTextOut);
+  }
 
   function handleResetPressed() {
     pressPlateCount.current = 0;
@@ -305,16 +377,6 @@ export default function CheckOutVehicleForm({
       console.log(err);
     }
   };
-
-  useEffect(() => {
-    if (!showInputPlateOut) return;
-    setFocus("PlateNumber");
-  }, [showInputPlateOut]);
-
-  useEffect(() => {
-    if (!showInputPlateIn) return;
-    if (plateInputRef.current) plateInputRef.current.focus();
-  }, [showInputPlateIn]);
 
   const handlePreventSubmit = (
     e: SyntheticEvent<HTMLFormElement, SubmitEvent>

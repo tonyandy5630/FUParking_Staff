@@ -36,3 +36,4 @@ export const DEACTIVE_CARD_MESSAGE = "Không hoạt động";
 export const CLOSED_SESSION_MESSAGE = "Đã kết thúc";
 export const PARKED_SESSION_MESSAGE = "Đang giữ xe";
 export const ERROR_MESSAGE = "Lỗi đã xảy ra";
+export const PLATE_OUT_NOT_VALID = "Biển số xe ra không hợp lệ";

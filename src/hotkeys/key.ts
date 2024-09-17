@@ -30,6 +30,7 @@ export const HELP_KEY = {
   key: "f1",
   function: "Bật/Tắt bảng trợ giúp",
 };
+
 export const SWITCH_LANE_MODE_KEY = {
   key: "f2",
   function: "Bật/Tắt chế độ 2 làn",
@@ -39,9 +40,19 @@ export const SUBMIT_LEFT_HOTKEY = {
   function: "Xác nhận check in/check out làn trái và 1 làn",
 };
 
+export const FIX_PLATE_OUT_LEFT_HOTKEY = {
+  key: `ctrl+${SUBMIT_LEFT_HOTKEY.key}`,
+  function: "Sửa biển số làn ra trái",
+};
+
 export const SUBMIT_RIGHT_HOTKEY = {
   key: "ArrowRight",
   function: "Xác nhận check in/check out làn phải",
+};
+
+export const FIX_PLATE_OUT_RIGHT_HOTKEY = {
+  key: `ctrl+${SUBMIT_RIGHT_HOTKEY.key}`,
+  function: "Sửa biển số làn ra phải",
 };
 
 export const CANCEL_LEFT_HOTKEY = {

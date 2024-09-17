@@ -69,11 +69,7 @@ export default function useGetCamera() {
       }
     };
 
-    getCameraIds()
-      .then((res) => console.log(res))
-      .catch((err) => {
-        console.log(err);
-      });
+    getCameraIds();
 
     return () => {
       shouldUpdate = false;
