@@ -61,7 +61,6 @@ export default function CardCheckSection() {
     isLoading: isLoadingCard,
     isError: isErrorCard,
     error,
-    failureReason,
   } = useQuery({
     queryKey: ["/get-card-session-by-number", cardValue],
     queryFn: () => getCardSessionInfoAPI(cardValue.trim()),
