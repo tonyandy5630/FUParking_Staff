@@ -49,10 +49,6 @@ export default function Login(): JSX.Element {
   const [gate, setGate] = useState(GATE_IN);
   const navigate = useNavigate();
 
-  const handleGateChange = (value: string) => {
-    setGate(value);
-  };
-
   const loginMutation = useMutation({
     mutationKey: ["loginMutation"],
     mutationFn: loginAPI,
@@ -113,29 +109,6 @@ export default function Login(): JSX.Element {
         <div className='flex flex-col items-center justify-center'>
           <img src={logo} width={IMG_SIZE} height={IMG_SIZE} />
           <h1 className='text-4xl font-bold'>BAI Parking System</h1>
-        </div>
-        <div className='absolute top-3 right-5 border-primary h-44'>
-          <Select onValueChange={handleGateChange} defaultValue={gate}>
-            <SelectTrigger className='w-[150px]'>
-              <SelectValue placeholder='Chọn cổng' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value={GATE_IN}>
-                  <div className='flex items-center justify-around gap-x-3'>
-                    <EnterIcon />
-                    Cổng vào
-                  </div>
-                </SelectItem>
-                <SelectItem value={GATE_OUT}>
-                  <div className='flex items-center justify-around gap-x-3'>
-                    <ExitIcon />
-                    Cổng ra
-                  </div>
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
         </div>
         <FormProvider {...methods}>
           <form

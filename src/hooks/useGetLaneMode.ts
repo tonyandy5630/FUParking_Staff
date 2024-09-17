@@ -14,7 +14,6 @@ export default function useGetLaneMode(lane: LanePosition) {
   const [laneMode, setLaneMode] = useState<GateType>(GATE_IN);
 
   useEffect(() => {
-    console.log(lane, "effect");
     if (lane === LANE.LEFT) {
       window.ipcRenderer.on(SET_LEFT_LANE_CHANNEL, (_, value) => {
         setLaneMode(value);

@@ -189,8 +189,11 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     );
     triggerGetInfoByPlateNumber.current = true;
   };
+
   useEffect(() => {
     const isValidCard = watch("CardNumber")?.length === 10;
+
+    console.log(watch("CardNumber"));
     if (isValidCard) {
       const current = new Date();
       setTimeOut(current.toString());
@@ -206,6 +209,8 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       );
       triggerInfoByCard.current = true;
       return;
+    } else {
+      triggerInfoByCard.current = false;
     }
   }, [watch("CardNumber")?.length]);
 
@@ -291,7 +296,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         },
       });
       //* separate parking with plate detection
-      console.log;
       dispatch(
         setNewCardInfo({
           lane: props.position,
@@ -341,6 +345,28 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     handlePlateDetection();
   }, [cardData?.data.data, cardByPlateData?.data.data]);
 
+  useEffect(() => {
+    const plateIn = unFormatPlateNumber(checkOutInfo.plateTextIn);
+    const plateOut = unFormatPlateNumber(checkOutInfo.plateTextOut);
+    if (plateIn === "" && plateOut === "") {
+      return;
+    }
+    let message = PLATE_MATCH;
+    const isMatched = plateIn === plateOut;
+    if (!isMatched) {
+      message = PLATE_NOT_MATCH;
+    }
+    dispatch(
+      setNewCardInfo({
+        lane: props.position,
+        info: {
+          ...checkOutInfo,
+          message,
+          isError: !isMatched,
+        },
+      })
+    );
+  }, [checkOutInfo.plateTextIn, checkOutInfo.plateTextOut]);
   //* error effect by plate
   useEffect(() => {
     if (isErrorCardByPlate) {
@@ -566,7 +592,6 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
     }
 
     const cardInfo = cardData?.data?.data;
-    console.log("hi");
     if (!cardInfo) {
       dispatch(
         setNewCardInfo({
@@ -583,14 +608,13 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
 
     //* plate matched = no error
     const isPlateMatched = cardInfo.plateNumber === checkOutInfo.plateTextOut;
-    let message =
-      checkOutInfo.plateImgOut === ""
-        ? PLATE_NOT_READ
-        : isPlateMatched
-        ? PLATE_MATCH
-        : PLATE_NOT_MATCH;
 
+    const isNotEnoughMoney = cardInfo.amount > 0;
+
+    let message = PLATE_MATCH;
     let customerType = cardInfo.vehicleType;
+    let isError = false;
+
     if (
       cardInfo.customerType === GUEST_CUSTOMER ||
       cardInfo.customerType === ""
@@ -618,10 +642,18 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       );
       return;
     }
-
-    const isNotEnoughMoney = cardInfo.amount > 0;
-    if (isNotEnoughMoney) {
+    //* handle customer not enough money
+    if (isNotEnoughMoney && isPlateMatched) {
       message = IS_NOT_ENOUGH_TO_PAY;
+      isError = true;
+    } else if (!isPlateMatched) {
+      message = PLATE_NOT_MATCH;
+      isError = true;
+    }
+
+    if (checkOutInfo.plateTextOut.trim() === "") {
+      message = PLATE_NOT_READ;
+      isError = true;
     }
     // Check if there's any actual change in state before dispatching
     dispatch(

@@ -140,6 +140,7 @@ function SessionTable() {
 
   const handleSetDateFilter = (e: string) => {
     setDateFilter(e);
+    setApiHourFilter({ startHour: null, endHour: null });
     if (e === FILTER_DATE_VALUE.TODAY.string) {
       setApiDateFilter({ startDate: "", endDate: "" });
       return;

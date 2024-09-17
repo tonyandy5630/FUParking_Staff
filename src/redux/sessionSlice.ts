@@ -13,6 +13,8 @@ export const initSessionCard: SessionCard = {
   imageInBodyUrl: "",
   imageInUrl: "",
   isClosed: false,
+  cardId: "",
+  sessionStatus: "",
 };
 
 const initSessionTable: SessionCard[] = [];

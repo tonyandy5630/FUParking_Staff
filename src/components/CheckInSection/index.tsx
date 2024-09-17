@@ -560,6 +560,9 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
 
   const handleCheckIn = useCallback(async () => {
     try {
+      if (finalCustomerCheckInBody.cardText.trim() === "") {
+        return;
+      }
       if (isRunningAPI.current === true) {
         return;
       }

@@ -21,17 +21,25 @@ export default function HotKeyTable({ contents, tableCaption }: Props) {
   const tableBody = useMemo(() => {
     return contents.map((keyItem: HotkeyType) => {
       let key: any = keyItem.key;
-      if (keyItem.key === SUBMIT_LEFT_HOTKEY.key) {
+      if (keyItem.key.includes(SUBMIT_LEFT_HOTKEY.key)) {
+        const leftKey = keyItem.key.replace(
+          SUBMIT_LEFT_HOTKEY.key,
+          "Phím trái"
+        );
         key = (
           <div className='flex items-center gap-1 w-max'>
-            Phím trái
+            {leftKey}
             <ArrowLeftIcon />
           </div>
         );
-      } else if (keyItem.key === SUBMIT_RIGHT_HOTKEY.key) {
+      } else if (keyItem.key.includes(SUBMIT_RIGHT_HOTKEY.key)) {
+        const rightKey = keyItem.key.replace(
+          SUBMIT_RIGHT_HOTKEY.key,
+          "Phím phải"
+        );
         key = (
           <div className='flex items-center gap-1 w-max'>
-            Phím phải
+            {rightKey}
             <ArrowRightIcon />
           </div>
         );

@@ -30,3 +30,10 @@ export const VEHICLE_IS_PARKING =
 export const VEHICLE_IN_OTHER_SESSION = "Xe đã thuộc phiên giữ xe khác";
 export const CANNOT_CHECKOUT_PENDING_VEHICLE =
   "Xe đang đợi xác nhận không được. Không được phép check out";
+export const MISSING_CARD_MESSAGE = "Thẻ báo mất";
+export const ACTIVE_CARD_MESSAGE = "Hoạt động";
+export const DEACTIVE_CARD_MESSAGE = "Không hoạt động";
+export const CLOSED_SESSION_MESSAGE = "Đã kết thúc";
+export const PARKED_SESSION_MESSAGE = "Đang giữ xe";
+export const ERROR_MESSAGE = "Lỗi đã xảy ra";
+export const PLATE_OUT_NOT_VALID = "Biển số xe ra không hợp lệ";

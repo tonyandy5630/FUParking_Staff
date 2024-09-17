@@ -11,22 +11,31 @@ import PAGE from "../../../../url";
 import { Separator } from "@components/ui/separator";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "@utils/store";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { SessionCard } from "@my_types/session-card";
 import {
   initSessionCard,
+  resetSessionInfo,
   setNewSessionInfo,
 } from "../../../redux/sessionSlice";
 import toLocaleDate from "@utils/date";
 import { formatPlateNumber } from "@utils/plate-number";
 import {
+  ACTIVE_CARD_STATUS,
   CLOSED_SESSION_STATUS,
+  DEACTIVE_CARD_STATUS,
   MISSING_CARD_STATUS,
   PARKED_SESSION_STATUS,
 } from "@constants/session.const";
 import {
+  ACTIVE_CARD_MESSAGE,
   CARD_NOT_IN_SYSTEM,
   CARD_NOT_INFO,
+  CLOSED_SESSION_MESSAGE,
+  DEACTIVE_CARD_MESSAGE,
+  ERROR_MESSAGE,
+  MISSING_CARD_MESSAGE,
+  PARKED_SESSION_MESSAGE,
   PARKING_SESSION,
 } from "@constants/message.const";
 import { getCardSessionInfoAPI } from "@apis/session.api";
@@ -37,6 +46,7 @@ import { AxiosError, HttpStatusCode } from "axios";
 import { ErrorResponseAPI } from "@my_types/index";
 import { Button } from "@components/ui/button";
 import { CopyIcon } from "@radix-ui/react-icons";
+import { reactivateCardAPI } from "@apis/card.api";
 const CustomTooltip = lazy(() => import("@components/Tooltip"));
 
 export default function CardCheckSection() {
@@ -51,11 +61,18 @@ export default function CardCheckSection() {
     isLoading: isLoadingCard,
     isError: isErrorCard,
     error,
-    failureReason,
   } = useQuery({
     queryKey: ["/get-card-session-by-number", cardValue],
     queryFn: () => getCardSessionInfoAPI(cardValue.trim()),
     enabled: cardValue.length === 10,
+  });
+
+  const {
+    mutateAsync: mutateReactivateCardAsync,
+    isPending: isReactivatingCard,
+  } = useMutation({
+    mutationKey: ["reactivate-card"],
+    mutationFn: reactivateCardAPI,
   });
 
   const methods = useForm({
@@ -94,6 +111,25 @@ export default function CardCheckSection() {
       enableOnFormTags: ["INPUT"],
     }
   );
+  const handleReactivateButtonClick = async () => {
+    try {
+      await mutateReactivateCardAsync(cardInfo.cardId, {
+        onSuccess: (res) => {
+          dispatch(
+            setNewSessionInfo({
+              ...initSessionCard,
+              cardStatus: ACTIVE_CARD_MESSAGE,
+            })
+          );
+        },
+      });
+    } catch (err) {
+      dispatch(
+        setNewSessionInfo({ ...initSessionCard, cardStatus: ERROR_MESSAGE })
+      );
+      console.log(err);
+    }
+  };
   useEffect(() => {
     const cardInfoData = cardData?.data.data;
 
@@ -129,6 +165,7 @@ export default function CardCheckSection() {
       sessionId,
       sessionStatus,
       timeOut,
+      cardId,
     } = cardInfoData;
 
     if (cardNumberRef.current) cardNumberRef.current.value = "";
@@ -139,20 +176,36 @@ export default function CardCheckSection() {
       return;
     }
 
-    if (status === MISSING_CARD_STATUS) {
+    //* handle closed session status with active card
+    if (
+      (status !== MISSING_CARD_STATUS &&
+        sessionStatus === CLOSED_SESSION_STATUS) ||
+      sessionStatus === null
+    ) {
       dispatch(
         setNewSessionInfo({
           ...initSessionCard,
-          cardStatus: "Thẻ đã bị mất",
+          sessionStatus: "",
+          cardStatus: "Thẻ trống",
         })
       );
       return;
     }
 
-    if (sessionStatus === CLOSED_SESSION_STATUS || sessionStatus === null) {
-      dispatch(
-        setNewSessionInfo({ ...initSessionCard, cardStatus: "Thẻ trống" })
-      );
+    //* handle session message + card status message with missing card
+    let sessionInfoStatus = PARKED_SESSION_MESSAGE;
+    let cardStatus = ACTIVE_CARD_MESSAGE;
+
+    if (status === MISSING_CARD_STATUS) {
+      cardStatus = MISSING_CARD_MESSAGE;
+      //* show closed session status when card is missing
+      if (sessionStatus === CLOSED_SESSION_STATUS) {
+        sessionInfoStatus = CLOSED_SESSION_MESSAGE;
+      }
+    } else if (status === DEACTIVE_CARD_STATUS) {
+      //* not show info if card is not activated
+      cardStatus = DEACTIVE_CARD_MESSAGE;
+      dispatch(setNewSessionInfo({ ...initSessionCard, cardStatus }));
       return;
     }
 
@@ -166,12 +219,16 @@ export default function CardCheckSection() {
       plateNumber: sessionPlateNumber,
       sessionId: sessionId,
       cardNumber: cardValue,
-      cardStatus:
-        sessionStatus === PARKED_SESSION_STATUS
-          ? PARKING_SESSION
-          : CARD_NOT_INFO,
+      cardStatus,
+      sessionStatus: sessionInfoStatus,
       isClosed: sessionStatus !== PARKED_SESSION_STATUS && cardInfo.isClosed,
+      cardId,
     };
+
+    if (status === MISSING_CARD_STATUS) {
+      dispatch(setNewSessionInfo(newCardInfo));
+      return;
+    }
 
     dispatch(setNewSessionInfo(newCardInfo));
   }, [cardData?.data.data, isErrorCard]);
@@ -190,6 +247,7 @@ export default function CardCheckSection() {
       setValue("PlateNumber", cardInfo.plateNumber);
     }
   }, [showPlateInput]);
+  const isLoading = isLoadingCard || isReactivatingCard;
   return (
     <div className='grid col-span-1 gap-3 grid-rows-[auto_2fr_auto] '>
       <RectangleContainer>
@@ -209,7 +267,7 @@ export default function CardCheckSection() {
       </RectangleContainer>
       <RectangleContainer className='min-h-full border rounded-md grid-rows-7'>
         <FormProvider {...methods}>
-          <CardInfoRow isLoading={isLoadingCard} label='Biển số xe'>
+          <CardInfoRow isLoading={isLoading} label='Biển số xe'>
             {cardInfo.plateNumber !== "" && (
               <div className='flex items-center gap-1'>
                 <span>{formatPlateNumber(cardInfo.plateNumber)}</span>
@@ -228,33 +286,53 @@ export default function CardCheckSection() {
             )}
           </CardInfoRow>
         </FormProvider>
-        <CardInfoRow isLoading={isLoadingCard} label='Trạng thái'>
-          {cardInfo.cardStatus}
+        <CardInfoRow isLoading={isLoading} label='Trạng thái thẻ'>
+          <div
+            className={`flex items-center justify-start w-full gap-2 ${
+              cardInfo.cardStatus === ERROR_MESSAGE
+                ? "text-red-500 font-bold"
+                : ""
+            }`}
+          >
+            {cardInfo.cardStatus}
+            {cardInfo.cardStatus === MISSING_CARD_MESSAGE && (
+              <Button
+                variant='outline'
+                className='h-10 p-1 text-xs'
+                onClick={handleReactivateButtonClick}
+              >
+                Kích hoạt thẻ
+              </Button>
+            )}
+          </div>
+        </CardInfoRow>
+        <CardInfoRow isLoading={isLoading} label='Trạng thái phiên'>
+          {cardInfo.sessionStatus}
         </CardInfoRow>
         <div className='flex items-center px-4'>
           <Separator />
         </div>
-        <CardInfoRow isLoading={isLoadingCard} label='Loại xe'>
+        <CardInfoRow isLoading={isLoading} label='Loại xe'>
           {cardInfo.vehicleType}
         </CardInfoRow>
-        <CardInfoRow isLoading={isLoadingCard} label='Giờ xe vào'>
+        <CardInfoRow isLoading={isLoading} label='Giờ xe vào'>
           {cardInfo.timeIn}
         </CardInfoRow>
-        <CardInfoRow isLoading={isLoadingCard} label='Giờ xe ra'>
+        <CardInfoRow isLoading={isLoading} label='Giờ xe ra'>
           {cardInfo.timeOut}
         </CardInfoRow>
-        <CardInfoRow isLoading={isLoadingCard} label='Cổng xe vào'>
+        <CardInfoRow isLoading={isLoading} label='Cổng xe vào'>
           {cardInfo.gateIn}
         </CardInfoRow>
       </RectangleContainer>
       <RectangleContainer className='h-full grid-cols-2 justify-items-stretch min-h-[190px]'>
         <Image
-          isLoading={isLoadingCard}
+          isLoading={isLoading}
           className='object-scale-down'
           src={cardInfo.imageInUrl}
         />
         <Image
-          isLoading={isLoadingCard}
+          isLoading={isLoading}
           className='object-scale-down'
           src={cardInfo.imageInBodyUrl}
         />
