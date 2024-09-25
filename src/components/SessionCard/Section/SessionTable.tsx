@@ -31,9 +31,10 @@ import moment, { Moment } from "moment";
 import MyTimePicker from "@components/TimePicker";
 import { unFormatPlateNumber } from "@utils/plate-number";
 const dayStart = new Date(new Date().setHours(0, 0));
-
-function SessionTable() {
-  const parkingId = useGetParkingId();
+interface Props {
+  parkingId:string;
+}
+function SessionTable({ parkingId }: Props) {
   const { pagination, onPaginationChange } = usePagination();
   const sessionTable = useAppSelector((state) => state.sessionTable);
   const dispatch = useDispatch();

@@ -17,3 +17,6 @@ export const GET_GATE_INCOME_API_URL = ({
   endDate = "",
 }: IncomeParams) =>
   `${baseAPI_URL}/statistic/payment/${gate}/today?startDate=${startDate}&endDate=${endDate}`;
+
+export const GET_PARKING_AREA_BY_ID = (parkingId: string) =>
+  `${baseAPI_URL}/areas/${parkingId}`;

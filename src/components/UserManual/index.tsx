@@ -19,6 +19,7 @@ import {
 } from "./HotKeyTable/content";
 import useGet2Lane from "../../hooks/useGet2Lane";
 import LaneRadioGroup from "@components/LaneRadioGroup";
+import { ScrollArea } from "@components/ui/scroll-area";
 
 interface Props extends PropsWithChildren {}
 export default function UserManualDialog({}: Props) {
@@ -62,29 +63,31 @@ export default function UserManualDialog({}: Props) {
         <DialogDescription>
           Bảng tổng hợp các phím tát và sử dụng ứng dụng BAI Parking System
         </DialogDescription>
-        <div className='flex flex-col items-start justify-center'>
-          <LaneRadioGroup is2Lane={is2Lane} />
-        </div>
-        <div className='max-h-[42rem]'>
-          <div className='grid grid-rows-[1fr_auto] gap-2'>
-            <div className='grid grid-cols-2 gap-2'>
-              <HotKeyTable
-                contents={LeftHotKeys}
-                tableCaption='Tổng hợp phím tắt làn trái'
-              />
-              <HotKeyTable
-                contents={RightHotKeys}
-                tableCaption='Tổng hợp phím tắt làn phải'
-              />
-            </div>
-            <div className='flex justify-center w-full h-fit'>
-              <HotKeyTable
-                contents={GeneralHotKeys}
-                tableCaption='Tổng hợp phím tắt chung'
-              />
+        <ScrollArea className='max-h-[35rem] px-4'>
+          <div className='flex flex-col items-start justify-center py-2'>
+            <LaneRadioGroup is2Lane={is2Lane} />
+          </div>
+          <div className='max-h-[42rem]'>
+            <div className='grid grid-rows-[1fr_auto] gap-2'>
+              <div className='grid grid-cols-2 gap-2'>
+                <HotKeyTable
+                  contents={LeftHotKeys}
+                  tableCaption='Tổng hợp phím tắt làn trái'
+                />
+                <HotKeyTable
+                  contents={RightHotKeys}
+                  tableCaption='Tổng hợp phím tắt làn phải'
+                />
+              </div>
+              <div className='flex justify-center w-full h-fit'>
+                <HotKeyTable
+                  contents={GeneralHotKeys}
+                  tableCaption='Tổng hợp phím tắt chung'
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

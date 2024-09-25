@@ -17,7 +17,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import moment from "moment-timezone";
 import "moment/locale/vi";
-import RouteFallBack from "@components/RouteFallBack";
+import RouteFallBack from "@components/Fallback/RouteFallBack";
 const CardCheckerPage = lazy(() => import("./pages/CardChecker"));
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

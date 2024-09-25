@@ -2,6 +2,7 @@ import http from "@utils/http";
 import {
   GET_ALL_PARKING_AREA_API_URL,
   GET_GATE_INCOME_API_URL,
+  GET_PARKING_AREA_BY_ID,
   GET_PARKING_AREA_STATISTIC_API_URL,
   IncomeParams,
 } from "./url/parking-area";
@@ -22,3 +23,6 @@ export const getParkingAreaStatisticAPI = (parkingId: string) =>
 
 export const getGateTotalIncomeAPI = (params: IncomeParams) =>
   http.get<SuccessResponse<GateTotalIncome>>(GET_GATE_INCOME_API_URL(params));
+
+export const getParkingAreaById = (parkingId: string) =>
+  http.get<ErrorResponse<any>>(GET_PARKING_AREA_BY_ID(parkingId));

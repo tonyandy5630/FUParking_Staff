@@ -15,7 +15,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { SessionCard } from "@my_types/session-card";
 import {
   initSessionCard,
-  resetSessionInfo,
   setNewSessionInfo,
 } from "../../../redux/sessionSlice";
 import toLocaleDate from "@utils/date";

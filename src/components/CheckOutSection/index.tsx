@@ -191,9 +191,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   };
 
   useEffect(() => {
-    const isValidCard = watch("CardNumber")?.length === 10;
-
-    console.log(watch("CardNumber"));
+    const isValidCard = watch("CardNumber")?.trim()?.length === 10;
     if (isValidCard) {
       const current = new Date();
       setTimeOut(current.toString());

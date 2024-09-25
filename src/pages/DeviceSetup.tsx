@@ -30,7 +30,6 @@ export default function DeviceSetupPage() {
 
   return (
     <div className='relative flex flex-col items-start justify-center w-full p-4'>
-      {!isLoggedIn && <LoginButton />}
       <div className='flex items-center justify-center h-32 min-w-full text-center'>
         <h2 className='text-4xl font-bold'>Cài đặt Camera</h2>
       </div>

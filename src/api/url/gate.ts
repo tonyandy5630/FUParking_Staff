@@ -9,3 +9,6 @@ export const GET_ALL_GATE_API_URL = (parkingName?: string) =>
 
 export const GET_GATES_BY_PARKING_ID_API_URL = (parkingId: string) =>
   `${baseAPI_URL}/gates/area/${parkingId}`;
+
+export const GET_GATE_BT_GATE_ID = (gateId: string) =>
+  `${baseAPI_URL}/gates/${gateId}`;

@@ -27,22 +27,11 @@ function MenuItems(win: BrowserWindow, store: ElectronStore | null): any {
       ],
     },
     {
-      label: "Thẻ",
-      submenu: [
-        {
-          label: "Tra cứu thẻ",
-          enabled: false,
-          click: () => {
-            ElectronRedirect(win, PAGE.CARD_CHECKER);
-          },
-        },
-      ],
+      label: "Thẻ và Phiên Giữ Xe",
+      click: () => {
+        ElectronRedirect(win, PAGE.CARD_CHECKER);
+      },
     },
-  ];
-}
-
-export function LoggedInMenuItems(win: BrowserWindow) {
-  return [
     {
       label: "Cổng",
       click: () => {

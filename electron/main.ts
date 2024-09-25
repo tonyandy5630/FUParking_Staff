@@ -29,7 +29,7 @@ import {
 import { app, BrowserWindow, Menu, dialog, ipcMain, MenuItem } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import MenuItems, { LoggedInMenuItems } from "./menu/loginMenuItems";
+import MenuItems from "./menu/loginMenuItems";
 import Store from "electron-store";
 import ElectronStore from "electron-store";
 import { GATE_IN, GATE_OUT } from "../src/constants/gate.const";
@@ -133,6 +133,14 @@ ipcMain.on(SET_GATE_CHANNEL, (_, id: string) => {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
   }
+  if (id.trim() === "") {
+    dialog.showErrorBox(
+      "Cổng không tồn tại trong hệ thống",
+      "Cổng bạn chọn với máy này đã bị xóa hoặc không tồn tại"
+    );
+    store.set(GATE_ID_KEY, "");
+    return;
+  }
   if (!id) {
     dialog.showErrorBox("Select Gate", "Gate is not selected");
     return;
@@ -153,6 +161,13 @@ ipcMain.on(SET_PARKING_AREA_ID_CHANNEL, (_, parkingId: string) => {
   if (!store) {
     dialog.showErrorBox("Error", "Error in getting store");
     return;
+  }
+
+  if (parkingId.trim() === "") {
+    dialog.showErrorBox(
+      "Bãi xe không tồn tại trong hệ thống",
+      "Bãi xe chọn với máy này đã bị xóa hoặc không tồn tại"
+    );
   }
 
   store.set(PARKING_AREA_ID_KEY, parkingId);
@@ -320,13 +335,8 @@ ipcMain.handle(LOG_OUT_CHANNEL, () => {
   const menuItems = MenuItems(win, store);
   if (menuItems === undefined) return;
 
-  const cardCheckerMenuItem = menuItems[1].submenu[0] as Partial<MenuItem>;
-
-  cardCheckerMenuItem.enabled = false;
-
-  const menu = Menu.buildFromTemplate(menuItems);
   store.set(LOGGED_IN_KEY, false);
-  Menu.setApplicationMenu(menu);
+  win.removeMenu();
 });
 
 ipcMain.handle(GET_LOG_IN_CHANNEL, () => {
@@ -353,17 +363,11 @@ ipcMain.on(LOGGED_IN, (e: any, isLoggedIn: any) => {
 
   store.set(LOGGED_IN_KEY, isLoggedIn);
 
-  const menuItems = MenuItems(win, store);
-  if (menuItems === undefined) return;
+  const loginMenu = MenuItems(win, store);
 
-  const cardCheckerMenuItem = menuItems[1].submenu[0] as Partial<MenuItem>;
+  if (loginMenu === undefined) return;
 
-  cardCheckerMenuItem.enabled = true;
-
-  const loggedInMenuItems = LoggedInMenuItems(win);
-  const menu = Menu.buildFromTemplate(
-    (menuItems as Array<any>).concat(loggedInMenuItems)
-  );
+  const menu = Menu.buildFromTemplate(loginMenu);
   Menu.setApplicationMenu(menu);
 });
 
@@ -408,14 +412,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
-    if (!win) return;
-
-    const loginMenu = MenuItems(win, store);
-    if (loginMenu.length === 0) {
-      Promise.reject();
-    }
-    const menu = Menu.buildFromTemplate(loginMenu);
-    Menu.setApplicationMenu(menu);
+    if (win) win.removeMenu();
   })
   .catch(() => {
     dialog.showErrorBox("System error", "Something went wrong");

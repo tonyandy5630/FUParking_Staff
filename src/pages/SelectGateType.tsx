@@ -25,13 +25,15 @@ import { useAppSelector } from "@utils/store";
 import useRefresh from "../hooks/useRefresh";
 const ConfirmDialog = lazy(() => import("../ConfirmDialog"));
 import useGetLogin from "../hooks/useGetLogIn";
+import VerificationFallback from "@components/Fallback/VerificationFallback";
 const LoginButton = lazy(() => import("@components/LoginButton"));
 
 export default function SelectGateTypePage() {
   useRefresh();
   useSelectGate();
   const isLoggedIn = useGetLogin();
-  const parkingId = useGetParkingId();
+  const { parkingId, isLoadingParkingAreaData: verifyingParking } =
+    useGetParkingId();
   const [openConfirm, setOpenConfirm] = useState(false);
   const gateInId = useAppSelector((state) => state.gate);
   const [selectedParkingId, setSelectedParkingId] = useState<string>("");
@@ -217,42 +219,48 @@ export default function SelectGateTypePage() {
           />
         </Suspense>
       )}
-      <div className='w-full p-3'>{!isLoggedIn && <LoginButton />}</div>
-      <main className='flex flex-col items-center justify-center min-h-full gap-y-10 min-w-screen'>
-        <div className='flex items-center justify-center min-w-full p-3 text-4xl font-bold'>
-          <h3 className='uppercase '>Cài đặt cổng</h3>
-        </div>
-        <div className='grid h-full gap-3 min-w-1/4'>
-          <ToggleButtonContainer
-            label='Bãi giữ xe'
-            isLoading={isLoadingParkingArea}
-          >
-            {parkingAreaSelects}
-          </ToggleButtonContainer>
-          <div className='grid gap-2'>
-            <ToggleButtonContainer label='Cổng' isLoading={isLoadingGates}>
-              {gateSelects}
-            </ToggleButtonContainer>
-          </div>
-          <div className='grid grid-cols-2 gap-1'>
-            <Button
-              className='rounded-sm'
-              variant='destructive'
-              onClick={() => handleResetSetup()}
-              disabled={selectedGateId === ""}
-            >
-              Hủy
-            </Button>
-            <Button
-              className='rounded-sm'
-              disabled={selectedGateId === ""}
-              onClick={handleOpenConfirm}
-            >
-              Xác nhận
-            </Button>
-          </div>
-        </div>
-      </main>
+      {verifyingParking ? (
+        <VerificationFallback />
+      ) : (
+        <>
+          <div className='w-full p-3'>{!isLoggedIn && <LoginButton />}</div>
+          <main className='flex flex-col items-center justify-center min-h-full gap-y-10 min-w-screen'>
+            <div className='flex items-center justify-center min-w-full p-3 text-4xl font-bold'>
+              <h3 className='uppercase '>Cài đặt cổng</h3>
+            </div>
+            <div className='grid h-full gap-3 min-w-1/4'>
+              <ToggleButtonContainer
+                label='Bãi giữ xe'
+                isLoading={isLoadingParkingArea}
+              >
+                {parkingAreaSelects}
+              </ToggleButtonContainer>
+              <div className='grid gap-2'>
+                <ToggleButtonContainer label='Cổng' isLoading={isLoadingGates}>
+                  {gateSelects}
+                </ToggleButtonContainer>
+              </div>
+              <div className='grid grid-cols-2 gap-1'>
+                <Button
+                  className='rounded-sm'
+                  variant='destructive'
+                  onClick={() => handleResetSetup()}
+                  disabled={selectedGateId === ""}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  className='rounded-sm'
+                  disabled={selectedGateId === ""}
+                  onClick={handleOpenConfirm}
+                >
+                  Xác nhận
+                </Button>
+              </div>
+            </div>
+          </main>{" "}
+        </>
+      )}
     </>
   );
 }
