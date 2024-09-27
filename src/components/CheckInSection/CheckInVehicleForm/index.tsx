@@ -156,7 +156,10 @@ export default function CheckInVehicleForm({
     const types = vehicleTypesData?.data.data;
     if (isSuccessVehicleTypes && types) {
       return types.map((item) => ({
-        name: item.description,
+        name:
+          item.description === "" || !item.description
+            ? item.name
+            : item.description,
         value: item.id,
       }));
     }
@@ -218,7 +221,9 @@ export default function CheckInVehicleForm({
                 )}
               </InfoVehicle>
               <InfoVehicle label='Khách hàng' col={true}>
-                <span className='text-red-500'>{checkInInfo.customerType}</span>
+                <span className='text-red-500 uppercase'>
+                  {checkInInfo.customerType}
+                </span>
               </InfoVehicle>
             </InfoSection>
           </FormInfoRow>

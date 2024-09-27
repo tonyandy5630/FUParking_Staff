@@ -25,7 +25,7 @@ export type CheckOutInfo = {
   bodyImgOut: string;
   plateTextIn: string;
   plateTextOut: string;
-  cashToPay?: number;
+  cashToPay?: number | string;
   checkOutCardText: string;
   customerType: string;
   timeIn?: string;

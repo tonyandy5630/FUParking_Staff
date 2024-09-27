@@ -457,8 +457,10 @@ export default function CheckOutVehicleForm({
             </InfoSection>
             <InfoSection numberOfRow={2}>
               <InfoVehicle label='Giá vé' col={true}>
-                <span className='text-red-500'>{checkOutInfo.cashToPay} </span>
-                VND
+                <span className='text-red-500 uppercase'>
+                  {checkOutInfo.cashToPay}{" "}
+                </span>
+                {typeof checkOutInfo.cashToPay === "number" ? "VND" : ""}
               </InfoVehicle>
               <InfoVehicle label='Loại vé' col={true}>
                 <span className='text-red-500 uppercase'>

@@ -37,6 +37,7 @@ import { SizeTypes } from "@my_types/my-camera";
 import {
   CARD_NOT_INFO,
   IS_NOT_ENOUGH_TO_PAY,
+  PAY_VIA_WALLET_MESSAGE,
   PLATE_MATCH,
   PLATE_NOT_MATCH,
   PLATE_NOT_READ,
@@ -534,8 +535,10 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       return;
     }
 
+    let cashToPay: number | string = PAY_VIA_WALLET_MESSAGE;
     if (cardInfo.amount > 0) {
       message = IS_NOT_ENOUGH_TO_PAY;
+      cashToPay = cardInfo.amount;
     }
     // Check if there's any actual change in state before dispatching
     dispatch(
@@ -544,7 +547,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
         info: {
           ...checkOutInfo,
           id: cardInfo.id,
-          cashToPay: cardInfo.amount,
+          cashToPay,
           plateImgIn: cardInfo.imageInUrl,
           timeIn: new Date(cardInfo.timeIn).toString(),
           plateTextIn: cardInfo.plateNumber,
@@ -640,12 +643,15 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
       );
       return;
     }
+    let cashToPay: number | string = PAY_VIA_WALLET_MESSAGE;
     //* handle customer not enough money
     if (isNotEnoughMoney && isPlateMatched) {
       message = IS_NOT_ENOUGH_TO_PAY;
       isError = true;
+      cashToPay = cardInfo.amount;
     } else if (!isPlateMatched) {
       message = PLATE_NOT_MATCH;
+      cashToPay = cardInfo.amount;
       isError = true;
     }
 
@@ -661,7 +667,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           ...checkOutInfo,
           id: cardInfo.id,
           checkOutCardText: cardNumber,
-          cashToPay: cardInfo.amount,
+          cashToPay,
           plateImgIn: cardInfo.imageInUrl,
           timeIn: new Date(cardInfo.timeIn).toString(),
           plateTextIn: cardInfo.plateNumber,
