@@ -94,7 +94,7 @@ export default function CheckInPage() {
           {RightLane}
         </LaneContainer>
       );
-  }, [isSetting2Lane, isLoadingGateData]);
+  }, [isSetting2Lane, isLoadingGateData, LeftLane, RightLane]);
 
   return (
     <>

@@ -20,11 +20,12 @@ import {
 import useGet2Lane from "../../hooks/useGet2Lane";
 import LaneRadioGroup from "@components/LaneRadioGroup";
 import { ScrollArea } from "@components/ui/scroll-area";
+import useToggleLaneMode from "../../hooks/useToggleLaneMode";
 
 interface Props extends PropsWithChildren {}
 export default function UserManualDialog({}: Props) {
   const [openRef, setOpenRef] = useState(false);
-  const is2Lane = useGet2Lane();
+  const { is2Lane: isSetting2Lane } = useToggleLaneMode();
   useHotkeys(
     HELP_KEY.key,
     () => {
@@ -65,7 +66,7 @@ export default function UserManualDialog({}: Props) {
         </DialogDescription>
         <ScrollArea className='max-h-[35rem] px-4'>
           <div className='flex flex-col items-start justify-center py-2'>
-            <LaneRadioGroup is2Lane={is2Lane} />
+            <LaneRadioGroup is2Lane={isSetting2Lane} />
           </div>
           <div className='max-h-[42rem]'>
             <div className='grid grid-rows-[1fr_auto] gap-2'>
