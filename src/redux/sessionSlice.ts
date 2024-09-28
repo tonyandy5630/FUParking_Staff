@@ -9,6 +9,7 @@ export const initSessionCard: SessionCard = {
   plateNumber: "",
   sessionId: "",
   timeIn: "",
+  timeOut: "",
   vehicleType: "",
   imageInBodyUrl: "",
   imageInUrl: "",
@@ -42,7 +43,7 @@ export const sessionTableSlice = createSlice({
     setSessionTableItem: (state, { payload }: PayloadAction<SessionCard>) => {
       const newState = state.map((item) => {
         if (item.sessionId === payload.sessionId) {
-          return { ...item, ...payload };
+          return { ...payload };
         }
         return item;
       });

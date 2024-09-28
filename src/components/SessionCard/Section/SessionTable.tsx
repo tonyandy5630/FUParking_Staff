@@ -30,9 +30,13 @@ import { Button } from "@components/ui/button";
 import moment, { Moment } from "moment";
 import MyTimePicker from "@components/TimePicker";
 import { unFormatPlateNumber } from "@utils/plate-number";
+import {
+  CLOSED_SESSION_MESSAGE,
+  PARKED_SESSION_MESSAGE,
+} from "@constants/message.const";
 const dayStart = new Date(new Date().setHours(0, 0));
 interface Props {
-  parkingId:string;
+  parkingId: string;
 }
 function SessionTable({ parkingId }: Props) {
   const { pagination, onPaginationChange } = usePagination();
@@ -170,8 +174,10 @@ function SessionTable({ parkingId }: Props) {
         cardNumber: item.cardNumber,
         timeOut: toLocaleDate(item.timeOut),
         plateNumber: item.plateNumber,
-        cardStatus:
-          item.status === PARKED_SESSION_STATUS ? "Đang giữ xe" : "Đã kết thúc",
+        sessionStatus:
+          item.status === PARKED_SESSION_STATUS
+            ? PARKED_SESSION_MESSAGE
+            : CLOSED_SESSION_MESSAGE,
         sessionId: item.id,
         vehicleType: item.vehicleTypeName,
         timeIn: toLocaleDate(item.timeIn),
@@ -179,6 +185,7 @@ function SessionTable({ parkingId }: Props) {
         imageInBodyUrl: item.imageInBodyUrl,
         imageInUrl: item.imageInUrl,
         isClosed: item.status !== PARKED_SESSION_STATUS,
+        cardStatus: "",
       } as SessionCard;
     });
     dispatch(setNewTable(addSession));

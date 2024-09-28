@@ -21,11 +21,12 @@ import useSelectGate from "../hooks/useSelectGate";
 import ToggleButton from "@components/Button/ToggleButton";
 import ToggleButtonContainer from "@components/ToggleButtonContainer";
 import { Skeleton } from "@components/ui/skeleton";
-import { useAppSelector } from "@utils/store";
+import { useAppDispatch, useAppSelector } from "@utils/store";
 import useRefresh from "../hooks/useRefresh";
 const ConfirmDialog = lazy(() => import("../ConfirmDialog"));
 import useGetLogin from "../hooks/useGetLogIn";
 import VerificationFallback from "@components/Fallback/VerificationFallback";
+import { setNewTable, setSessionTableItem } from "../redux/sessionSlice";
 const LoginButton = lazy(() => import("@components/LoginButton"));
 
 export default function SelectGateTypePage() {
@@ -191,7 +192,6 @@ export default function SelectGateTypePage() {
       const notFirstTimeSetup = await window.ipcRenderer.invoke(
         GET_NOT_FIRST_TIME_CHANNEL
       );
-
       //* set up camera if is first time set up
       if (!notFirstTimeSetup) {
         navigate(PAGE.DEVICE_SET_UP);

@@ -32,7 +32,7 @@ export const SessionCardColumns: ColumnDef<SessionCard>[] = [
     header: "Cổng vào",
   },
   {
-    accessorKey: "cardStatus",
+    accessorKey: "sessionStatus",
     header: "Trạng thái phiên",
   },
 ];

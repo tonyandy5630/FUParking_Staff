@@ -18,7 +18,7 @@ export default function ToggleButton({
 
   return (
     <Button
-      className='w-32 rounded-sm'
+      className='rounded-sm min-w-32'
       variant={`${
         currentValue.trim() === value.trim() ? "default" : "outline"
       }`}

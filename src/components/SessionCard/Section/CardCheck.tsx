@@ -129,6 +129,11 @@ export default function CardCheckSection() {
       console.log(err);
     }
   };
+
+  useEffect(() => {
+    dispatch(setNewSessionInfo(initSessionCard));
+  }, []);
+
   useEffect(() => {
     const cardInfoData = cardData?.data.data;
 
