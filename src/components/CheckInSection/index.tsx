@@ -55,12 +55,13 @@ import {
   setCustomerCheckInData,
   setGuestCheckInFormData,
 } from "@utils/set-form-data";
-import cropImageToBase64 from "@utils/image";
+import cropImageToBase64, { addDateToImage } from "@utils/image";
 import { isValidPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 import { ErrorResponseAPI } from "@my_types/index";
 import { PENDING_VEHICLE } from "@constants/vehicle.const";
 import { useAppSelector } from "@utils/store";
 import LanePosition from "@my_types/lane";
+import toLocaleDate from "@utils/date";
 
 export type Props = {
   plateDeviceId: ConstrainDOMString | undefined;
@@ -388,8 +389,16 @@ function CheckInSection({ cameraSize = "sm", ...props }: Props) {
     try {
       const plateNumberBody = new FormData();
       //* take vehicle picture
-      const plateImageSrc = (plateCamRef.current as any).getScreenshot();
-      const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
+      const defaultPlateCamRef = (plateCamRef.current as any).getScreenshot();
+      const defaultBodyRef = (bodyCamRef.current as any).getScreenshot();
+      const plateImageSrc = await addDateToImage(
+        defaultPlateCamRef,
+        toLocaleDate(checkInDate.toString())
+      );
+      const bodyImageSrc = await addDateToImage(
+        defaultBodyRef,
+        toLocaleDate(checkInDate.toString())
+      );
 
       //* save data for checkin
       setCheckInInfo((prev) => ({

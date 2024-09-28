@@ -45,7 +45,7 @@ import {
   SLOW_DOWN_ACTION,
   VEHICLE_IN_OTHER_SESSION,
 } from "@constants/message.const";
-import { getLocalISOString } from "@utils/date";
+import toLocaleDate, { getLocalISOString } from "@utils/date";
 import { HotkeysProvider } from "react-hotkeys-hook";
 import PAGE from "../../../url";
 import LanePosition from "@my_types/lane";
@@ -60,7 +60,7 @@ import {
   setNewCardInfo,
 } from "../../redux/checkoutSlice";
 import ParkingContainer from "@components/ParkingContainer";
-import cropImageToBase64 from "@utils/image";
+import cropImageToBase64, { addDateToImage } from "@utils/image";
 import { isValidPlateNumber, unFormatPlateNumber } from "@utils/plate-number";
 
 export type Props = {
@@ -258,14 +258,25 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
   }, []);
 
   const handlePlateDetection = useCallback(async () => {
+    const current = new Date();
     try {
       let plateImgOut = "";
       //* reset before do anything
       dispatch(resetCurrentCardInfo({ lane: props.position }));
       const plateNumberBody = new FormData();
-      const plateImageSrc = (plateCamRef.current as any).getScreenshot();
-      const bodyImageSrc = (bodyCamRef.current as any).getScreenshot();
+      const defaultPlateImage = (plateCamRef.current as any).getScreenshot();
+      const defaultBodyImage = (bodyCamRef.current as any).getScreenshot();
+      const plateImageSrc = await addDateToImage(
+        defaultPlateImage,
+        toLocaleDate(current.toString())
+      );
+      const bodyImageSrc = await addDateToImage(
+        defaultBodyImage,
+        toLocaleDate(current.toString())
+      );
+
       plateImgOut = plateImageSrc;
+
       const plateFile = base64StringToFile(plateImageSrc, "uploaded_image.png");
 
       plateNumberBody.append("upload", plateFile);
@@ -300,7 +311,7 @@ function CheckoutSection({ bodyDeviceId, cameraSize = "sm", ...props }: Props) {
           lane: props.position,
           info: {
             ...checkOutInfo,
-            timeOut: new Date().toString(),
+            timeOut: current.toString(),
             plateImgOut,
             plateTextOut: plateRead,
             bodyImgOut: bodyImageSrc,

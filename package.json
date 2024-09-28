@@ -2,7 +2,7 @@
   "name": "fptparkingstaff",
   "productName": "FPTParkingStaff",
   "private": true,
-  "version": "2.3.25092024",
+  "version": "2.4.28092024",
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development && vite",
